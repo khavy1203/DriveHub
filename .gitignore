@@ -3,3 +3,4 @@ dist*
 /frontend/build/*
 /OntapLT/frontend
 /v1.0.*
+.history
