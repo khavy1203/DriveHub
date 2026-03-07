@@ -1,0 +1,143 @@
+.custom-modal {
+    display: flex;
+    justify-content: center;
+    width: 100%;
+}
+
+/* Điều chỉnh kích thước modal */
+.custom-modal .modal-dialog {
+    max-width: 80%;
+    /* Tăng chiều rộng modal lên 80% của khung nhìn */
+    width: auto;
+    /* Tự động điều chỉnh kích thước */
+}
+
+/* Tăng chiều cao modal */
+.custom-modal .modal-content {
+    max-height: 80vh;
+    /* Chiều cao tối đa là 80% của chiều cao khung nhìn */
+    max-width: none;
+
+}
+
+/* Thêm khoảng cách bên trong modal */
+.custom-modal .modal-body {
+    padding: 20px;
+    /* Tăng khoảng cách bên trong */
+}
+
+/* Căn giữa nội dung */
+.custom-modal .modal-title {
+    text-align: center;
+    /* Căn giữa tiêu đề */
+}
+
+/* Đặt màu nền và viền nếu cần */
+.custom-modal .modal-content {
+    background-color: #f8f9fa;
+    /* Màu nền */
+    border-radius: 8px;
+    /* Bo góc */
+    border: 1px solid #ddd;
+    /* Viền */
+}
+
+.custom-modal .table-success {
+    background-color: #34f060 !important;
+    /* Màu xanh cho "Đạt" */
+}
+
+.custom-modal .table-danger {
+    background-color: #f8d7da !important;
+    /* Màu đỏ cho "Trượt" */
+}
+
+/* Style chung cho toàn bộ form */
+.exam-info-row .form-control,
+select {
+    width: 100%;
+    padding: 10px 15px;
+    margin: 5px 0;
+    font-size: 16px;
+    color: #333;
+    background-color: #f9f9f9;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease-in-out;
+}
+
+/* Hiệu ứng hover cho ô input và select */
+.exam-info-row .form-control:hover,
+select:hover {
+    background-color: #fff;
+    border-color: #007bff;
+    box-shadow: 0 2px 5px rgba(0, 123, 255, 0.3);
+}
+
+/* Hiệu ứng focus cho ô input và select */
+.exam-info-row .form-control:focus,
+select:focus {
+    outline: none;
+    background-color: #fff;
+    border-color: #007bff;
+    box-shadow: 0 4px 10px rgba(0, 123, 255, 0.4);
+}
+
+/* Style cho placeholder */
+.exam-info-row .form-control::placeholder {
+    color: #aaa;
+    font-style: italic;
+}
+
+/* Style cho select */
+.exam-info-row select {
+    appearance: none;
+    background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="%23333" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-down"><path d="M6 9l6 6 6-6"></path></svg>');
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+    background-size: 15px;
+    padding-right: 35px;
+}
+
+/* Style hàng chứa input và select */
+
+
+/* Label style */
+.exam-info-row label {
+    font-weight: bold;
+    margin-bottom: 5px;
+    display: block;
+}
+
+.exam-info-row .group {
+    display: flex;
+    justify-content: space-between;
+}
+
+.exam-info-row {
+    width: 100%;
+}
+
+.title-result-exam {
+    font-size: 36px;
+    /* Kích thước chữ lớn hơn */
+    font-weight: bold;
+    /* Chữ in đậm */
+    text-align: center;
+    /* Căn giữa chữ */
+    color: transparent;
+    /* Bắt buộc để gradient chữ hoạt động */
+    background: linear-gradient(90deg, #56CCF2, #2F80ED, #56CCF2);
+    /* Gradient xanh dương */
+    background-clip: text;
+    /* Hiển thị gradient trên chữ */
+    -webkit-background-clip: text;
+    /* Tương thích với WebKit */
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+    /* Hiệu ứng đổ bóng chữ */
+    padding: 10px 0;
+    /* Khoảng cách trên dưới */
+    transition: transform 0.3s ease, text-shadow 0.3s ease;
+    /* Hiệu ứng chuyển động mượt */
+}

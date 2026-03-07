@@ -1,0 +1,40 @@
+{
+  "compilerOptions": {
+    "target": "es6",  // Nâng cấp target lên ES6 để hỗ trợ cú pháp hiện đại
+    "lib": [
+      "dom",
+      "dom.iterable",
+      "esnext"  // Giữ lại esnext để hỗ trợ các tính năng hiện đại
+    ],
+    "allowJs": true,  // Cho phép sử dụng tệp .js
+    "skipLibCheck": true,  // Bỏ qua kiểm tra kiểu cho các tệp .d.ts
+    "esModuleInterop": true,  // Hỗ trợ import/export module ES
+    "allowSyntheticDefaultImports": true,  // Hỗ trợ import mặc định
+    "strict": true,  // Bật chế độ kiểm tra chặt chẽ
+    "forceConsistentCasingInFileNames": true,  // Đảm bảo viết hoa/thường thống nhất
+    "noFallthroughCasesInSwitch": true,  // Tránh lỗi logic trong switch
+    "module": "esnext",  // Sử dụng module hiện đại
+    "moduleResolution": "node",  // Hỗ trợ node_modules
+    "resolveJsonModule": true,  // Cho phép import tệp JSON
+    "isolatedModules": true,  // Đảm bảo các module độc lập
+    "noEmit": true,  // Không tạo ra tệp .js khi biên dịch
+    "jsx": "react-jsx",  // Tối ưu hóa cho React 17+ với JSX
+    "types": ["node"],  // Thêm định nghĩa kiểu cho Node.js
+    "baseUrl": "./",  // Thiết lập đường dẫn cơ sở
+    "paths": {  // Định nghĩa alias đường dẫn (nếu cần)
+      "@assets/*": ["src/assets/*"],
+      "@components/*": ["src/components/*"],
+      "@utils/*": ["src/utils/*"]
+    }
+  },
+  "include": [
+    "src/**/*",
+    "animsition",
+    "public/assets/mainpages"
+  ],
+  "exclude": [
+    "node_modules",
+    "build",
+    "dist"
+  ]
+}

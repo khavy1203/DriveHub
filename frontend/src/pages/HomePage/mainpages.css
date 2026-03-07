@@ -1,0 +1,87 @@
+.left-image {
+    position: relative;
+    display: inline-block;
+    /* Đảm bảo phù hợp kích thước hình ảnh */
+    overflow: hidden;
+    /* Đảm bảo hiệu ứng không bị tràn */
+    border-radius: 20px;
+    /* Bo góc mềm mại */
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    /* Đổ bóng mặc định */
+    transition: box-shadow 0.4s ease;
+    /* Hiệu ứng mượt khi thay đổi bóng */
+}
+
+.left-image img {
+    width: 100%;
+    display: block;
+    /* Loại bỏ khoảng trắng dưới ảnh */
+    border-radius: 20px;
+    /* Giữ bo góc cho hình ảnh */
+    transition: transform 0.4s ease;
+    /* Hiệu ứng phóng to khi hover */
+}
+
+.left-image::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    /* Bắt đầu từ ngoài bên trái */
+    width: 200%;
+    /* Gradient phủ toàn bộ chiều ngang */
+    height: 100%;
+    background: linear-gradient(120deg,
+            rgba(255, 255, 255, 0.2) 0%,
+            rgba(255, 255, 255, 0.6) 50%,
+            rgba(255, 255, 255, 0.2) 100%);
+    transform: skewX(-30deg);
+    /* Hiệu ứng nghiêng ánh sáng */
+    pointer-events: none;
+    /* Không ảnh hưởng tương tác chuột */
+    animation: light-sweep 3s linear infinite;
+    /* Ánh sáng chạy mượt */
+}
+
+.left-image:hover {
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4);
+    /* Tăng độ đổ bóng khi hover */
+}
+
+.left-image:hover::before {
+    animation: none;
+    /* Dừng hiệu ứng ánh sáng khi hover */
+}
+
+.left-image:hover img {
+    transform: scale(1.1);
+    /* Phóng to hình ảnh khi hover */
+}
+
+@keyframes light-sweep {
+    0% {
+        left: -100%;
+    }
+
+    100% {
+        left: 100%;
+    }
+}
+
+.main-content {
+    margin-top: 10px;
+}
+
+.qr-scanner {
+    position: relative;
+    margin-top: 10px;
+    text-align: center;
+}
+
+#qr-scanner-container {
+    width: 100%;
+    max-width: 300px;
+    margin: 10px auto;
+    border: 2px solid #ccc;
+    border-radius: 5px;
+}

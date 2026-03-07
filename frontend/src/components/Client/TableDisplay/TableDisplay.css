@@ -1,0 +1,40 @@
+.table-container {
+    position: relative;
+  }
+  
+  .table-result {
+    width: 100%;
+    border-collapse: collapse;
+    text-align: center;
+  }
+  
+  .table-result th,
+  .table-result td {
+    border: 1px solid #ddd;
+    padding: 8px;
+  }
+  
+  .image-column img {
+    max-width: 500px;
+    max-height: 500px;
+    object-fit: cover;
+  }
+  
+  .enlarged-image {
+    position: fixed;
+    width: 500px;
+    height: 500px;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 10;
+    border: 2px solid #ddd;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    display: none;
+    background-color: #fff;
+  }
+  
+  .table-result tr:hover ~ .enlarged-image {
+    display: block;
+  }
+  

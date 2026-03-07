@@ -1,0 +1,113 @@
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  /* Đảm bảo modal nằm trên cùng */
+
+}
+
+.modal-overlay .modal-footer {
+  display: flex;
+  justify-content: start;
+  padding: 2%;
+}
+
+/* .modal-overlay .modal-footer button{
+  background-color: rgb(0, 255, 106);
+  color: black;
+} */
+
+.modal-detail {
+  flex: 2;
+  width: 100%;
+  /* Chiều rộng của div */
+  max-height: 85vh;
+  /* Chiều cao tối đa của div */
+  overflow-y: auto;
+  /* Thêm thanh cuộn dọc nếu nội dung vượt quá chiều cao */
+  overflow-x: hidden;
+  /* Ẩn thanh cuộn ngang nếu có */
+  padding: 10px;
+  /* Thêm khoảng cách bên trong */
+  border: 1px solid #ccc;
+  /* Đường viền cho rõ ràng */
+  background-color: #f9f9f9;
+  /* Màu nền */
+
+
+}
+
+.modal-content {
+  background-color: white;
+  padding: 20px;
+  border-radius: 8px;
+  max-width: 600px;
+  width: 100%;
+  text-align: center;
+}
+
+.answer-item {
+  margin: 10px 0;
+}
+
+.correct {
+  color: green;
+}
+
+.incorrect {
+  color: red;
+}
+
+button {
+  padding: 10px 20px;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  cursor: pointer;
+}
+
+button:hover {
+  background-color: #0056b3;
+}
+
+.modal-overlay .student-info p{
+  font-size:22px
+}
+
+@media (max-width: 769px) {
+
+  .modal-detail td img {
+    max-width: 200px;
+    max-height: 200px;
+
+  }
+
+  .table-result th:nth-child(3),
+  .table-result td:nth-child(3),
+  .table-result th:nth-child(4),
+  .table-result td:nth-child(4),
+  .table-result th:nth-child(1),
+  .table-result td:nth-child(1) {
+    width: 10px;
+    /* Adjust as needed */
+    word-wrap: break-word;
+    overflow: hidden;
+  }
+
+  .table-result th:nth-child(2),
+  .table-result td:nth-child(2) {
+    width: 200px;
+    /* Adjust as needed */
+    word-wrap: break-word;
+    overflow: hidden;
+  }
+
+
+}
