@@ -1,0 +1,544 @@
+.form-list-student {
+  background-position: center center;
+  background-size: cover;
+  position: relative;
+  overflow: hidden;
+}
+
+.form-list-student .table-section h3 {
+  color: #4a90e2;
+  font-size: 1.1em;
+  font-weight: bold;
+  margin: 10px 0;
+  padding: 8px 16px;
+  background: linear-gradient(45deg, #f8f9fa, #e3eaf4);
+  border-radius: 8px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  width: fit-content;
+  text-align: center;
+  transition: transform 0.2s ease;
+}
+
+.form-list-student .name-table h3:hover {
+  transform: scale(1.05);
+  color: #007bff;
+}
+
+.students-list {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 20px;
+  margin: 20px auto;
+  font-family: 'Arial', sans-serif;
+}
+
+
+.students-list h2 {
+  color: #333;
+  margin-bottom: 20px;
+  font-size: 1.8em;
+  font-weight: bold;
+}
+
+/* Table header styling */
+.form-list-student thead {
+  background: linear-gradient(45deg, #007bff, #00aaff);
+  color: white;
+}
+
+.form-list-student th,
+.form-list-student td {
+  padding: 12px 15px;
+  border: 1px solid #ddd;
+  font-size: 1em;
+  transition: background-color 0.3s, color 0.3s;
+}
+
+/* Alternating row colors */
+.form-list-student tbody tr:nth-child(even) {
+  background-color: #f3f4f6;
+}
+
+.form-list-student tbody tr:nth-child(odd) {
+  background-color: #ffffff;
+}
+
+/* Hover effect on rows */
+.form-list-student tbody tr:hover {
+  background-color: #e0f7fa;
+  cursor: pointer;
+}
+
+.form-list-student tbody tr:hover td {
+  color: #007bff;
+  font-weight: bold;
+}
+
+
+/* Styling for table headers with bell icon and record count */
+.name-table {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #4a90e2;
+  font-size: 0.5em;
+  font-weight: bold;
+  margin: 10px 0;
+  padding: 8px 16px;
+  background: linear-gradient(45deg, #f8f9fa, #e3eaf4);
+  border-radius: 8px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  width: fit-content;
+  transition: transform 0.2s ease;
+}
+
+.name-table .fas.fa-bell {
+  color: #e74c3c;
+}
+
+.name-table .record-count {
+  background: #e74c3c;
+  color: white;
+  font-size: 0.8em;
+  padding: 3px 8px;
+  border-radius: 10px;
+  margin-left: 5px;
+}
+
+
+/* Styling for the course selection label */
+.select-course-child label {
+  font-size: 1.2em;
+  /* Larger font size for better readability */
+  font-weight: bold;
+  color: #4a90e2;
+  margin-right: 10px;
+}
+
+/* Styling for the dropdown (select) */
+.select-course-child select {
+  padding: 8px 12px;
+  font-size: 1em;
+  font-weight: bold;
+  color: #ffffff;
+  background: linear-gradient(45deg, #42a5f5, #66bb6a, #ffa726);
+  /* Vibrant gradient */
+  border: 2px solid #4a90e2;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+/* Hover effect for the dropdown */
+.select-course-child select:hover {
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+/* Dropdown option styling */
+.select-course-child select option {
+  color: #333;
+  background-color: #f5f5f5;
+  font-weight: normal;
+}
+
+
+
+.list-InfoStudent {
+  display: flex;
+  /* flex-direction: column; */
+  gap: 20px;
+  justify-content: space-around;
+  align-items: flex-start;
+}
+
+
+/* Styling for each section */
+.form-list-student .section {
+  flex: 1;
+  max-width: 35%;
+  border-radius: 15px;
+  background: #f9f9f9;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  transition: transform 0.3s ease;
+}
+
+
+
+.name-table {
+  font-size: 1.2em;
+  font-weight: bold;
+  margin-bottom: 10px;
+  color: #007bff;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.scroll-container {
+  /* Giới hạn chiều cao của phần tử và cho phép cuộn dọc */
+  max-height: 600px;
+  /* Giới hạn chiều cao của container, bạn có thể thay đổi giá trị này */
+  overflow-y: auto;
+  /* Cho phép cuộn dọc */
+  overflow-x: hidden;
+  /* Không cuộn ngang */
+  padding-right: 10px;
+  scrollbar-width: thin;
+  /* Cấu hình thanh cuộn mỏng trong Firefox */
+  scrollbar-color: #007bff #f0f0f0;
+  /* Màu sắc thanh cuộn trong Firefox */
+}
+
+/* Ẩn thanh cuộn trong các trình duyệt hỗ trợ Webkit (Chrome, Safari) */
+.scroll-container::-webkit-scrollbar {
+  width: 0px;
+  /* Ẩn thanh cuộn */
+  height: 0px;
+  /* Ẩn thanh cuộn ngang nếu có */
+}
+
+/* Thanh cuộn cho Firefox */
+.scroll-container {
+  scrollbar-width: thin;
+  /* Chỉnh độ dày của thanh cuộn (nếu muốn hiển thị thanh cuộn mỏng) */
+  scrollbar-color: transparent transparent;
+  /* Ẩn thanh cuộn */
+}
+
+.form-list-student .header-row {
+  display: grid;
+  grid-template-columns: 0.25fr 0.5fr 2fr 1fr;
+  /* Điều chỉnh kích thước cột */
+  gap: 10px;
+  background: linear-gradient(135deg, #acbcc5, #c7c4c4);
+  color: #050505;
+  font-weight: bold;
+  padding: 12px;
+  border-bottom: 2px solid #ffffff;
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  text-transform: uppercase;
+  text-align: left;
+  /* Canh trái cho tất cả */
+}
+
+/* Canh phải riêng cho cột thanh toán */
+.form-list-student .header-row .cell:nth-child(4) {
+  text-align: center;
+  /* Cột thanh toán */
+}
+
+/* Các hàng */
+.form-list-student .row {
+  display: grid !important;
+  grid-template-columns: 0.25fr 0.5fr 2fr 1fr;
+  gap: 10px;
+  padding: 10px;
+  border-bottom: 1px solid #ddd;
+  font-weight: bold;
+  /* In đậm chữ trong các hàng */
+  font-size: 1.1em;
+  /* Chữ trong hàng bình thường */
+  transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+/* Nổi bật cột Số Báo Danh */
+.form-list-student .row .cell:nth-child(2) {
+  font-size: 1.5em;
+  /* Chữ to hơn */
+  font-weight: bold;
+  /* In đậm */
+  color: #007bff;
+  /* Màu xanh nổi bật */
+}
+
+.form-list-student .row .cell:nth-child(3) {
+  text-align: left;
+}
+
+.form-list-student .row .cell:nth-child(4) {
+  text-align: right;
+}
+
+/* Nổi bật cột Số Báo Danh */
+.form-list-student .row .cell:nth-child(3) {
+  align-self: left;
+}
+
+.form-list-student .cell {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.form-list-student .row:nth-child(odd) {
+  background-color: #ffffff;
+}
+
+.form-list-student .row:nth-child(even) {
+  background-color: #f3f4f6;
+}
+
+.form-list-student .row:hover {
+  background: #e6f7ff;
+  transform: scale(1.01);
+  cursor: pointer;
+}
+
+
+.form-list-student .cell {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+
+.upload-section button:hover {
+  background: linear-gradient(135deg, #feb47b, #ff7e5f);
+  transform: scale(1.05);
+}
+
+/* Styling cho thanh toán */
+.payment-cell {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.paid-icon {
+  color: #28a745;
+  /* Màu xanh cho đã thanh toán */
+  font-size: 1.5em;
+}
+
+.unpaid-icon {
+  color: #dc3545;
+  /* Màu đỏ cho chưa thanh toán */
+  font-size: 1.5em;
+}
+
+.payment-cell i {
+  margin: 0 auto;
+  /* Canh giữa icon */
+}
+
+.import-file-child-liststudent {
+  display: flex;
+  justify-content: center;
+  gap: 10%;
+
+}
+
+@keyframes scroll-pause-start {
+  0% {
+    transform: translateY(0);
+    /* Dừng tại vị trí đầu */
+  }
+
+  7.7% {
+    transform: translateY(0);
+    /* Dừng tại vị trí đầu trong 5 giây */
+  }
+
+  100% {
+    transform: translateY(-100%);
+    /* Cuộn toàn bộ nội dung */
+  }
+}
+
+.select-course-child-liststudent label {
+  font-size: 17px;
+  color: #333;
+  /* Màu chữ */
+  font-weight: bold;
+}
+
+.select-course-child-liststudent select {
+  padding: 8px 12px;
+  font-size: 14px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  outline: none;
+  transition: border-color 0.3s ease;
+}
+
+.select-course-child-liststudent select:focus {
+  border-color: #007bff;
+  /* Màu sắc khi focus */
+}
+
+.select-course-child-liststudent select option {
+  font-size: 14px;
+}
+
+
+.filter-so-bao-danh label {
+  font-size: 14px;
+  color: #333;
+  font-weight: 500;
+}
+
+.filter-so-bao-danh input {
+  padding: 8px 12px;
+  font-size: 14px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  outline: none;
+  transition: border-color 0.3s ease;
+}
+
+.filter-so-bao-danh input:focus {
+  border-color: #007bff;
+  /* Màu sắc khi focus */
+}
+
+.filter-so-bao-danh input::placeholder {
+  color: #aaa;
+  /* Màu chữ cho placeholder */
+}
+
+/* Hover effect cho các phần tử input và select */
+.select-course-child-liststudent select:hover,
+.filter-so-bao-danh input:hover {
+  border-color: #888;
+  /* Màu sắc khi hover */
+}
+
+.scroll-content {
+  /* Cấu hình cho nội dung cuộn */
+  height: 100%;
+  /* Đảm bảo nội dung chiếm toàn bộ chiều cao của phần tử cuộn */
+  overflow-y: auto;
+  /* Cho phép cuộn dọc */
+  flex-grow: 1;
+  /* Cho phép phần nội dung chiếm không gian còn lại */
+  padding: 10px;
+  /* Khoảng cách bên trong */
+  display: flex;
+  flex-direction: column;
+  animation: scroll-pause-start 60s linear infinite;
+  /* 60s cuộn + 5s dừng */
+}
+
+.form-list-student .scroll-content .row {
+  text-align: center;
+}
+
+.form-list-student .header-row .cell:nth-child(1) {
+  text-align: center;
+}
+
+.form-list-student .header-row .cell:nth-child(2) {
+  text-align: center;
+}
+
+@media (max-width: 1024px) {
+
+  .form-list-student .scroll-content {
+    animation: none;
+    /* Tắt animation cuộn tự động trên điện thoại */
+    overflow-y: visible;
+    /* Tắt cuộn dọc trên điện thoại */
+  }
+
+  .import-file-child-liststudent {
+    flex-direction: column;
+    justify-content: center;
+  }
+
+  .list-InfoStudent {
+    display: flex;
+    flex-direction: column;
+    /* Sắp xếp các bảng theo cột */
+    align-items: center;
+    /* Căn giữa các bảng */
+    justify-content: center;
+    max-width: 100%;
+  }
+
+  .form-list-student .section {
+    flex: none;
+    /* Hủy chế độ flex cho mỗi bảng */
+    width: 100%;
+    /* Mỗi bảng chiếm toàn bộ chiều rộng */
+    max-width: 100%;
+    /* Đảm bảo bảng không vượt quá 100% chiều rộng màn hình */
+    margin: 10px 0;
+    /* Cách các bảng ra một chút */
+  }
+
+  .form-list-student .scroll-container {
+    max-width: 100%;
+  }
+
+  .name-table {
+    font-size: 14px;
+    /* Giảm kích thước chữ cho tiêu đề bảng */
+  }
+
+  .students-list h2 {
+    font-size: 1.4em;
+    /* Giảm kích thước chữ cho tiêu đề danh sách sinh viên */
+  }
+
+  .form-list-student th,
+  .form-list-student td {
+    font-size: 0.9em;
+    /* Giảm kích thước chữ trong các ô bảng */
+    padding: 8px;
+    /* Giảm padding để các ô bảng không bị quá rộng */
+  }
+
+  .form-list-student .header-row {
+    font-size: 0.9em;
+    /* Giảm kích thước chữ của dòng tiêu đề */
+    padding: 10px;
+    /* Giảm padding cho dòng tiêu đề */
+  }
+
+  .form-list-student .row {
+    font-size: 0.9em;
+    /* Giảm kích thước chữ của các hàng trong bảng */
+  }
+
+  .form-list-student .cell {
+    font-size: 0.8em;
+    /* Giảm kích thước chữ của các ô trong hàng */
+  }
+
+  /* Các điều chỉnh khác cho các phần tử trong bảng nếu cần */
+  .form-list-student .scroll-container {
+    padding-right: 5px;
+  }
+
+  /* Nếu bạn muốn làm nhỏ tất cả bảng khi màn hình nhỏ hơn */
+  .form-list-student .section {
+    font-size: 0.9em;
+    /* Giảm kích thước chữ trong các phần bảng */
+  }
+
+}
+
+/* Media query cho màn hình lớn (trên 1024px) */
+@media (min-width: 1024px) {
+  .list-InfoStudent {
+    display: flex;
+    flex-direction: row;
+    /* Các bảng hiển thị theo hàng ngang */
+    justify-content: space-between;
+  }
+
+  .form-list-student .section {
+    flex: 1;
+    max-width: 32%;
+    /* Ba bảng mỗi hàng */
+    margin: 10px;
+  }
+
+  .name-table {
+    font-size: 18px;
+  }
+}

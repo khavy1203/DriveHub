@@ -1,63 +1,8 @@
-import instance from "../axios";
-import { useLoading } from "../context/LoadingContext";
+/**
+ * Backward compatibility - Re-export useApi as useApiService
+ * @deprecated Use { useApi } from 'shared/hooks' instead
+ */
 
-const useApiService = () => {
-  const { setLoading } = useLoading();
+import { useApi } from '../shared/hooks/useApi';
 
-  const get = async <T>(url: string, options?: { params?: object }): Promise<T> => {
-    setLoading(true);
-    try {
-        const response = await instance.get<T>(url, { params: options?.params });
-        return response.data;
-    } catch (error) {
-        // Nếu có lỗi, toast sẽ tự động hiển thị từ response interceptor trong axios
-        throw error;
-    } finally {
-        setLoading(false);
-    }
-};
-
-
-  const post = async <T>(url: string, data?: object): Promise<T> => {
-    setLoading(true);
-    try {
-      const response = await instance.post<T>(url, data);
-      return response.data;
-    } catch (error) {
-      // Nếu có lỗi, toast sẽ tự động hiển thị từ response interceptor trong axios
-      throw error;
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const put = async <T>(url: string, data?: object): Promise<T> => {
-    setLoading(true);
-    try {
-      const response = await instance.put<T>(url, data);
-      return response.data;
-    } catch (error) {
-      // Nếu có lỗi, toast sẽ tự động hiển thị từ response interceptor trong axios
-      throw error;
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const del = async <T>(url: string): Promise<T> => {
-    setLoading(true);
-    try {
-      const response = await instance.delete<T>(url);
-      return response.data;
-    } catch (error) {
-      // Nếu có lỗi, toast sẽ tự động hiển thị từ response interceptor trong axios
-      throw error;
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  return { get, post, put, del };
-};
-
-export default useApiService;
+export default useApi;

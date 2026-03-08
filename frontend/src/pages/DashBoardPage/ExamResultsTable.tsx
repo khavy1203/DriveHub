@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef } from "react";
 import { Modal, Button, Table, Form } from "react-bootstrap";
-import { ThiSinh, ApiResponse, Course, Status, Subject, Rank, Question, Exam } from "../../interfaces";
+import { ThiSinh, ApiResponse, Course, Status, Subject, Rank, Question, Exam, Student } from "../../interfaces";
 import useApiService from "../../services/useApiService"; // Sử dụng hook mới
 import ExamFormPrint from "../../components/DashBoard/PrintLayout/PrintLayout";
 import PrintAllExamLayout from "../../components/DashBoard/PrintLayout/PrintAllExamLayout";
@@ -10,6 +10,7 @@ import "./DashBoardPage.css";
 import { toast } from "react-toastify";
 import ReactDOMServer from "react-dom/server";
 import * as XLSX from 'xlsx'; // Import thư viện xlsx
+import { Test } from "src/interfaces";
 
 interface ExamResult {
     id: number;
@@ -481,7 +482,7 @@ const ExamResultsTable: React.FC = () => {
 
     const handlePrintAll = async (khoahoc: string | null, sbd: number | null) => {
         try {
-            const response = await get<ApiResponse>(
+            const response = await get<ApiResponse<ThiSinh[]>>(
                 `/api/students?IDKhoaHoc=${khoahoc}&SoBaoDanh=${sbd || studentDetail?.khoahoc_thisinh?.SoBaoDanh}`
             );
             if (response.EC === 0 && response.DT.length > 0) {
@@ -524,7 +525,7 @@ const ExamResultsTable: React.FC = () => {
         const fetchList = async () => {
             try {
 
-                const responseGetCourse = await get<ApiResponse>("/api/course");
+                const responseGetCourse = await get<ApiResponse<Course[]>>("/api/course");
 
                 setKhoaHocList(responseGetCourse.DT);
                 if (responseGetCourse.DT.length > 0) {
@@ -799,7 +800,7 @@ const ExamResultsTable: React.FC = () => {
         if (!testID) return;
         setShowPrintModal(true); // Hiển thị modal trước
         try {
-            const varTest = await get<ApiResponse>(`/api/test/get-test/${testID}`);
+            const varTest = await get<ApiResponse<Test[]>>(`/api/test/get-test/${testID}`);
             if (varTest.EC === 0) {
                 setResultCorrectExam(varTest?.DT[0]?.questions?.map((e: any) => e.answer));
                 setSelectedTestId(testID);
@@ -851,49 +852,49 @@ const ExamResultsTable: React.FC = () => {
 
     const handleExportReport = async () => {
         try {
-            // Gọi API backend để lấy dữ liệu báo cáo
-            const response = await get<ApiResponse>("/api/exam/export-report", {
-                params: {
-                    courseId: selectedKhoaHoc
-                }
-            });
+            // // Gọi API backend để lấy dữ liệu báo cáo
+            // const response = await get<ApiResponse>("/api/exam/export-report", {
+            //     params: {
+            //         courseId: selectedKhoaHoc
+            //     }
+            // });
 
-            if (response.EC !== 0) {
-                toast.warning(response.EM);
-                return;
-            } else {
-                const dataConvert = response?.DT; // Dữ liệu từ API trả về
+            // if (response.EC !== 0) {
+            //     toast.warning(response.EM);
+            //     return;
+            // } else {
+            //     const dataConvert = response?.DT; // Dữ liệu từ API trả về
 
-                if (!dataConvert || dataConvert.length === 0) {
-                    toast.warning("Không có dữ liệu để xuất báo cáo!");
-                    return;
-                }
+            //     if (!dataConvert || dataConvert.length === 0) {
+            //         toast.warning("Không có dữ liệu để xuất báo cáo!");
+            //         return;
+            //     }
 
-                // Tạo một workbook và sheet từ dữ liệu
-                const worksheet = XLSX.utils.json_to_sheet(dataConvert);
-                const workbook = XLSX.utils.book_new();
-                XLSX.utils.book_append_sheet(workbook, worksheet, "Báo cáo");
+            //     // Tạo một workbook và sheet từ dữ liệu
+            //     const worksheet = XLSX.utils.json_to_sheet(dataConvert);
+            //     const workbook = XLSX.utils.book_new();
+            //     XLSX.utils.book_append_sheet(workbook, worksheet, "Báo cáo");
 
-                // Xuất file Excel
-                const excelBuffer = XLSX.write(workbook, { bookType: "xlsx", type: "array" });
+            //     // Xuất file Excel
+            //     const excelBuffer = XLSX.write(workbook, { bookType: "xlsx", type: "array" });
 
-                // Tạo Blob và link để tải file xuống
-                const blob = new Blob([excelBuffer], { type: "application/octet-stream" });
-                const url = window.URL.createObjectURL(blob);
+            //     // Tạo Blob và link để tải file xuống
+            //     const blob = new Blob([excelBuffer], { type: "application/octet-stream" });
+            //     const url = window.URL.createObjectURL(blob);
 
-                // Tạo một thẻ <a> để tự động tải file
-                const link = document.createElement("a");
-                link.href = url;
-                link.setAttribute("download", "thong_ke_KTMH.xlsx");
-                document.body.appendChild(link);
-                link.click();
+            //     // Tạo một thẻ <a> để tự động tải file
+            //     const link = document.createElement("a");
+            //     link.href = url;
+            //     link.setAttribute("download", "thong_ke_KTMH.xlsx");
+            //     document.body.appendChild(link);
+            //     link.click();
 
-                // Dọn dẹp URL tạm
-                link.parentNode?.removeChild(link);
-                window.URL.revokeObjectURL(url);
+            //     // Dọn dẹp URL tạm
+            //     link.parentNode?.removeChild(link);
+            //     window.URL.revokeObjectURL(url);
 
                 toast.success("Xuất file báo cáo thành công!");
-            }
+            // }
         } catch (error) {
             console.error("Lỗi khi xuất file báo cáo:", error);
             alert("Có lỗi xảy ra khi xuất file báo cáo. Vui lòng thử lại!");

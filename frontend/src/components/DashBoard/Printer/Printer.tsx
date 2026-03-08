@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ElectronAPI } from "../../../interfaces";
+import { ElectronAPI } from "../../../core/types";
 
 interface Printer {
     name: string;

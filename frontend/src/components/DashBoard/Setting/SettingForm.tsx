@@ -43,10 +43,10 @@ const Setting: React.FC = () => {
   useEffect(() => {
     const fetchStatuses = async () => {
       try {
-        const responseGetStatus = await get<ApiResponse>("/api/status");
+        const responseGetStatus = await get<ApiResponse<UserStatus[]>>("/api/status");
         setUserStatuses(responseGetStatus.DT);
 
-        const responseGetRanks = await get<ApiResponse>("/api/rank/getRank");
+        const responseGetRanks = await get<ApiResponse<Rank[]>>("/api/rank/getRank");
         setRanks(responseGetRanks.DT);
 
         if (responseGetRanks.DT.length) {
@@ -69,7 +69,7 @@ const Setting: React.FC = () => {
   const fetchSubjects = async () => {
     try {
       if (selectedRank !== null) {
-        const response = await get<ApiResponse>(`/api/subject/${selectedRank}/get-subjects`);
+        const response = await get<ApiResponse<Subject[]>>(`/api/subject/${selectedRank}/get-subjects`);
         setSubjects(response.DT);
       }
     } catch (error) {
@@ -85,7 +85,7 @@ const Setting: React.FC = () => {
     try {
       await post("/api/status", { namestatus: newStatus });
       setNewStatus("");
-      const updatedStatuses = await get<ApiResponse>("/api/status");
+      const updatedStatuses = await get<ApiResponse<UserStatus[]>>("/api/status");
       setUserStatuses(updatedStatuses.DT);
     } catch (error) {
       console.error("Error creating user status:", error);
@@ -103,7 +103,7 @@ const Setting: React.FC = () => {
       await put(`/api/status/${id}`, { namestatus: editingNameStatus });
       setEditingStatusId(null);
       setEditingNameStatus("");
-      const updatedStatuses = await get<ApiResponse>("/api/status");
+      const updatedStatuses = await get<ApiResponse<UserStatus[]>>("/api/status");
       setUserStatuses(updatedStatuses.DT);
     } catch (error) {
       console.error("Error updating user status:", error);
@@ -136,7 +136,7 @@ const Setting: React.FC = () => {
     try {
       await post("/api/rank/create-rank", { name: newRanks });
       setnewRanks("");
-      const getRanks = await get<ApiResponse>("/api/rank/getRank");
+      const getRanks = await get<ApiResponse<Rank[]>>("/api/rank/getRank");
       setRanks(getRanks.DT);
     } catch (error) {
       console.error("Error creating user rank/create-rank:", error);
@@ -154,7 +154,7 @@ const Setting: React.FC = () => {
       await put(`/api/rank/update-rank/${id}`, { name: editingNameRank });
       setEditingRankId(null);
       setEditingNameRank("");
-      const getRanks = await get<ApiResponse>("/api/rank/getRank");
+      const getRanks = await get<ApiResponse<Rank[]>>("/api/rank/getRank");
       setRanks(getRanks.DT);
     } catch (error) {
       console.error("Error updating user status:", error);

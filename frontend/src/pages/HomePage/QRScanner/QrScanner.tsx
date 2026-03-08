@@ -5,6 +5,7 @@ import { ApiResponse } from "../../../interfaces";
 import { toast } from 'react-toastify';
 import * as XLSX from 'xlsx';
 import { saveAs } from 'file-saver';
+import { Course } from 'src/interfaces';
 // =====================
 // Types
 // =====================
@@ -19,10 +20,13 @@ export interface StudentFormData {
   registrationDate: string; // Ngày cấp
 }
 
-interface ApiData {
+interface ApiDataQR {
   success: boolean;
   avatar?: string;
   decodedText?: { data: string; type: string }[];
+  DT: any[];
+  EC: number;
+  EM: string
 }
 
 // =====================
@@ -60,15 +64,15 @@ const QrScannerForm: React.FC<QrScannerFormProps> = ({ onAdd }) => {
     const fd = new window.FormData();
     fd.append('image', blob);
     try {
-      const response = await post<ApiResponse>('/api/file/qr/decode', fd);
-      const data: ApiData = response.DT?.[0];
+      const response = await post<ApiDataQR>('/api/file/qr/decode', fd);
+      const data: ApiDataQR = response.DT?.[0];
       if (response.EC === 0 && data && data.success) {
         if (data.avatar) setAvatar(`data:image/jpeg;base64,${data.avatar}`);
         if (data.decodedText?.length && data.decodedText[0]?.data) {
           const decodedText = data.decodedText[0].data;
           setFormData(parseDecodedText(decodedText));
         } else setError('No QR data detected or invalid format.');
-      } else setError(response.EM || 'Failed to decode QR code.');
+      } else setError(response?.EM || 'Failed to decode QR code.');
     } catch (e) {
       setError('Failed to send image to backend.');
       console.error(e);
@@ -281,7 +285,7 @@ const QrEntriesTable: React.FC<QrEntriesTableProps> = ({ entries, avatars, onUpd
 // =====================
 
 
-type CourseQR = { id: number; name: string; description?: string | null; createdAt?: string; updatedAt?: string; type?: string };
+type CourseQR = { id: number; name: string; description?: string | null; createdAt?: string; updatedAt?: string; type?: string; code?: string | null };
 const QrScannerPage: React.FC = () => {
   const { get, post, put, del } = useApiService();
 
@@ -324,21 +328,23 @@ const QrScannerPage: React.FC = () => {
       return;
     }
     try {
-      const resp = await get<ApiResponse>(`/api/qr/list?courseId=${selectedCourse}`);
+      const resp = await get<ApiResponse<CourseQR[]>>(`/api/qr/list?courseId=${selectedCourse}`);
 
       if (resp.EC === 0 && resp.DT) {
+        
         const parsedData = resp.DT.map(entry => {
           try {
-            const parsedCode = JSON.parse(entry.code);
+            if (!entry?.code) return null; // ✅ Bỏ qua nếu code là null/undefined
+            const parsedCode = JSON.parse(entry.code); // ✅ Lúc này chắc chắn là string
             return {
               ...parsedCode,
               id: entry.id
             };
           } catch (e) {
             console.error("Lỗi khi phân tích JSON:", e);
-            return null; // Trả về null nếu JSON không hợp lệ
+            return null;
           }
-        }).filter(item => item !== null); // Lọc bỏ các phần tử null
+        }).filter((item): item is StudentFormData => item !== null);
 
         setEntries(parsedData as StudentFormData[]);
       } else {

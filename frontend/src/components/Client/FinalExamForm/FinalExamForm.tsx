@@ -1,420 +1,497 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { useNavigate, useLocation } from "react-router-dom";
-import { ThiSinh, Test, ApiResponse, Subject, Question } from "../../../interfaces";
-import useApiService from "../../../services/useApiService";
+import { useApi } from "../../../shared/hooks";
+import { ApiResponse } from "../../../core/types";
+import { Student, Test, Question } from "../../../features/student/types";
+import { Subject } from "../../../features/exam/types";
+
+// Type alias for backward compatibility
+type ThiSinh = Student;
 import ResultModal from '../ResultModal/ResultModal';
 import { toast } from 'react-toastify';
 import './FinalExamForm.css';
 
+// ─── Hook: detect screen size ──────────────────────────────
+const useScreenSize = () => {
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+  useEffect(() => {
+    const handler = () => setIsMobile(window.innerWidth < 768);
+    window.addEventListener('resize', handler);
+    window.addEventListener('orientationchange', handler);
+    return () => {
+      window.removeEventListener('resize', handler);
+      window.removeEventListener('orientationchange', handler);
+    };
+  }, []);
+  return { isMobile };
+};
+
+// ─── Mobile keyboard component ─────────────────────────────
+interface MobileKeyboardProps {
+  currentQuestion: number;
+  totalQuestions: number;
+  selectedOptions: number[];
+  disabled: boolean;
+  onNavigateUp: () => void;
+  onNavigateDown: () => void;
+  onSelectOption: (opt: number) => void;
+}
+
+const MobileKeyboard: React.FC<MobileKeyboardProps> = ({
+  currentQuestion, totalQuestions, selectedOptions,
+  disabled, onNavigateUp, onNavigateDown, onSelectOption,
+}) => {
+  const navKey = (label: React.ReactNode, onClick: () => void, extra?: string) => (
+    <button
+      type="button"
+      disabled={disabled}
+      onClick={onClick}
+      className={`mk-key mk-nav ${extra || ''}`}
+      aria-label={typeof label === 'string' ? label : undefined}
+    >
+      {label}
+    </button>
+  );
+
+  const ansKey = (opt: number) => {
+    const selected = selectedOptions.includes(opt);
+    return (
+      <button
+        key={opt}
+        type="button"
+        disabled={disabled}
+        onClick={() => onSelectOption(opt)}
+        className={`mk-key mk-ans ${selected ? 'mk-ans--on' : ''}`}
+        aria-pressed={selected}
+      >
+        {opt}
+      </button>
+    );
+  };
+
+  return (
+    <div className="mobile-keyboard" aria-label="Bàn phím điều khiển">
+      {/* Left: navigation */}
+      <div className="mk-left">
+        <div className="mk-counter">{currentQuestion + 1}/{totalQuestions}</div>
+        {navKey(
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round">
+            <path d="M5 15l7-7 7 7"/>
+          </svg>,
+          onNavigateUp, 'mk-nav--up'
+        )}
+        {navKey(
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round">
+            <path d="M19 9l-7 7-7-7"/>
+          </svg>,
+          onNavigateDown, 'mk-nav--dn'
+        )}
+      </div>
+
+      {/* Divider */}
+      <div className="mk-divider" />
+
+      {/* Right: answer options */}
+      <div className="mk-right">
+        {[1, 2, 3, 4].map(ansKey)}
+      </div>
+    </div>
+  );
+};
+
+// ─── Main component ────────────────────────────────────────
 const FinalExamForm: React.FC = () => {
-  const { get, post, put, del } = useApiService();
+  const { get, post } = useApi();
   const navigate = useNavigate();
   const location = useLocation();
-  let { IDThiSinh, IDSubject } = location.state as { IDThiSinh: number, IDSubject: number };
+  const { IDThiSinh, IDSubject } = location.state as { IDThiSinh: number; IDSubject: number };
+  const { isMobile } = useScreenSize();
 
-  const [studentNow, setStudentNow] = useState<ThiSinh | null>(null);
+  const [studentNow, setStudentNow]       = useState<ThiSinh | null>(null);
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [selectedOptions, setSelectedOptions] = useState<number[][]>([]);
-  const [subject, setSubject] = useState<Subject | null>(null);
-  const [arrQuestion, setArrQuestion] = useState<any[]>([]);
-  const [showResult, setShowResult] = useState(false);
-  const [score, setScore] = useState(0);
-  const [timeRemaining, setTimeRemaining] = useState<number>(0);
-  const [showAnswers, setShowAnswers] = useState(false);
+  const [subject, setSubject]             = useState<Partial<Subject> | null>(null);
+  const [arrQuestion, setArrQuestion]     = useState<any[]>([]);
+  const [showResult, setShowResult]       = useState(false);
+  const [score, setScore]                 = useState(0);
+  const [timeRemaining, setTimeRemaining] = useState(0);
+  const [showAnswers, setShowAnswers]     = useState(false);
   const [isExamFinished, setIsExamFinished] = useState(false);
-  const [timeOut, setTimeOut] = useState(false);
-  const [testRandom, setTestRandom] = useState<string | null>(null);
-  const [testCode, setTestCode] = useState<string | null>(null);
+  const [timeOut, setTimeOut]             = useState(false);
+  const [testRandom, setTestRandom]       = useState<number | null>(null);
+  const [testCode, setTestCode]           = useState<string | null>(null);
   const [nextSubjectName, setNextSubjectName] = useState<string | null>(null);
-  const [untestedSubjects, setUntestedSubjects] = useState<Subject[]>([]); // Lưu danh sách môn chưa thi
+  const [untestedSubjects, setUntestedSubjects] = useState<Subject[]>([]);
+  const [showSidebar, setShowSidebar]     = useState(false);
 
-  // Khởi tạo bài thi ban đầu
+  // ── Init exam ─────────────────────────────────────────────
   useEffect(() => {
-    const initializeExam = async () => {
+    const init = async () => {
       try {
-        const response = await get<ApiResponse>(`/api/students?IDThiSinh=${IDThiSinh}`);
-        if (response.DT.length === 0) {
-          toast.error("Không tìm thấy thí sinh.");
-          navigate('/testStudent');
-          return;
-        }
+        const res = await get<ApiResponse<Student[]>>(`/api/students?IDThiSinh=${IDThiSinh}`);
+        if (!res.DT?.length) { toast.error("Không tìm thấy thí sinh."); navigate('/testStudent'); return; }
 
-        const student: ThiSinh = response.DT[0];
+        const student: ThiSinh = res.DT[0];
         setStudentNow(student);
 
-        const examSubjectIds = student?.exams?.map(exam => Number(exam.IDSubject)) || [];
-        const subjectsNotTested: Subject[] = student?.rank?.subjects?.filter(
-          (subject: any) => !examSubjectIds.includes(subject.id)
-        ) || [];
+        const doneIds = student?.exams?.map(e => Number(e.IDSubject)) || [];
+        const notTested: Subject[] = student?.rank?.subjects?.filter((s: any) => !doneIds.includes(s.id)) || [];
 
-        if (subjectsNotTested.length === 0) {
-          toast.success("Bạn đã hoàn thành tất cả các bài thi!");
-          await post(`/api/students/update-processtest`, {
-            IDThiSinh,
-            processtest: 3,
-          });
-          navigate('/testStudent');
-          return;
-        }
-        else {
-          const subjectId = subjectsNotTested.some(e => e.id === IDSubject) ? IDSubject : subjectsNotTested[0].id;
-          setUntestedSubjects(subjectsNotTested.filter(e => e.id !== subjectId));
-          await setupExam(subjectId);
-
-          await post(`/api/students/update-processtest`, {
-            IDThiSinh,
-            processtest: 2,
-          });
+        if (!notTested.length) {
+          toast.success("Đã hoàn thành tất cả bài thi!");
+          await post(`/api/students/update-processtest`, { IDThiSinh, processtest: 3 });
+          navigate('/testStudent'); return;
         }
 
-      } catch (error) {
-        console.error("Lỗi khi khởi tạo bài thi:", error);
+        const subjectId = notTested.some(e => e.id === IDSubject) ? IDSubject : notTested[0].id;
+        setUntestedSubjects(notTested.filter(e => e.id !== subjectId));
+        await setupExam(subjectId);
+        await post(`/api/students/update-processtest`, { IDThiSinh, processtest: 2 });
+      } catch (err) {
+        console.error(err);
         toast.error("Không thể khởi tạo bài thi.");
         navigate('/testStudent');
       }
     };
-
-    initializeExam();
+    init();
   }, [IDThiSinh]);
 
   const setupExam = async (subjectId: number) => {
     try {
-      const getRandomTest = await get<ApiResponse>(`/api/subject/get-test/${subjectId}`);
-      if (!getRandomTest.DT || getRandomTest.DT.length === 0) {
-        toast.error("Chưa có dữ liệu bài kiểm tra.");
-        navigate('/testStudent');
-        return;
-      }
+      const r1 = await get<ApiResponse<Test[]>>(`/api/subject/get-test/${subjectId}`);
+      if (!r1.DT?.length) { toast.error("Chưa có dữ liệu bài kiểm tra."); navigate('/testStudent'); return; }
 
-      const dataTest = getRandomTest.DT;
-      const testRandom = dataTest[Math.floor(Math.random() * dataTest.length)].id;
-      const varTest = await get<ApiResponse>(`/api/test/get-test/${testRandom}`);
+      const rndId = r1.DT[Math.floor(Math.random() * r1.DT.length)].id;
+      const r2 = await get<ApiResponse<Test[]>>(`/api/test/get-test/${rndId}`);
+      if (!r2?.DT?.[0]) { toast.error("Không thể tải bài thi."); navigate('/testStudent'); return; }
 
-      // Kiểm tra dữ liệu trả về từ API
-      if (!varTest?.DT?.[0]) {
-        toast.error("Không thể tải thông tin bài thi.");
-        navigate('/testStudent');
-        return;
-      }
+      const varSubject   = r2.DT[0].subject;
+      const varQuestions = r2.DT[0].questions;
+      if (!varSubject || !varQuestions?.length) { toast.error("Dữ liệu bài thi không hợp lệ."); navigate('/testStudent'); return; }
 
-      const varSubject = varTest.DT[0].subject;
-      const varArrQuestion = varTest.DT[0].questions;
-
-      if (!varSubject || !varArrQuestion?.length) {
-        toast.error("Dữ liệu bài thi không hợp lệ.");
-        navigate('/testStudent');
-        return;
-      }
-
-      const questionsTest = varArrQuestion.map((e: Question) => ({
-        ...e,
-        options: ["", "", "", ""], // Đảm bảo options luôn có giá trị mặc định
-      }));
-
-      // Thiết lập tất cả state cùng lúc
+      const qs = varQuestions.map((q: Question) => ({ ...q, options: ['', '', '', ''] }));
       setSubject(varSubject);
-      setArrQuestion(questionsTest);
-      setSelectedOptions(new Array(questionsTest.length).fill([]));
-      setTimeRemaining(varSubject.timeFinish * 60);
-      setTestRandom(testRandom);
-      setTestCode(varTest.DT[0].code);
+      setArrQuestion(qs);
+      setSelectedOptions(new Array(qs.length).fill([]));
+      setTimeRemaining((varSubject as any).timeFinish * 60);
+      setTestRandom(rndId);
+      setTestCode(r2.DT[0].code);
       setCurrentQuestion(0);
       setIsExamFinished(false);
       setTimeOut(false);
       setShowResult(false);
-    } catch (error) {
-      console.error("Lỗi trong setupExam:", error);
+    } catch (err) {
+      console.error(err);
       toast.error("Không thể thiết lập bài thi.");
       navigate('/testStudent');
     }
   };
 
-  // Bộ đếm thời gian
+  // ── Timer ─────────────────────────────────────────────────
   useEffect(() => {
-    const intervalId = setInterval(() => {
-      setTimeRemaining((prevTime) => {
-        if (prevTime <= 1) {
-          clearInterval(intervalId);
-          if (!isExamFinished) {
-            setTimeOut(true);
-          }
-          return 0;
-        }
-        return prevTime - 1;
+    if (isExamFinished) return;
+    const id = setInterval(() => {
+      setTimeRemaining(prev => {
+        if (prev <= 1) { clearInterval(id); setTimeOut(true); return 0; }
+        return prev - 1;
       });
     }, 1000);
-    return () => clearInterval(intervalId);
+    return () => clearInterval(id);
   }, [isExamFinished]);
 
   useEffect(() => {
-    if (timeOut) {
-      setIsExamFinished(true);
-      handleEndExam();
-    }
+    if (timeOut && !isExamFinished) { setIsExamFinished(true); handleEndExam(); }
   }, [timeOut]);
 
+  // ── Helpers ───────────────────────────────────────────────
+  const toggleOption = useCallback((qIdx: number, optIdx: number) => {
+    setSelectedOptions(prev => {
+      const next = [...prev];
+      const cur  = next[qIdx] || [];
+      next[qIdx] = cur.includes(optIdx) ? cur.filter(o => o !== optIdx) : [...cur, optIdx];
+      return next;
+    });
+  }, []);
 
+  const goPrev = useCallback(() => {
+    setCurrentQuestion(q => (q - 1 + arrQuestion.length) % arrQuestion.length);
+  }, [arrQuestion.length]);
+
+  const goNext = useCallback(() => {
+    setCurrentQuestion(q => (q + 1) % arrQuestion.length);
+  }, [arrQuestion.length]);
+
+  // keyboard shortcuts
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if (isExamFinished) return;
+      const n = parseInt(e.key);
+      if (n >= 1 && n <= 4) toggleOption(currentQuestion, n);
+      if (e.key === 'ArrowUp')   { e.preventDefault(); goPrev(); }
+      if (e.key === 'ArrowDown') { e.preventDefault(); goNext(); }
+    };
+    document.addEventListener('keydown', handler);
+    return () => document.removeEventListener('keydown', handler);
+  }, [currentQuestion, isExamFinished, toggleOption, goPrev, goNext]);
+
+  const formatTime = useCallback((s: number) =>
+    `${String(Math.floor(s / 60)).padStart(2,'0')}:${String(s % 60).padStart(2,'0')}`, []);
+
+  const arraysEqual = useCallback((a: number[], b: number[]) => {
+    if (a.length !== b.length) return false;
+    const sa = [...a].sort((x,y)=>x-y), sb = [...b].sort((x,y)=>x-y);
+    return sa.every((v,i) => v === sb[i]);
+  }, []);
+
+  const toNums = useCallback((arr: string[]) =>
+    arr.map(x => { const n = Number(x); return isNaN(n) ? 0 : n; }), []);
+
+  // ── End / finish exam ─────────────────────────────────────
   const handleEndExam = async () => {
     if (!isExamFinished) {
-      setIsExamFinished(true); // Đánh dấu bài thi đã kết thúc
-      setTimeRemaining(0); // Dừng bộ đếm
-      try {
-        await handleFinishExam(); // Gọi và đợi hàm ghi nhận kết quả
-      } catch (error) {
-        console.error("Lỗi khi kết thúc bài thi:", error);
-        toast.error("Có lỗi xảy ra khi kết thúc bài thi.");
-      }
+      setIsExamFinished(true);
+      setTimeRemaining(0);
+      try { await handleFinishExam(); }
+      catch (err) { console.error(err); toast.error("Có lỗi khi kết thúc bài thi."); }
     }
   };
-
-  const handleKeyPress = (event: KeyboardEvent) => {
-    const optionIndex = parseInt(event.key);
-    // console.log('check optionIndex', optionIndex)
-    if (optionIndex >= 0 && optionIndex <= arrQuestion[currentQuestion].options.length) {
-      toggleOption(currentQuestion, optionIndex);
-    }
-
-    if (event.key === 'ArrowUp') {
-      handleQuestionChange((currentQuestion - 1 + arrQuestion.length) % arrQuestion.length);
-    } else if (event.key === 'ArrowDown') {
-      handleQuestionChange((currentQuestion + 1) % arrQuestion.length);
-    }
-
-  };
-
-  const toggleOption = (questionIndex: number, optionIndex: number) => {
-    setSelectedOptions((prev) => {
-      const newSelections = [...prev];
-      const optionsForCurrentQuestion = newSelections[questionIndex];
-      if (optionsForCurrentQuestion.includes(optionIndex)) {
-        newSelections[questionIndex] = optionsForCurrentQuestion.filter((opt) => opt !== optionIndex);
-      } else {
-        newSelections[questionIndex] = [...optionsForCurrentQuestion, optionIndex];
-      }
-      return newSelections;
-    });
-  };
-
-  const handleQuestionChange = (index: number) => {
-    setCurrentQuestion(index);
-  };
-
-  useEffect(() => {
-    document.addEventListener('keydown', handleKeyPress);
-    return () => {
-      document.removeEventListener('keydown', handleKeyPress);
-    };
-  }, [currentQuestion, selectedOptions]);
-
-  // Chuyển đổi giây thành định dạng phút:giây
-  const formatTime = (timeInSeconds: number) => {
-    const minutes = Math.floor(timeInSeconds / 60);
-    const seconds = timeInSeconds % 60;
-    return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
-  };
-
-  function arraysAreEqual(arr1: any[], arr2: any[]): boolean {
-    // Sắp xếp mảng và so sánh
-    arr1.sort();
-    arr2.sort();
-
-    return JSON.stringify(arr1) === JSON.stringify(arr2);
-  }
-
-  function convertStringsToNumbers(arr: string[]): number[] {
-    return arr.map(item => {
-      const number = Number(item);
-      return isNaN(number) ? 0 : number; // Trả về 0 nếu không phải số hợp lệ
-    });
-  }
 
   const handleFinishExam = async () => {
-    try {
-      if (!subject) {
-        return;
-      }
-      let calculatedScore = 0;
-      const stringAnswerlist: string[] = [];
+    if (!subject) return;
+    let calcScore = 0;
+    const answerList: string[] = [];
+    arrQuestion.forEach((q, i) => {
+      if (arraysEqual(selectedOptions[i] || [], toNums(q?.answer?.toString()?.split(',') || []))) calcScore++;
+      answerList.push((selectedOptions[i] || []).join('-'));
+    });
 
-      arrQuestion.forEach((question, index) => {
-        if (arraysAreEqual(selectedOptions[index], convertStringsToNumbers(question?.answer?.toString()?.split(',')))) {
-          calculatedScore++;
-        }
-        stringAnswerlist.push(selectedOptions[index].join('-'));
-      });
+    const res = await post<ApiResponse>("/api/exam/create-exam", {
+      IDThisinh: IDThiSinh, IDTest: testRandom,
+      answerlist: answerList.join(','), point: calcScore,
+      result: calcScore < ((subject as any).threshold ?? 0) ? "TRƯỢT" : "ĐẠT",
+      IDSubject: subject?.id,
+    });
+    if (res.EC === 0) toast.success(res.EM);
+    else if (res.EC === 1) toast.warn(res.EM);
+    else toast.error(res.EM);
 
-      const resCreateExam = await post<ApiResponse>("/api/exam/create-exam", {
-        IDThisinh: IDThiSinh,
-        IDTest: testRandom,
-        answerlist: stringAnswerlist.join(','),
-        point: calculatedScore,
-        result: calculatedScore < subject.threshold ? "TRƯỢT" : "ĐẠT",
-        IDSubject: subject?.id,
-      });
-
-      if (resCreateExam.EC === 0) toast.success(resCreateExam.EM);
-      else if (resCreateExam.EC === 1) toast.warn(resCreateExam.EM);
-      else toast.error(resCreateExam.EM);
-
-      // Cập nhật danh sách môn chưa thi sau khi hoàn thành bài hiện tại
-      const response = await get<ApiResponse>(`/api/students?IDThiSinh=${IDThiSinh}`);
-      const updatedStudent: ThiSinh = response.DT[0];
-      const examSubjectIds = updatedStudent?.exams?.map(exam => Number(exam.IDSubject)) || [];
-      const updatedUntestedSubjects: Subject[] = updatedStudent?.rank?.subjects?.filter(
-        (subject: any) => !examSubjectIds.includes(subject.id)
-      ) || [];
-      if(updatedUntestedSubjects.length == 0){
-        await post(`/api/students/update-processtest`, {
-          IDThiSinh,
-          processtest: 3,
-        });
-      }else{
-        await post(`/api/students/update-processtest`, {
-          IDThiSinh,
-          processtest: 1,
-        });
-      }
-
-      setUntestedSubjects(updatedUntestedSubjects);
-      setNextSubjectName(updatedUntestedSubjects.length > 0 ? updatedUntestedSubjects[0].name : null);
-
-      setScore(calculatedScore);
-      setShowResult(true);
-    } catch (error) {
-      console.error("Lỗi khi ghi nhận kết quả:", error);
-      toast.error("Không thể ghi nhận kết quả thi.");
-    }
+    const r2 = await get<ApiResponse<Student[]>>(`/api/students?IDThiSinh=${IDThiSinh}`);
+    const updated: ThiSinh = r2.DT[0];
+    const doneIds = updated?.exams?.map(e => Number(e.IDSubject)) || [];
+    const remaining: Subject[] = updated?.rank?.subjects?.filter((s: any) => !doneIds.includes(s.id)) || [];
+    await post(`/api/students/update-processtest`, { IDThiSinh, processtest: remaining.length ? 1 : 3 });
+    setUntestedSubjects(remaining);
+    setNextSubjectName(remaining[0]?.name || null);
+    setScore(calcScore);
+    setShowResult(true);
   };
-
-  const handleViewAnswers = () => {
-    setShowAnswers(true);
-  };
-
-  const handleCloseResult = () => {
-    setShowResult(false);
-  };
-
-  // const handlePrintAnswers = () => {
-  //   if (modalRef.current) {
-  //     const printWindow = window.open('', '', 'height=800,width=600'); // Mở một cửa sổ mới tạm thời
-
-  //     printWindow?.document.write('<html><head><title>In đáp án</title></head><body>');
-  //     printWindow?.document.write(modalRef.current.innerHTML); // Lấy nội dung modal và viết vào cửa sổ mới
-  //     printWindow?.document.write('</body></html>');
-
-  //     printWindow?.document.close(); // Đóng tài liệu để bắt đầu in
-  //     printWindow?.focus(); // Đảm bảo cửa sổ được focus trước khi in
-  //     printWindow?.print(); // Gọi lệnh in trực tiếp
-  //     printWindow?.close(); // Đóng cửa sổ sau khi in xong
-  //   }
-  // };
 
   const handleNextExam = async () => {
     try {
-      if (untestedSubjects.length === 0) {
-        toast.success("Bạn đã hoàn thành tất cả các bài thi!");
-        await post(`/api/students/update-processtest`, {
-          IDThiSinh,
-          processtest: 3,
-        });
-        navigate('/testStudent');
-        return;
-      } else {
-        const nextSubjectId = untestedSubjects[0].id;
-        setUntestedSubjects(prev => prev.filter(subject => subject.id !== nextSubjectId));
-        setNextSubjectName(untestedSubjects.length ? untestedSubjects[0].name : null);
-        await setupExam(nextSubjectId);
-        await post(`/api/students/update-processtest`, {
-          IDThiSinh,
-          processtest: 2,
-        });
+      if (!untestedSubjects.length) {
+        await post(`/api/students/update-processtest`, { IDThiSinh, processtest: 3 });
+        navigate('/testStudent'); return;
       }
-    } catch (error) {
-      console.error("Lỗi khi tạo bài thi kế tiếp:", error);
-      navigate('/testStudent');
+      const next = untestedSubjects[0].id;
+      setUntestedSubjects(p => p.filter(s => s.id !== next));
+      setNextSubjectName(untestedSubjects[1]?.name || null);
+      await setupExam(next);
+      await post(`/api/students/update-processtest`, { IDThiSinh, processtest: 2 });
+    } catch (err) {
+      console.error(err); navigate('/testStudent');
     }
   };
+
+  const getQuestionImage = useCallback((number?: number) => {
+    if (!number) return null;
+    try { return require(`../../../assets/600question_2025/${number}.jpg`); }
+    catch { return null; }
+  }, []);
+
+  const currentImg = useMemo(() => getQuestionImage(arrQuestion[currentQuestion]?.number),
+    [arrQuestion, currentQuestion, getQuestionImage]);
+
+  const answeredCount = useMemo(() =>
+    selectedOptions.filter(o => o?.length > 0).length, [selectedOptions]);
+
+  const timeClass = timeRemaining < 60 ? 'time--critical' : timeRemaining < 300 ? 'time--warn' : 'time--ok';
 
   if (!studentNow || !arrQuestion.length || !subject) {
-    return <div>Loading...</div>; // Hiển thị loading khi chưa có dữ liệu
+    return (
+      <div className="fe-loading">
+        <div className="fe-spinner" />
+        <p>Đang tải bài thi...</p>
+      </div>
+    );
   }
 
-  const getQuestionImage = (number: number | undefined) => {
-    if (!number) return null;
-    try {
-      return require(`../../../assets/600question_2025/${number}.jpg`);
-    } catch (error) {
-      console.error(`Không tìm thấy ảnh: ${number}.jpg`);
-      return null;
-    }
-  };
+  // ── MOBILE layout ─────────────────────────────────────────
+  if (isMobile) {
+    return (
+      <div className="fe-mobile">
+        {/* Header */}
+        <header className="fe-mob-header">
+          <div className={`fe-mob-timer ${timeClass}`}>{formatTime(timeRemaining)}</div>
+          <div className="fe-mob-progress">
+            <span>{answeredCount}/{arrQuestion.length}</span>
+            <div className="fe-mob-bar">
+              <div className="fe-mob-bar-fill" style={{ width: `${(answeredCount/arrQuestion.length)*100}%` }} />
+            </div>
+          </div>
+          <button className="fe-mob-menu" onClick={() => setShowSidebar(true)} aria-label="Xem danh sách câu hỏi">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+              <path strokeLinecap="round" d="M4 6h16M4 12h16M4 18h16"/>
+            </svg>
+          </button>
+        </header>
 
+        {/* Subject info */}
+        <div className="fe-mob-subj">
+          <span>{subject?.name}</span>
+          <span className="fe-mob-subj-sep">|</span>
+          <span>Mã đề: {testCode}</span>
+          <span className="fe-mob-subj-sep">|</span>
+          <span>Câu {currentQuestion + 1}</span>
+        </div>
+
+        {/* Question image */}
+        <main className="fe-mob-question">
+          {currentImg
+            ? <img src={currentImg} alt={`Câu hỏi ${arrQuestion[currentQuestion]?.number}`} />
+            : <div className="fe-mob-noimg">Không tìm thấy ảnh câu hỏi {arrQuestion[currentQuestion]?.number}</div>
+          }
+        </main>
+
+        {/* Mobile keyboard */}
+        <MobileKeyboard
+          currentQuestion={currentQuestion}
+          totalQuestions={arrQuestion.length}
+          selectedOptions={selectedOptions[currentQuestion] || []}
+          disabled={isExamFinished}
+          onNavigateUp={goPrev}
+          onNavigateDown={goNext}
+          onSelectOption={opt => toggleOption(currentQuestion, opt)}
+        />
+
+        {/* End button */}
+        <div className="fe-mob-footer">
+          <button className="fe-mob-end" onClick={handleEndExam} disabled={isExamFinished}>
+            🏁 KẾT THÚC BÀI THI
+          </button>
+        </div>
+
+        {/* Sidebar overlay */}
+        {showSidebar && (
+          <div className="fe-mob-overlay" onClick={() => setShowSidebar(false)}>
+            <div className="fe-mob-sidebar" onClick={e => e.stopPropagation()}>
+              <div className="fe-mob-sidebar-head">
+                <span>Danh sách câu hỏi</span>
+                <button onClick={() => setShowSidebar(false)}>✕</button>
+              </div>
+              <div className="fe-mob-sidebar-grid">
+                {arrQuestion.map((_, i) => (
+                  <button
+                    key={i}
+                    className={`fe-mob-qbtn ${selectedOptions[i]?.length ? 'fe-mob-qbtn--done' : ''} ${i === currentQuestion ? 'fe-mob-qbtn--cur' : ''}`}
+                    onClick={() => { setCurrentQuestion(i); setShowSidebar(false); }}
+                  >{i + 1}</button>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Result modal */}
+        {showResult && (
+          <ResultModal
+            score={score} totalQuestions={arrQuestion.length}
+            correctAnswers={score} incorrectAnswers={arrQuestion.length - score}
+            resultStatus={score < ((subject as any)?.threshold ?? 0) ? "TRƯỢT" : "ĐẠT"}
+            studentInfo={{
+              studentID: studentNow?.khoahoc_thisinh?.SoBaoDanh || 0,
+              fullName: studentNow?.HoTen || '', subject: subject?.name || '',
+              rank: studentNow?.loaibangthi || '', test: testCode || '',
+              CCCD: studentNow?.SoCMT || '', courseID: studentNow?.khoahoc_thisinh?.khoahoc?.IDKhoaHoc || '',
+            }}
+            onClose={() => setShowResult(false)} onViewAnswers={() => setShowAnswers(true)}
+            arrQuestion={arrQuestion} selectedOptions={selectedOptions}
+            onNextExam={handleNextExam} nextSubjectName={nextSubjectName}
+          />
+        )}
+      </div>
+    );
+  }
+
+  // ── DESKTOP layout ────────────────────────────────────────
   return (
-    <div className={`exam-container`}>
+    <div className="exam-container">
+      {/* Left: question + student info */}
       <div className="left-exam">
         <div className="question-section">
-          {(() => {
-            const imageSrc = getQuestionImage(arrQuestion[currentQuestion]?.number);
-            return imageSrc ? (
-              <img
-                src={imageSrc}
-                alt={`Câu hỏi ${arrQuestion[currentQuestion]?.number}`}
-              />
-            ) : (
-              <div>Không tìm thấy ảnh câu hỏi {arrQuestion[currentQuestion]?.number}</div>
-            );
-          })()}
+          <div className="qs-badge">Câu {currentQuestion + 1} / {arrQuestion.length}</div>
+          {currentImg
+            ? <img src={currentImg} alt={`Câu hỏi ${arrQuestion[currentQuestion]?.number}`} />
+            : <div className="qs-noimg">Không tìm thấy ảnh câu hỏi {arrQuestion[currentQuestion]?.number}</div>
+          }
         </div>
+
         <div className="footer">
           <div className="left">
-            <img src={'data:image/jpg;base64,' + studentNow?.Anh} className='image-hv' alt="" />
+            <img src={'data:image/jpg;base64,' + studentNow?.Anh} className="image-hv" alt="Ảnh thí sinh" />
           </div>
           <div className="middle">
-            <div className="subject">
-              <h5>Môn thi: {subject?.name} ({testCode})</h5>
-            </div>
-            <div className="rank">
-              <h5>Số Báo Danh: {studentNow?.khoahoc_thisinh?.SoBaoDanh}</h5>
-            </div>
-            <h5>Hạng: {studentNow?.loaibangthi}</h5>
+            <h5>Môn thi: {subject?.name} ({testCode})</h5>
+            <h5>Số Báo Danh: {studentNow?.khoahoc_thisinh?.SoBaoDanh}</h5>
             <h5>Họ và tên: {studentNow?.HoTen}</h5>
+            <h5>Hạng: {studentNow?.loaibangthi}</h5>
             <h5>Số CCCD: {studentNow?.SoCMT}</h5>
           </div>
           <div className="right">
-            <img src={require(`../../../assets/logo.jpg`)} className='logo' alt="" />
+            <img src={require(`../../../assets/logo.jpg`)} className="logo" alt="Logo" />
           </div>
         </div>
       </div>
+
+      {/* Right: sidebar */}
       <div className="right-exam">
         <div className="sidebar-section">
           <div className="top">
-            <div className="time-remaining">
-              Thời gian còn lại:<span>  {timeRemaining === 0 ? (
-                <span>Hết thời gian</span>
-              ) : (
-                <span>{formatTime(timeRemaining)}</span>
-              )}</span>
+            {/* Timer */}
+            <div className={`time-remaining ${timeClass}`}>
+              <span className="time-label">Thời gian còn lại</span>
+              <span className="time-value">
+                {timeRemaining === 0 ? 'Hết giờ' : formatTime(timeRemaining)}
+              </span>
             </div>
+
+            {/* Progress */}
+            <div className="progress-wrap">
+              <div className="progress-bar" style={{ width: `${(answeredCount/arrQuestion.length)*100}%` }} />
+              <span className="progress-text">{answeredCount}/{arrQuestion.length} câu</span>
+            </div>
+
+            {/* Question nav grid */}
             <div className="question-nav-container">
-              {Array.from({ length: Math.ceil(arrQuestion.length / 10) }).map((_, columnIndex) => (
-                <div className="question-nav" key={columnIndex}>
-                  {arrQuestion.slice(columnIndex * 10, columnIndex * 10 + 10).map((_, questionIndex) => {
-                    const globalIndex = columnIndex * 10 + questionIndex;
+              {Array.from({ length: Math.ceil(arrQuestion.length / 10) }).map((_, colIdx) => (
+                <div className="question-nav" key={colIdx}>
+                  {arrQuestion.slice(colIdx * 10, colIdx * 10 + 10).map((_, qIdx) => {
+                    const gi = colIdx * 10 + qIdx;
                     return (
                       <div
-                        key={globalIndex}
-                        className={`question-btn ${selectedOptions[globalIndex]?.length > 0 ? 'answered' : 'unanswered'} ${currentQuestion === globalIndex ? 'current' : ''}`}
-                        onClick={() => handleQuestionChange(globalIndex)}
+                        key={gi}
+                        className={`question-btn ${selectedOptions[gi]?.length ? 'answered' : 'unanswered'} ${currentQuestion === gi ? 'current' : ''}`}
+                        onClick={() => setCurrentQuestion(gi)}
                       >
-                        <div className="question-number">{globalIndex + 1}</div>
+                        <div className="question-number">{gi + 1}</div>
                         <div className="answer-options">
-                          {arrQuestion[globalIndex].options.map((_: any, optIndex: number) => (
-                            <div key={optIndex} className="option-cell">
-                              <span>{optIndex + 1}</span>
+                          {arrQuestion[gi].options.map((_: any, oi: number) => (
+                            <div key={oi} className="option-cell">
+                              <span>{oi + 1}</span>
                               <input
                                 type="checkbox"
-                                checked={selectedOptions[globalIndex]?.includes(optIndex + 1)}
-                                onChange={() => toggleOption(currentQuestion, optIndex + 1)}
+                                readOnly
+                                checked={selectedOptions[gi]?.includes(oi + 1)}
+                                onChange={() => toggleOption(gi, oi + 1)}
                               />
                             </div>
                           ))}
@@ -426,32 +503,28 @@ const FinalExamForm: React.FC = () => {
               ))}
             </div>
           </div>
-          <button className="end-exam-btn" onClick={handleEndExam}>Kết Thúc</button>
+
+          <button className="end-exam-btn" onClick={handleEndExam} disabled={isExamFinished}>
+            🏁 Kết Thúc
+          </button>
         </div>
       </div>
 
+      {/* Result modal */}
       {showResult && (
         <ResultModal
-          score={score}
-          totalQuestions={arrQuestion.length}
-          correctAnswers={score}
-          incorrectAnswers={arrQuestion.length - score}
-          resultStatus={score < subject!.threshold ? "TRƯỢT" : "ĐẠT"}
+          score={score} totalQuestions={arrQuestion.length}
+          correctAnswers={score} incorrectAnswers={arrQuestion.length - score}
+          resultStatus={score < ((subject as any)?.threshold ?? 0) ? "TRƯỢT" : "ĐẠT"}
           studentInfo={{
             studentID: studentNow?.khoahoc_thisinh?.SoBaoDanh || 0,
-            fullName: studentNow?.HoTen || '',
-            subject: subject?.name || '',
-            rank: studentNow?.loaibangthi || '',
-            test: testCode || '',
-            CCCD: studentNow?.SoCMT || '',
-            courseID: studentNow?.khoahoc_thisinh?.khoahoc?.IDKhoaHoc || '',
+            fullName: studentNow?.HoTen || '', subject: subject?.name || '',
+            rank: studentNow?.loaibangthi || '', test: testCode || '',
+            CCCD: studentNow?.SoCMT || '', courseID: studentNow?.khoahoc_thisinh?.khoahoc?.IDKhoaHoc || '',
           }}
-          onClose={handleCloseResult}
-          onViewAnswers={handleViewAnswers}
-          arrQuestion={arrQuestion}
-          selectedOptions={selectedOptions}
-          onNextExam={handleNextExam} // Truyền callback cho bài thi kế tiếp
-          nextSubjectName={nextSubjectName} // Thêm prop mới
+          onClose={() => setShowResult(false)} onViewAnswers={() => setShowAnswers(true)}
+          arrQuestion={arrQuestion} selectedOptions={selectedOptions}
+          onNextExam={handleNextExam} nextSubjectName={nextSubjectName}
         />
       )}
     </div>

@@ -19,14 +19,12 @@ const StudentsList: React.FC = () => {
     const fetchKhoaHocList = async () => {
       try {
 
-        const responseGetCourse = await get<ApiResponse>("/api/course");
-
-        const responseGetStatus = await get<ApiResponse>("/api/status");
-
+        const responseGetCourse = await get<ApiResponse<Course[]>>("/api/course");
+        const responseGetStatus = await get<ApiResponse<Status[]>>("/api/status");
 
         console.log('chekc response', responseGetCourse)
-        setKhoaHocList(responseGetCourse.DT);
-        setStatusList(responseGetStatus.DT);
+        setKhoaHocList(responseGetCourse?.DT);
+        setStatusList(responseGetStatus?.DT);
 
 
         if (responseGetCourse.DT.length > 0) {

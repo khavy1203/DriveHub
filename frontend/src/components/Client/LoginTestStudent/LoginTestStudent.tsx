@@ -1,14 +1,18 @@
 import React, { useEffect, useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import { ThiSinh, ApiResponse, Course, Status, Subject, Rank, Question } from "../../../interfaces";
-import useApiService from "../../../services/useApiService"; // Sử dụng hook mới
+import { useApi } from "../../../shared/hooks";
+import { ApiResponse } from "../../../core/types";
+import { Course, Status, Rank, Question, Exam, Student } from "../../../features/student/types";
+import { Subject } from "../../../features/exam/types";
 import './LoginTestStudent.css';
 import { toast } from "react-toastify";
-import { Exam } from '../../../interfaces/user.interface';
+
+// Type alias for backward compatibility
+type ThiSinh = Student;
 
 
 const LoginTestStudent: React.FC = () => {
-    const { get, post, put, del } = useApiService();
+    const { get, post, put, del } = useApi();
     const navigate = useNavigate();
 
     const [khoaHocList, setKhoaHocList] = useState<Course[]>([]);
@@ -32,8 +36,8 @@ const LoginTestStudent: React.FC = () => {
     useEffect(() => {
         const fetchList = async () => {
             try {
-                const responseGetCourse = await get<ApiResponse>("/api/course");
-                const responseGetRanks = await get<ApiResponse>("/api/rank/getRank");
+                const responseGetCourse = await get<ApiResponse<Course[]>>("/api/course");
+                const responseGetRanks = await get<ApiResponse<Rank[]>>("/api/rank/getRank");
 
                 setRanks(responseGetRanks.DT);
                 setKhoaHocList(responseGetCourse.DT);
@@ -96,7 +100,7 @@ const LoginTestStudent: React.FC = () => {
     const fetchSubjects = async (idRank: number) => {
         try {
             if (ranks !== null) {
-                const responseGetSubject = await get<ApiResponse>(`/api/subject/${idRank}/get-subjects`, {
+                const responseGetSubject = await get<ApiResponse<Subject[]>>(`/api/subject/${idRank}/get-subjects`, {
                     params: {
                         showsubject: true
                     }
@@ -159,7 +163,7 @@ const LoginTestStudent: React.FC = () => {
         }
 
         try {
-            const response = await get<ApiResponse>(`/api/students?IDKhoaHoc=${selectedKhoaHoc}&SoBaoDanh=${sbd}`);
+            const response = await get<ApiResponse<Student[]>>(`/api/students?IDKhoaHoc=${selectedKhoaHoc}&SoBaoDanh=${sbd}`);
             if (response.DT.length === 0) {
                 toast.error("Không tìm thấy thí sinh với SBD này.");
                 setStudentNow(null);
@@ -172,7 +176,7 @@ const LoginTestStudent: React.FC = () => {
 
             const rank = ranks.find((r) => r.name === student.loaibangthi);
             if (rank) {
-                const responseGetSubjects = await get<ApiResponse>(`/api/subject/${rank.id}/get-subjects`, {
+                const responseGetSubjects = await get<ApiResponse<Subject[]>>(`/api/subject/${rank.id}/get-subjects`, {
                     params: { showsubject: true },
                 });
                 setSubjectList(responseGetSubjects.DT);

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom'; // Chuyển hướng sau khi login thành công
 import { toast } from 'react-toastify'; // Thông báo lỗi/success
 import useApiService from '../../../services/useApiService'; // Sử dụng hook để gọi API
-import { ApiResponse, ApiResponseLogin } from '../../../interfaces';
+import { ApiResponse, ApiResponseLogin } from '../../../core/types/api.types';
 import apiGeneral from "../../../api/apiEndPointGeneral";
 import { useAuth } from '../../../context/AuthContext';
 import '../../../assets/css_login/util.css';
@@ -45,7 +45,7 @@ const Login: React.FC = () => {
         toast.success('Login successful!');
         // Lưu token vào localStorage nếu cần
         const token = response.DT.access_token;
-        const role = response.DT.groupWithRoles.name;  // Giả sử role ở đây là 'SuperAdmin' hoặc tương tự
+        const role = response?.DT?.groupWithRoles?.name || '';  // Giả sử role ở đây là 'SuperAdmin' hoặc tương tự
 
         // Lưu thông tin vào context
         setAuth(token, role);

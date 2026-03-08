@@ -1,0 +1,596 @@
+/* ============================================================
+   FinalExamForm.css — Complete Production Stylesheet
+   Font: Outfit (UI) + JetBrains Mono (timer/code)
+   Theme: Deep navy tactical exam — dark, sharp, professional
+   ============================================================ */
+
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap');
+
+/* ============================================================
+   CSS Variables
+   ============================================================ */
+:root {
+  --ex-bg-deep:    #0c1120;
+  --ex-bg-main:    #111827;
+  --ex-bg-card:    #1f2937;
+  --ex-bg-panel:   #1a2535;
+  --ex-bg-hover:   #253040;
+  --ex-border:     rgba(148,163,184,0.10);
+  --ex-border-md:  rgba(148,163,184,0.18);
+
+  --ex-blue:       #3b82f6;
+  --ex-blue-dark:  #1d4ed8;
+  --ex-green:      #22c55e;
+  --ex-green-dark: #15803d;
+  --ex-yellow:     #f59e0b;
+  --ex-red:        #ef4444;
+  --ex-red-dark:   #b91c1c;
+
+  --ex-text-1: #f1f5f9;
+  --ex-text-2: #94a3b8;
+  --ex-text-3: #64748b;
+
+  --ex-shadow-sm: 0 2px 8px  rgba(0,0,0,0.35);
+  --ex-shadow-md: 0 4px 20px rgba(0,0,0,0.45);
+  --ex-shadow-lg: 0 8px 40px rgba(0,0,0,0.55);
+
+  --ex-r-sm: 8px;
+  --ex-r-md: 12px;
+  --ex-r-lg: 16px;
+  --ex-r-xl: 20px;
+
+  --ex-t-fast: 120ms cubic-bezier(0.4,0,0.2,1);
+  --ex-t-med:  220ms cubic-bezier(0.4,0,0.2,1);
+}
+
+/* ============================================================
+   Base Reset
+   ============================================================ */
+.exam-layout-portrait,
+.exam-layout-landscape,
+.exam-layout-desktop {
+  font-family: 'Outfit', 'Segoe UI', system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  color: var(--ex-text-1);
+  overflow-x: hidden;
+  max-width: 100vw;
+}
+
+.exam-layout-portrait *,
+.exam-layout-landscape *,
+.exam-layout-desktop * {
+  box-sizing: border-box;
+}
+
+.exam-layout-portrait  .font-mono,
+.exam-layout-landscape .font-mono,
+.exam-layout-desktop   .font-mono {
+  font-family: 'JetBrains Mono', monospace !important;
+  letter-spacing: 0.06em;
+}
+
+/* ============================================================
+   Layout overflow control
+   ============================================================ */
+.exam-layout-portrait {
+  min-height: 100vh;
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.exam-layout-landscape,
+.exam-layout-desktop {
+  height: 100vh;
+  height: 100dvh;
+  overflow: hidden;
+}
+
+/* Images inside question cards must stay contained */
+.exam-layout-portrait  .bg-white img,
+.exam-layout-landscape .bg-white img,
+.exam-layout-desktop   .bg-white img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  display: block;
+}
+
+/* ============================================================
+   Animations
+   ============================================================ */
+@keyframes ex-slide-right {
+  from { transform: translateX(100%); opacity: 0; }
+  to   { transform: translateX(0);    opacity: 1; }
+}
+@keyframes ex-slide-up {
+  from { transform: translateY(16px); opacity: 0; }
+  to   { transform: translateY(0);    opacity: 1; }
+}
+@keyframes ex-fade {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@keyframes ex-scale-in {
+  from { transform: scale(0.94); opacity: 0; }
+  to   { transform: scale(1);    opacity: 1; }
+}
+@keyframes ex-pulse-red {
+  0%,100% { box-shadow: 0 0 0   4px rgba(239,68,68,0);   }
+  50%      { box-shadow: 0 0 18px 4px rgba(239,68,68,0.7); }
+}
+@keyframes ex-pulse-yellow {
+  0%,100% { box-shadow: 0 0 0   4px rgba(245,158,11,0);   }
+  50%      { box-shadow: 0 0 16px 4px rgba(245,158,11,0.6); }
+}
+@keyframes ex-breathe {
+  0%,100% { transform: scale(1);    }
+  50%      { transform: scale(1.04); }
+}
+
+.animate-slide-in-right { animation: ex-slide-right 0.28s cubic-bezier(0.22,1,0.36,1) forwards; }
+.animate-slide-in-up    { animation: ex-slide-up    0.24s cubic-bezier(0.22,1,0.36,1) forwards; }
+.animate-fade-in        { animation: ex-fade        0.18s ease forwards; }
+.animate-scale-in       { animation: ex-scale-in    0.18s ease forwards; }
+
+/* ============================================================
+   Utilities
+   ============================================================ */
+.active\:scale-98:active { transform: scale(0.98); }
+.touch-manipulation      { touch-action: manipulation; }
+
+.exam-layout-portrait  button,
+.exam-layout-landscape button,
+.exam-layout-desktop   button {
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+  cursor: pointer;
+}
+
+.exam-layout-portrait  button,
+.exam-layout-landscape button {
+  min-width: 44px;
+  min-height: 44px;
+}
+
+button:focus-visible {
+  outline: 2px solid var(--ex-blue);
+  outline-offset: 2px;
+}
+
+/* ============================================================
+   Exam Header
+   ============================================================ */
+.exam-header {
+  position: sticky;
+  top: 0;
+  z-index: 30;
+  background: linear-gradient(135deg, var(--ex-bg-deep) 0%, var(--ex-bg-main) 100%);
+  border-bottom: 1px solid var(--ex-border);
+  box-shadow: 0 2px 12px rgba(0,0,0,0.4);
+  padding-top: env(safe-area-inset-top, 0px);
+}
+
+/* ============================================================
+   Timer pill — glow per state
+   ============================================================ */
+.exam-layout-portrait  [class*="bg-green-500"][class*="font-mono"],
+.exam-layout-portrait  [class*="bg-green-500"][class*="font-bold"],
+.exam-layout-landscape [class*="bg-green-500"][class*="font-mono"],
+.exam-layout-landscape [class*="bg-green-500"][class*="font-bold"] {
+  box-shadow: 0 0 14px rgba(34,197,94,0.45);
+}
+
+.exam-layout-portrait  [class*="bg-yellow-500"],
+.exam-layout-landscape [class*="bg-yellow-500"] {
+  animation: ex-pulse-yellow 1.6s ease-in-out infinite;
+}
+
+.exam-layout-portrait  [class*="bg-red-500"][class*="animate-pulse"],
+.exam-layout-landscape [class*="bg-red-500"][class*="animate-pulse"] {
+  animation: ex-pulse-red 0.8s ease-in-out infinite;
+}
+
+/* Desktop timer text */
+.exam-layout-desktop .text-green-400  { text-shadow: 0 0 14px rgba(34,197,94,0.5);  }
+.exam-layout-desktop .text-yellow-400 {
+  text-shadow: 0 0 14px rgba(245,158,11,0.55);
+  animation: ex-breathe 1.6s ease-in-out infinite;
+}
+.exam-layout-desktop .text-red-400 {
+  text-shadow: 0 0 14px rgba(239,68,68,0.6);
+  animation: ex-breathe 0.7s ease-in-out infinite;
+}
+
+/* ============================================================
+   Progress bar
+   ============================================================ */
+[class*="from-green-400"][class*="to-green-500"] {
+  transition: width 0.4s cubic-bezier(0.4,0,0.2,1);
+  box-shadow: 0 0 8px rgba(34,197,94,0.35);
+}
+
+/* ============================================================
+   Question card
+   ============================================================ */
+.exam-layout-portrait  .bg-white,
+.exam-layout-landscape .bg-white,
+.exam-layout-desktop   .bg-white {
+  background: #ffffff !important;
+  box-shadow: var(--ex-shadow-lg) !important;
+}
+
+/* Question number badge */
+.exam-layout-portrait  .bg-blue-600,
+.exam-layout-landscape .bg-blue-600,
+.exam-layout-desktop   .bg-blue-600 {
+  background: linear-gradient(135deg, #2563eb, #1d4ed8) !important;
+  box-shadow: 0 2px 8px rgba(37,99,235,0.5) !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.02em;
+}
+
+/* ============================================================
+   End exam button
+   ============================================================ */
+.exam-layout-portrait  [class*="from-red-500"],
+.exam-layout-landscape [class*="from-red-500"],
+.exam-layout-desktop   [class*="from-red-500"] {
+  background: linear-gradient(135deg, #ef4444, #dc2626) !important;
+  box-shadow: 0 4px 16px rgba(239,68,68,0.4) !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.04em;
+  transition: all var(--ex-t-med) !important;
+}
+.exam-layout-portrait  [class*="from-red-500"]:hover,
+.exam-layout-landscape [class*="from-red-500"]:hover,
+.exam-layout-desktop   [class*="from-red-500"]:hover {
+  background: linear-gradient(135deg, #dc2626, #b91c1c) !important;
+  box-shadow: 0 6px 24px rgba(239,68,68,0.55) !important;
+  transform: translateY(-1px);
+}
+.exam-layout-portrait  [class*="from-red-500"]:active,
+.exam-layout-landscape [class*="from-red-500"]:active,
+.exam-layout-desktop   [class*="from-red-500"]:active {
+  transform: scale(0.98) translateY(0) !important;
+}
+
+/* ============================================================
+   Keyboard — nav keys (arrow up/down)
+   ============================================================ */
+.exam-layout-portrait  [class*="from-gray-200"],
+.exam-layout-landscape [class*="from-gray-200"],
+.exam-layout-desktop   [class*="from-gray-200"] {
+  background: linear-gradient(180deg, #e2e8f0, #cbd5e1) !important;
+  border-color: #94a3b8 !important;
+  box-shadow: 0 3px 0 #64748b, 0 4px 6px rgba(0,0,0,0.28) !important;
+  color: #1e293b !important;
+  border-radius: var(--ex-r-sm) !important;
+  transition: all 80ms ease !important;
+}
+.exam-layout-portrait  [class*="from-gray-200"]:hover,
+.exam-layout-landscape [class*="from-gray-200"]:hover,
+.exam-layout-desktop   [class*="from-gray-200"]:hover {
+  background: linear-gradient(180deg, #f1f5f9, #e2e8f0) !important;
+  box-shadow: 0 3px 0 #475569, 0 5px 10px rgba(0,0,0,0.3) !important;
+}
+.exam-layout-portrait  [class*="from-gray-200"]:active,
+.exam-layout-landscape [class*="from-gray-200"]:active,
+.exam-layout-desktop   [class*="from-gray-200"]:active {
+  transform: translateY(2px) !important;
+  box-shadow: 0 1px 0 #64748b !important;
+}
+
+/* ============================================================
+   Keyboard — answer keys unselected
+   ============================================================ */
+.exam-layout-portrait  [class*="from-blue-100"],
+.exam-layout-landscape [class*="from-blue-100"],
+.exam-layout-desktop   [class*="from-blue-100"] {
+  background: linear-gradient(180deg, #dbeafe, #bfdbfe) !important;
+  border-color: #60a5fa !important;
+  box-shadow: 0 3px 0 #2563eb, 0 4px 8px rgba(0,0,0,0.22) !important;
+  color: #1e3a8a !important;
+  font-weight: 700 !important;
+  font-size: 1.1rem !important;
+  border-radius: var(--ex-r-sm) !important;
+  transition: all 80ms ease !important;
+}
+.exam-layout-portrait  [class*="from-blue-100"]:hover,
+.exam-layout-landscape [class*="from-blue-100"]:hover,
+.exam-layout-desktop   [class*="from-blue-100"]:hover {
+  background: linear-gradient(180deg, #eff6ff, #dbeafe) !important;
+  box-shadow: 0 3px 0 #1d4ed8, 0 5px 12px rgba(37,99,235,0.3) !important;
+}
+.exam-layout-portrait  [class*="from-blue-100"]:active,
+.exam-layout-landscape [class*="from-blue-100"]:active,
+.exam-layout-desktop   [class*="from-blue-100"]:active {
+  transform: translateY(2px) !important;
+  box-shadow: 0 1px 0 #2563eb !important;
+}
+
+/* ============================================================
+   Keyboard — answer keys selected
+   ============================================================ */
+.exam-layout-portrait  [class*="from-green-400"][class*="to-green-500"],
+.exam-layout-landscape [class*="from-green-400"][class*="to-green-500"],
+.exam-layout-desktop   [class*="from-green-400"][class*="to-green-500"] {
+  background: linear-gradient(180deg, #4ade80, #22c55e) !important;
+  border-color: #16a34a !important;
+  box-shadow: 0 3px 0 #15803d, 0 4px 14px rgba(34,197,94,0.5) !important;
+  color: #fff !important;
+  font-weight: 700 !important;
+  font-size: 1.1rem !important;
+  border-radius: var(--ex-r-sm) !important;
+  transform: scale(1.06);
+}
+.exam-layout-portrait  [class*="from-green-400"][class*="to-green-500"]:active,
+.exam-layout-landscape [class*="from-green-400"][class*="to-green-500"]:active,
+.exam-layout-desktop   [class*="from-green-400"][class*="to-green-500"]:active {
+  transform: scale(1.06) translateY(2px) !important;
+  box-shadow: 0 1px 0 #15803d !important;
+}
+
+/* ============================================================
+   Question nav grid — Portrait/Landscape sidebar
+   ============================================================ */
+.fixed [class*="bg-gray-200"] {
+  background: #e2e8f0 !important;
+  color: #334155 !important;
+  transition: background var(--ex-t-fast), transform var(--ex-t-fast);
+}
+.fixed [class*="bg-gray-200"]:hover {
+  background: #cbd5e1 !important;
+  transform: scale(1.07);
+}
+.fixed [class*="bg-green-500"] {
+  background: linear-gradient(135deg, #16a34a, #15803d) !important;
+  box-shadow: 0 2px 8px rgba(22,163,74,0.4) !important;
+  color: #fff !important;
+}
+
+/* ============================================================
+   Desktop sidebar
+   ============================================================ */
+.exam-layout-desktop .bg-gray-100 {
+  background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%) !important;
+  border-left: 1px solid #e2e8f0;
+}
+.exam-layout-desktop .bg-gray-200 {
+  background: #e9eef5 !important;
+  border-top: 1px solid #d1d9e6;
+}
+
+/* Desktop question grid — unanswered */
+.exam-layout-desktop .bg-amber-50 {
+  background: #fefce8 !important;
+  color: #44403c !important;
+  border: 1px solid #fde68a;
+  transition: background var(--ex-t-fast), transform var(--ex-t-fast), box-shadow var(--ex-t-fast);
+}
+.exam-layout-desktop .bg-amber-50:hover {
+  background: #fef9c3 !important;
+  transform: scale(1.07);
+  box-shadow: 0 2px 8px rgba(245,158,11,0.2);
+}
+/* Desktop question grid — answered (reuse green-400 style above) */
+
+/* Current question ring */
+.exam-layout-portrait  [class*="ring-2"][class*="ring-blue-500"],
+.exam-layout-landscape [class*="ring-2"][class*="ring-blue-500"],
+.exam-layout-desktop   [class*="ring-2"][class*="ring-blue-500"] {
+  box-shadow: 0 0 0 2px #fff, 0 0 0 4px var(--ex-blue) !important;
+}
+
+/* Desktop toggle keyboard button */
+.exam-layout-desktop .bg-slate-600 {
+  background: linear-gradient(135deg, #475569, #334155) !important;
+  border: 1px solid var(--ex-border-md);
+  transition: all var(--ex-t-fast) !important;
+}
+.exam-layout-desktop .bg-slate-600:hover {
+  background: linear-gradient(135deg, #334155, #1e293b) !important;
+  border-color: var(--ex-blue);
+}
+
+/* Desktop timer header in sidebar */
+.exam-layout-desktop [class*="from-slate-700"] {
+  background: linear-gradient(180deg, var(--ex-bg-card) 0%, var(--ex-bg-deep) 100%) !important;
+  border-bottom: 1px solid var(--ex-border-md);
+}
+
+/* ============================================================
+   Student info bar (Desktop)
+   ============================================================ */
+.exam-layout-desktop .bg-amber-50:not([class*="aspect-square"]):not(button) {
+  background: linear-gradient(135deg, #fffbeb, #fef3c7) !important;
+  border: 1px solid #fde68a;
+  box-shadow: 0 -2px 12px rgba(0,0,0,0.08);
+}
+.exam-layout-desktop .bg-amber-50 p {
+  font-size: 0.8125rem;
+  line-height: 1.65;
+  color: #1c1917;
+}
+.exam-layout-desktop .bg-amber-50 strong {
+  color: #92400e;
+  font-weight: 600;
+}
+.exam-layout-desktop img[alt="Ảnh thí sinh"] {
+  border: 2px solid #d97706 !important;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+}
+.exam-layout-desktop img[alt="Logo"] {
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.15));
+}
+
+/* ============================================================
+   Sidebar overlay (Portrait/Landscape)
+   ============================================================ */
+.fixed.inset-0.z-50 > .absolute.inset-0.bg-black\/50 {
+  backdrop-filter: blur(3px);
+  -webkit-backdrop-filter: blur(3px);
+}
+.fixed.inset-0.z-50 > div:not(.absolute) {
+  background: #f8fafc !important;
+  border-left: 1px solid #e2e8f0 !important;
+}
+.fixed.inset-0.z-50 .sticky .bg-slate-800 {
+  background: linear-gradient(135deg, var(--ex-bg-deep), var(--ex-bg-main)) !important;
+  border-bottom: 1px solid var(--ex-border-md);
+}
+
+/* ============================================================
+   Floating keyboard (Desktop)
+   ============================================================ */
+.fixed.bottom-4.left-4.z-40 {
+  border: 1px solid var(--ex-border-md);
+  box-shadow: var(--ex-shadow-lg), 0 0 0 1px rgba(59,130,246,0.12);
+  border-radius: var(--ex-r-lg) !important;
+  overflow: hidden;
+  animation: ex-scale-in 0.2s ease forwards;
+}
+
+/* ============================================================
+   Keyboard container background
+   ============================================================ */
+[class*="from-slate-800"][class*="to-slate-900"] {
+  background: linear-gradient(160deg, #1e293b 0%, #0f172a 100%) !important;
+  border: 1px solid var(--ex-border);
+}
+
+/* ============================================================
+   Scrollbar
+   ============================================================ */
+.overflow-y-auto::-webkit-scrollbar       { width: 4px; }
+.overflow-y-auto::-webkit-scrollbar-track { background: transparent; }
+.overflow-y-auto::-webkit-scrollbar-thumb {
+  background: #334155;
+  border-radius: 4px;
+}
+.overflow-y-auto::-webkit-scrollbar-thumb:hover { background: var(--ex-blue); }
+
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+/* ============================================================
+   Loading screen
+   ============================================================ */
+.min-h-screen.flex.items-center.justify-center.bg-slate-800 {
+  background: linear-gradient(135deg, var(--ex-bg-deep) 0%, var(--ex-bg-main) 100%) !important;
+}
+
+/* ============================================================
+   Responsive breakpoints
+   ============================================================ */
+
+/* Portrait keyboard height */
+@media (max-width: 375px) {
+  .exam-layout-portrait .h-44   { height: 9.5rem; }
+  .exam-header { padding-left: 8px; padding-right: 8px; }
+  .exam-header .text-xl { font-size: 1rem; }
+}
+@media (min-width: 376px) and (max-width: 414px) {
+  .exam-layout-portrait .h-44   { height: 10.5rem; }
+}
+@media (min-width: 415px) and (max-width: 480px) {
+  .exam-layout-portrait .h-44   { height: 11.5rem; }
+}
+
+/* Landscape small height — compact everything */
+@media (orientation: landscape) and (max-height: 500px) {
+  .exam-layout-landscape {
+    height: 100vh;
+    height: 100dvh;
+  }
+  .exam-layout-landscape header {
+    padding-top: 2px;
+    padding-bottom: 2px;
+  }
+  .exam-layout-landscape [class*="from-gray-200"],
+  .exam-layout-landscape [class*="from-blue-100"],
+  .exam-layout-landscape [class*="from-green-400"] {
+    min-width:  38px !important;
+    min-height: 38px !important;
+    font-size: 0.85rem !important;
+  }
+}
+
+/* Landscape tablet — wider keyboard panel */
+@media (min-width: 769px) and (max-width: 1024px) and (orientation: landscape) {
+  .exam-layout-landscape .md\:w-80 { width: 20rem; }
+}
+
+/* Desktop smaller screens */
+@media (min-width: 1025px) and (max-width: 1280px) {
+  .exam-layout-desktop .w-96 { width: 22rem; }
+}
+
+/* ============================================================
+   Safe area insets
+   ============================================================ */
+@supports (padding: env(safe-area-inset-top)) {
+  .exam-header {
+    padding-top: calc(0.5rem + env(safe-area-inset-top));
+  }
+  .exam-layout-portrait > .flex-shrink-0:last-child {
+    padding-bottom: calc(0.75rem + env(safe-area-inset-bottom));
+  }
+  .exam-layout-landscape > div:last-child {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+}
+
+/* ============================================================
+   Accessibility
+   ============================================================ */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration:        0.01ms !important;
+    animation-iteration-count: 1      !important;
+    transition-duration:       0.01ms !important;
+  }
+}
+
+@media (prefers-contrast: high) {
+  .exam-layout-portrait  button,
+  .exam-layout-landscape button,
+  .exam-layout-desktop   button {
+    border: 2px solid currentColor !important;
+  }
+  .exam-header { border-bottom: 2px solid #fff; }
+}
+
+/* ============================================================
+   Print
+   ============================================================ */
+@media print {
+  .exam-layout-portrait,
+  .exam-layout-landscape,
+  .exam-layout-desktop { display: none !important; }
+}
+
+/* ============================================================
+   Utility classes
+   ============================================================ */
+.truncate-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+@supports not (aspect-ratio: 1 / 1) {
+  .aspect-square {
+    position: relative;
+    padding-bottom: 100%;
+  }
+  .aspect-square > * {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+  }
+}

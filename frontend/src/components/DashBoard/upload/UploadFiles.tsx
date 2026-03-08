@@ -1,10 +1,11 @@
 import React, { useState, useEffect, useCallback } from "react";
-import useApiService from "../../../services/useApiService";
-import { ApiResponse, Rank } from "../../../interfaces";
+import { useApi } from "../../../shared/hooks";
+import { ApiResponse } from "../../../core/types";
+import { Rank, Course } from "../../../features/student/types";
 import "./UploadFiles.css";
 
 const UploadFiles: React.FC = () => {
-  const { get, post } = useApiService();
+  const { get, post } = useApi();
   const [selectedFileStudent, setSelectedFileStudent] = useState<File | null>(null);
   const [selectedFilePayment, setSelectedFilePayment] = useState<File | null>(null);
   const [selectedFileTestQuestion, setSelectedFileTestQuestion] = useState<File | null>(null);
@@ -25,7 +26,7 @@ const UploadFiles: React.FC = () => {
   useEffect(() => {
     const fetchKhoaHocList = async () => {
       try {
-        const resGetCourse = await get<ApiResponse>("/api/course");
+        const resGetCourse = await get<ApiResponse<Course[]>>("/api/course");
         // const resGetSubject = await get<ApiResponse>("/api/testStudent/subject");
 
         setKhoaHocList(resGetCourse.DT || []); // Đảm bảo fallback nếu DT không tồn tại
@@ -38,7 +39,7 @@ const UploadFiles: React.FC = () => {
         //   setSelectedSubject(resGetSubject.DT[0].id);
         // }
 
-        const responseGetRanks = await get<ApiResponse>("/api/rank/getRank");
+        const responseGetRanks = await get<ApiResponse<Rank[]>>("/api/rank/getRank");
         setRanks(responseGetRanks.DT);
         if (responseGetRanks.DT.length) {
           setSelectedRank(responseGetRanks.DT[0].id)
