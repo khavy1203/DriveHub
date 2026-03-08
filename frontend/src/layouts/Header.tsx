@@ -46,11 +46,11 @@ export const Header: React.FC = () => {
                     Home
                   </NavLink>
                 </li>
-                <li>
+                {/* <li>
                   <NavLink to="/students" className={({ isActive }) => (isActive ? 'active' : '')}>
                     Hàng đợi thi
                   </NavLink>
-                </li>
+                </li> */}
                 <li>
                   <NavLink to="/teststudent" className={({ isActive }) => (isActive ? 'active' : '')}>
                     Thi Thử 5 Môn
