@@ -410,11 +410,15 @@ const FinalExamForm: React.FC = () => {
       </div>
 
       <button className="mobile-list-toggle-btn" onClick={() => setShowMobileList(!showMobileList)}>
-        ☰ Danh sách câu hỏi ({selectedOptions.filter(opt => opt.length > 0).length}/{arrQuestion.length})
+        ☰ Danh sách câu hỏi (Đã làm: {selectedOptions.filter(opt => opt.length > 0).length}/{arrQuestion.length})
       </button>
 
       <div className="left-exam">
         <div className="question-section">
+          {/* Tiêu đề câu hỏi hiện tại cho Mobile */}
+          <div className="mobile-current-question-info">
+            Câu {currentQuestion + 1} / {arrQuestion.length}
+          </div>
           {(() => {
             const imageSrc = getQuestionImage(arrQuestion[currentQuestion]?.number);
             return imageSrc ? (
@@ -457,33 +461,6 @@ const FinalExamForm: React.FC = () => {
           <button className="mobile-end-exam-btn" onClick={handleEndExam}>
             KẾT THÚC BÀI THI
           </button>
-
-          {/* Lưới câu hỏi dành riêng cho Mobile (Dạng Modal) */}
-          <div className={`mobile-question-grid ${showMobileList ? 'show' : ''}`}>
-            <div className="mobile-question-content">
-              <div className="grid-header">
-                <div className="grid-title">Danh sách câu hỏi</div>
-                <button className="close-grid-btn" onClick={() => setShowMobileList(false)}>×</button>
-              </div>
-              <div className="grid-container">
-                {arrQuestion.map((_: any, index: number) => {
-                  const isAnswered = selectedOptions[index]?.length > 0;
-                  return (
-                    <button
-                      key={index}
-                      className={`grid-item ${isAnswered ? 'answered' : ''} ${currentQuestion === index ? 'current' : ''}`}
-                      onClick={() => {
-                        handleQuestionChange(index);
-                        setShowMobileList(false); // Tự động đóng Modal sau khi chọn xong
-                      }}
-                    >
-                      {index + 1}
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-          </div>
         </div>
         <div className="footer">
           <div className="left">
@@ -570,6 +547,35 @@ const FinalExamForm: React.FC = () => {
           onNextExam={handleNextExam} // Truyền callback cho bài thi kế tiếp
           nextSubjectName={nextSubjectName} // Thêm prop mới
         />
+      )}
+
+      {/* Lưới câu hỏi dành riêng cho Mobile (Dạng Modal) đặt ở ngoài cùng để không bị che bởi Flexbox con nhỏ */}
+      {showMobileList && (
+        <div className="mobile-question-grid show">
+          <div className="mobile-question-content">
+            <div className="grid-header">
+              <div className="grid-title">Danh sách câu hỏi</div>
+              <button className="close-grid-btn" onClick={() => setShowMobileList(false)}>×</button>
+            </div>
+            <div className="grid-container">
+              {arrQuestion.map((_: any, index: number) => {
+                const isAnswered = selectedOptions[index]?.length > 0;
+                return (
+                  <button
+                    key={index}
+                    className={`grid-item ${isAnswered ? 'answered' : ''} ${currentQuestion === index ? 'current' : ''}`}
+                    onClick={() => {
+                      handleQuestionChange(index);
+                      setShowMobileList(false);
+                    }}
+                  >
+                    {index + 1}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

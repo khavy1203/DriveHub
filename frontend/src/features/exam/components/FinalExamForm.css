@@ -351,6 +351,11 @@ button:hover {
     /* Ẩn nút Dropdown trên Desktop */
 }
 
+.mobile-current-question-info {
+    display: none;
+    /* Ẩn tiêu đề "Câu:" trên Desktop */
+}
+
 .mobile-controls {
     display: none;
     /* Ẩn cụm mobile trên Desktop */
@@ -436,6 +441,16 @@ button:hover {
         box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
         font-size: 16px;
         color: #333;
+    }
+
+    .mobile-current-question-info {
+        display: block;
+        font-weight: bold;
+        font-size: 16px;
+        color: #007BFF;
+        margin-bottom: 15px;
+        padding-bottom: 10px;
+        border-bottom: 1px dashed #ddd;
     }
 
     .exam-container {
@@ -557,12 +572,14 @@ button:hover {
         width: 100%;
         height: 100%;
         background: rgba(0, 0, 0, 0.6);
-        z-index: 1000;
+        z-index: 2000;
         margin: 0;
         padding: 0;
         border-radius: 0;
         align-items: flex-end;
         /* Căn xuống dưới cùng màn hình */
+        justify-content: center;
+        flex-direction: column;
     }
 
     .mobile-question-grid.show {
@@ -578,6 +595,9 @@ button:hover {
         /* Bo tròn góc trên */
         max-height: 80vh;
         overflow-y: auto;
+        box-sizing: border-box;
+        /* Quan trọng để tránh dãn vỡ UI padding */
+        flex-shrink: 0;
     }
 
     .grid-header {
