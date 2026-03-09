@@ -61,16 +61,7 @@ const FinalExamForm: React.FC = () => {
           const subjectId = subjectsNotTested.some(e => e.id === IDSubject) ? IDSubject : subjectsNotTested[0].id;
           setUntestedSubjects(subjectsNotTested.filter(e => e.id !== subjectId));
 
-          // Kiểm tra xem có dữ liệu lưu tạm không
-          const savedStateKey = `exam_state_${IDThiSinh}_${subjectId}`;
-          const savedStateStr = localStorage.getItem(savedStateKey);
-
-          if (savedStateStr) {
-            const savedState = JSON.parse(savedStateStr);
-            await setupExam(subjectId, savedState);
-          } else {
-            await setupExam(subjectId);
-          }
+          await setupExam(subjectId);
 
           await post(`/api/students/update-processtest`, {
             IDThiSinh,
@@ -88,21 +79,16 @@ const FinalExamForm: React.FC = () => {
     initializeExam();
   }, [IDThiSinh]);
 
-  const setupExam = async (subjectId: number, savedState: any = null) => {
+  const setupExam = async (subjectId: number) => {
     try {
-      let testIdToUse: number;
-      if (savedState && savedState.testRandom) {
-        testIdToUse = savedState.testRandom;
-      } else {
-        const getRandomTest = await get<ApiResponse<Subject[]>>(`/api/subject/get-test/${subjectId}`);
-        if (!getRandomTest.DT || getRandomTest.DT.length === 0) {
-          toast.error("Chưa có dữ liệu bài kiểm tra.");
-          navigate('/testStudent');
-          return;
-        }
-        const dataTest = getRandomTest.DT;
-        testIdToUse = dataTest[Math.floor(Math.random() * dataTest.length)].id;
+      const getRandomTest = await get<ApiResponse<Subject[]>>(`/api/subject/get-test/${subjectId}`);
+      if (!getRandomTest.DT || getRandomTest.DT.length === 0) {
+        toast.error("Chưa có dữ liệu bài kiểm tra.");
+        navigate('/testStudent');
+        return;
       }
+      const dataTest = getRandomTest.DT;
+      const testIdToUse = dataTest[Math.floor(Math.random() * dataTest.length)].id;
 
       const varTest = await get<ApiResponse<Test[]>>(`/api/test/get-test/${testIdToUse}`);
 
@@ -137,13 +123,8 @@ const FinalExamForm: React.FC = () => {
       setTimeOut(false);
       setShowResult(false);
 
-      if (savedState) {
-        setSelectedOptions(savedState.selectedOptions);
-        setTimeRemaining(savedState.timeRemaining);
-      } else {
-        setSelectedOptions(new Array(questionsTest.length).fill([]));
-        setTimeRemaining(varSubject.timeFinish * 60);
-      }
+      setSelectedOptions(new Array(questionsTest.length).fill([]));
+      setTimeRemaining(varSubject.timeFinish * 60);
     } catch (error) {
       console.error("Lỗi trong setupExam:", error);
       toast.error("Không thể thiết lập bài thi.");
@@ -432,7 +413,6 @@ const FinalExamForm: React.FC = () => {
           })()}
         </div>
 
-        {/* Cụm nút bấm chọn đáp án cho Mobile */}
         <div className="mobile-controls">
           <div className="mobile-answer-buttons">
             {arrQuestion[currentQuestion]?.options.map((_: any, index: number) => {
@@ -549,7 +529,6 @@ const FinalExamForm: React.FC = () => {
         />
       )}
 
-      {/* Lưới câu hỏi dành riêng cho Mobile (Dạng Modal) đặt ở ngoài cùng để không bị che bởi Flexbox con nhỏ */}
       {showMobileList && (
         <div className="mobile-question-grid show">
           <div className="mobile-question-content">

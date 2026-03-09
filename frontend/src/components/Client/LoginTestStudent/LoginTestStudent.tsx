@@ -225,8 +225,8 @@ const LoginTestStudent: React.FC = () => {
 
         // Kiểm tra trạng thái processtest
         if (studentNow?.processtest?.id === 2) {
-            toast.info("Bạn đang quay lại bài thi đang dang dở.");
-            // Cho phép tiếp tục thay vì block bằng thông báo lỗi
+            toast.error("Thí sinh đã trong trạng thái thi. Không thể vào thi lại.");
+            return;
         }
 
         // Kiểm tra nếu thí sinh đã thi môn này
@@ -371,7 +371,7 @@ const LoginTestStudent: React.FC = () => {
                     className={isStartEnabled ? "enter" : "check-button"}
                     onClick={isStartEnabled ? handleStartExam : handleCheckStudent}
                 >
-                    {isStartEnabled ? "Vào thi" : "Kiểm tra thông tin thí sinh"}
+                    {isStartEnabled ? "Vào thi"  : "Kiểm tra thông tin thí sinh"}
                 </button>
             </div>
             {/* Nút Reset dữ liệu ở góc phải */}

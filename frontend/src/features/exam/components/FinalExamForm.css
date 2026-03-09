@@ -11,9 +11,9 @@
 
 .exam-container.blurred {
     filter: blur(5px);
-    /* Làm mờ phần nền */
+    
     pointer-events: none;
-    /* Ngăn tương tác */
+    
 }
 
 .left-exam {
@@ -124,12 +124,12 @@
 
 .question-btn.answered {
     background-color: rgba(148, 239, 148, 255);
-    /* Màu xanh nhạt cho câu hỏi đã trả lời */
+    
 }
 
 .question-btn.unanswered {
     background-color: rgba(255, 247, 231, 255);
-    /* Màu trắng cho câu hỏi chưa trả lời */
+    
 }
 
 .question-number {
@@ -184,7 +184,7 @@
 
 .question-btn.current {
     background-color: rgba(255, 132, 132, 255);
-    /* Hoặc màu xanh tùy ý */
+    
 }
 
 .question-btn {
@@ -250,39 +250,39 @@
 
 .middle h5 {
     font-size: 2vh;
-    /* Kích thước chữ nhỏ */
+    
     font-weight: 700;
-    /* Đậm để nổi bật */
+    
     color: #444;
-    /* Màu chữ xám đậm */
+    
     font-family: 'Avanta Garde';
-    /* Chọn font dễ đọc */
+    
     text-transform: capitalize;
-    /* Chữ hoa chữ cái đầu tiên */
+    
     letter-spacing: 0.5px;
-    /* Giãn cách nhẹ */
+    
     line-height: 1.4;
     text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
-    /* Thêm bóng mờ */
+    
     transition: all 0.3s ease-in-out;
 }
 
 .middle h5:hover {
     color: #e74c3c;
-    /* Màu đỏ khi hover */
+    
     text-shadow: 2px 2px 10px rgba(0, 0, 0, 0.5);
-    /* Bóng mờ đậm hơn khi hover */
+    
     transform: translateY(-3px);
-    /* Dịch chuyển lên một chút khi hover */
+    
 }
 
 
 
 .answers-modal {
     width: 600px;
-    /* Kích thước modal cố định */
+    
     max-height: 600px;
-    /* Chiều cao tối đa của modal */
+    
 }
 
 .modal-header {
@@ -295,11 +295,11 @@
 .modal-body {
     flex-grow: 1;
     overflow-y: auto;
-    /* Hiển thị thanh cuộn dọc khi nội dung vượt quá chiều cao */
+    
     max-height: 400px;
-    /* Giới hạn chiều cao của phần nội dung */
+    
     padding-right: 10px;
-    /* Khoảng cách bên phải để tránh thanh cuộn bị chồng lên nội dung */
+    
 }
 
 .modal-footer {
@@ -333,7 +333,7 @@ button:hover {
     }
 }
 
-/* Các class hiển thị tùy thuộc vào thiết bị */
+
 .mobile-time-top {
     display: none;
 }
@@ -348,23 +348,23 @@ button:hover {
 
 .mobile-list-toggle-btn {
     display: none;
-    /* Ẩn nút Dropdown trên Desktop */
+    
 }
 
 .mobile-current-question-info {
     display: none;
-    /* Ẩn tiêu đề "Câu:" trên Desktop */
+    
 }
 
 .mobile-controls {
     display: none;
-    /* Ẩn cụm mobile trên Desktop */
+    
 }
 
-/* CSS cho nút chọn đáp án trên Mobile */
+
 .mobile-answer-buttons {
     display: none;
-    /* Mặc định ẩn trên Desktop */
+    
     justify-content: center;
     gap: 15px;
     padding: 15px;
@@ -410,7 +410,7 @@ button:hover {
 
 @media (max-width: 769px) {
 
-    /* Đổi trạng thái hiển thị thời gian */
+    
     .mobile-time-top {
         display: block;
         margin-bottom: 5px;
@@ -420,14 +420,14 @@ button:hover {
         text-align: center;
         width: 100%;
         box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-        /* Cho nổi bật */
+        
     }
 
     .desktop-time {
         display: none;
     }
 
-    /* Nút hiện danh sách câu hỏi dạng Dropdown/Modal */
+    
     .mobile-list-toggle-btn {
         display: block;
         width: 100%;
@@ -463,7 +463,7 @@ button:hover {
         padding: 10px;
         background-color: transparent;
         order: 1;
-        /* Nằm dưới time-remaining (mặc định là 0 nên sẽ nằm trên) */
+        
     }
 
     .right-exam {
@@ -473,7 +473,7 @@ button:hover {
         background-color: transparent;
         order: 2;
         display: none;
-        /* Ẩn hẳn cột phải trên mobile vì đã có lưới mobile riêng */
+        
     }
 
     .question-section {
@@ -495,12 +495,12 @@ button:hover {
         display: flex;
         justify-content: center;
         gap: 15px;
-        /* Giảm gap cho nút nhỏ lại */
+        
     }
 
     .mobile-btn {
         width: 45px;
-        /* Theo yêu cầu thu nhỏ diện tích */
+        
         height: 45px;
         border-radius: 50%;
         border: 2px solid #ddd;
@@ -512,13 +512,13 @@ button:hover {
         justify-content: center;
         align-items: center;
         box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-        /* Loại bỏ active mặc định của CSS để không bị xanh khi click thả ra */
+        
         -webkit-tap-highlight-color: transparent;
     }
 
     .mobile-btn.active {
         background-color: #f1c40f;
-        /* Màu vàng theo mẫu */
+        
         border-color: #f1c40f;
         color: white;
     }
@@ -540,7 +540,7 @@ button:hover {
 
     .nav-btn.prev {
         background-color: #007BFF;
-        /* Đổi về màu xanh giống nút sau theo yêu cầu */
+        
         color: white;
     }
 
@@ -553,7 +553,7 @@ button:hover {
         width: 100%;
         padding: 15px;
         background-color: #27ae60;
-        /* Màu xanh lá theo mẫu */
+        
         color: white;
         border: none;
         border-radius: 5px;
@@ -562,10 +562,10 @@ button:hover {
         text-transform: uppercase;
     }
 
-    /* Lưới danh sách câu hỏi dành riêng cho Mobile (Dạng Modal) */
+    
     .mobile-question-grid {
         display: none;
-        /* Chỉ hiện khi state is true (chứa class .show) */
+        
         position: fixed;
         top: 0;
         left: 0;
@@ -577,14 +577,14 @@ button:hover {
         padding: 0;
         border-radius: 0;
         align-items: flex-end;
-        /* Căn xuống dưới cùng màn hình */
+        
         justify-content: center;
         flex-direction: column;
     }
 
     .mobile-question-grid.show {
         display: flex;
-        /* Hiện modal */
+        
     }
 
     .mobile-question-content {
@@ -592,11 +592,11 @@ button:hover {
         width: 100%;
         padding: 20px;
         border-radius: 20px 20px 0 0;
-        /* Bo tròn góc trên */
+        
         max-height: 80vh;
         overflow-y: auto;
         box-sizing: border-box;
-        /* Quan trọng để tránh dãn vỡ UI padding */
+        
         flex-shrink: 0;
     }
 
@@ -649,14 +649,14 @@ button:hover {
 
     .mobile-question-grid .grid-item.answered {
         background-color: #f1c40f;
-        /* Đã trả lời chung màu với nút số */
+        
         color: white;
         border-color: #f1c40f;
     }
 
     .mobile-question-grid .grid-item.current {
         border: 2px solid #007BFF;
-        /* Viền để nhận biết đang đứng ở câu nào */
+        
     }
 
     .sidebar-section {
@@ -664,7 +664,7 @@ button:hover {
         padding: 10px;
     }
 
-    /* Đổi chỗ sidebar nội dung */
+    
     .sidebar-section .top {
         display: flex;
         flex-direction: column;
@@ -672,7 +672,7 @@ button:hover {
 
     .time-remaining {
         order: -1;
-        /* Đưa thời gian lên đầu */
+        
         margin-bottom: 15px;
         padding: 10px;
         background: white;
@@ -685,7 +685,7 @@ button:hover {
 
     .end-exam-btn {
         display: none;
-        /* Ẩn nút kết thúc cũ trong sidebar trên mobile */
+        
     }
 
     .footer {
@@ -702,7 +702,7 @@ button:hover {
     .footer .left,
     .footer .right {
         display: block;
-        /* Hiện lại Logo và Avatar trên Mobile */
+        
         width: 100%;
         display: flex;
         justify-content: center;
@@ -734,7 +734,7 @@ button:hover {
     .footer .middle .rank {
         justify-content: center;
         flex-wrap: wrap;
-        /* Tránh tràn layout */
+        
         gap: 10px;
     }
 
