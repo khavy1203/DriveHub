@@ -17,7 +17,8 @@ const FinalExamForm: React.FC = () => {
   const [selectedOptions, setSelectedOptions] = useState<number[][]>([]);
   const [subject, setSubject] = useState<Subject | null>(null);
   const [arrQuestion, setArrQuestion] = useState<any[]>([]);
-  const [showResult, setShowResult] = useState(false);
+  const [showResult, setShowResult] = useState<boolean>(false);
+  const [showMobileList, setShowMobileList] = useState<boolean>(false);
   const [score, setScore] = useState(0);
   const [timeRemaining, setTimeRemaining] = useState<number>(0);
   const [showAnswers, setShowAnswers] = useState(false);
@@ -59,7 +60,17 @@ const FinalExamForm: React.FC = () => {
         else {
           const subjectId = subjectsNotTested.some(e => e.id === IDSubject) ? IDSubject : subjectsNotTested[0].id;
           setUntestedSubjects(subjectsNotTested.filter(e => e.id !== subjectId));
-          await setupExam(subjectId);
+
+          // Kiểm tra xem có dữ liệu lưu tạm không
+          const savedStateKey = `exam_state_${IDThiSinh}_${subjectId}`;
+          const savedStateStr = localStorage.getItem(savedStateKey);
+
+          if (savedStateStr) {
+            const savedState = JSON.parse(savedStateStr);
+            await setupExam(subjectId, savedState);
+          } else {
+            await setupExam(subjectId);
+          }
 
           await post(`/api/students/update-processtest`, {
             IDThiSinh,
@@ -77,18 +88,23 @@ const FinalExamForm: React.FC = () => {
     initializeExam();
   }, [IDThiSinh]);
 
-  const setupExam = async (subjectId: number) => {
+  const setupExam = async (subjectId: number, savedState: any = null) => {
     try {
-      const getRandomTest = await get<ApiResponse<Subject[]>>(`/api/subject/get-test/${subjectId}`);
-      if (!getRandomTest.DT || getRandomTest.DT.length === 0) {
-        toast.error("Chưa có dữ liệu bài kiểm tra.");
-        navigate('/testStudent');
-        return;
+      let testIdToUse: number;
+      if (savedState && savedState.testRandom) {
+        testIdToUse = savedState.testRandom;
+      } else {
+        const getRandomTest = await get<ApiResponse<Subject[]>>(`/api/subject/get-test/${subjectId}`);
+        if (!getRandomTest.DT || getRandomTest.DT.length === 0) {
+          toast.error("Chưa có dữ liệu bài kiểm tra.");
+          navigate('/testStudent');
+          return;
+        }
+        const dataTest = getRandomTest.DT;
+        testIdToUse = dataTest[Math.floor(Math.random() * dataTest.length)].id;
       }
 
-      const dataTest = getRandomTest.DT;
-      const testRandom = dataTest[Math.floor(Math.random() * dataTest.length)].id;
-      const varTest = await get<ApiResponse<Test[]>>(`/api/test/get-test/${testRandom}`);
+      const varTest = await get<ApiResponse<Test[]>>(`/api/test/get-test/${testIdToUse}`);
 
       // Kiểm tra dữ liệu trả về từ API
       if (!varTest?.DT?.[0]) {
@@ -98,7 +114,7 @@ const FinalExamForm: React.FC = () => {
       }
 
       const varSubject = varTest.DT[0].subject as Subject;
-      const varArrQuestion = varTest.DT[0].questions ;
+      const varArrQuestion = varTest.DT[0].questions;
 
       if (!varSubject || !varArrQuestion?.length) {
         toast.error("Dữ liệu bài thi không hợp lệ.");
@@ -114,14 +130,20 @@ const FinalExamForm: React.FC = () => {
       // Thiết lập tất cả state cùng lúc
       setSubject(varSubject);
       setArrQuestion(questionsTest);
-      setSelectedOptions(new Array(questionsTest.length).fill([]));
-      setTimeRemaining(varSubject.timeFinish * 60);
-      setTestRandom(testRandom);
+      setTestRandom(testIdToUse);
       setTestCode(varTest.DT[0].code);
       setCurrentQuestion(0);
       setIsExamFinished(false);
       setTimeOut(false);
       setShowResult(false);
+
+      if (savedState) {
+        setSelectedOptions(savedState.selectedOptions);
+        setTimeRemaining(savedState.timeRemaining);
+      } else {
+        setSelectedOptions(new Array(questionsTest.length).fill([]));
+        setTimeRemaining(varSubject.timeFinish * 60);
+      }
     } catch (error) {
       console.error("Lỗi trong setupExam:", error);
       toast.error("Không thể thiết lập bài thi.");
@@ -155,15 +177,19 @@ const FinalExamForm: React.FC = () => {
 
 
   const handleEndExam = async () => {
-    if (!isExamFinished) {
-      setIsExamFinished(true); // Đánh dấu bài thi đã kết thúc
-      setTimeRemaining(0); // Dừng bộ đếm
-      try {
-        await handleFinishExam(); // Gọi và đợi hàm ghi nhận kết quả
-      } catch (error) {
-        console.error("Lỗi khi kết thúc bài thi:", error);
-        toast.error("Có lỗi xảy ra khi kết thúc bài thi.");
-      }
+    if (!IDThiSinh || isExamFinished || !subject) return;
+
+    if (!window.confirm("Bạn có chắc chắn muốn nộp bài và kết thúc thi không?")) {
+      return;
+    }
+
+    setIsExamFinished(true); // Đánh dấu bài thi đã kết thúc
+    setTimeRemaining(0); // Dừng bộ đếm
+    try {
+      await handleFinishExam(); // Gọi và đợi hàm ghi nhận kết quả
+    } catch (error) {
+      console.error("Lỗi khi kết thúc bài thi:", error);
+      toast.error("Có lỗi xảy ra khi kết thúc bài thi.");
     }
   };
 
@@ -199,12 +225,36 @@ const FinalExamForm: React.FC = () => {
     setCurrentQuestion(index);
   };
 
+  const handleNextQuestion = () => {
+    if (currentQuestion < arrQuestion.length - 1) {
+      setCurrentQuestion(currentQuestion + 1);
+    }
+  };
+
+  const handlePrevQuestion = () => {
+    if (currentQuestion > 0) {
+      setCurrentQuestion(currentQuestion - 1);
+    }
+  };
+
   useEffect(() => {
     document.addEventListener('keydown', handleKeyPress);
     return () => {
       document.removeEventListener('keydown', handleKeyPress);
     };
   }, [currentQuestion, selectedOptions]);
+
+  // Lưu tiến trình vào localStorage
+  useEffect(() => {
+    if (IDThiSinh && subject && testRandom && !isExamFinished) {
+      const stateToSave = {
+        testRandom,
+        selectedOptions,
+        timeRemaining
+      };
+      localStorage.setItem(`exam_state_${IDThiSinh}_${subject.id}`, JSON.stringify(stateToSave));
+    }
+  }, [selectedOptions, timeRemaining, testRandom, isExamFinished]);
 
   // Chuyển đổi giây thành định dạng phút:giây
   const formatTime = (timeInSeconds: number) => {
@@ -263,12 +313,12 @@ const FinalExamForm: React.FC = () => {
       const updatedUntestedSubjects: Subject[] = updatedStudent?.rank?.subjects?.filter(
         (subject: any) => !examSubjectIds.includes(subject.id)
       ) || [];
-      if(updatedUntestedSubjects.length == 0){
+      if (updatedUntestedSubjects.length == 0) {
         await post(`/api/students/update-processtest`, {
           IDThiSinh,
           processtest: 3,
         });
-      }else{
+      } else {
         await post(`/api/students/update-processtest`, {
           IDThiSinh,
           processtest: 1,
@@ -280,6 +330,9 @@ const FinalExamForm: React.FC = () => {
 
       setScore(calculatedScore);
       setShowResult(true);
+
+      // Xóa tiến trình sau khi nộp bài
+      localStorage.removeItem(`exam_state_${IDThiSinh}_${subject.id}`);
     } catch (error) {
       console.error("Lỗi khi ghi nhận kết quả:", error);
       toast.error("Không thể ghi nhận kết quả thi.");
@@ -351,6 +404,15 @@ const FinalExamForm: React.FC = () => {
 
   return (
     <div className={`exam-container`}>
+      {/* Thời gian làm bài (đặt ở đây để dễ dàng dùng order CSS đưa lên đầu trang mobile) */}
+      <div className="time-remaining mobile-time-top" style={{ color: timeOut ? 'red' : 'black' }}>
+        Thời gian còn lại: <span>{formatTime(timeRemaining)}</span>
+      </div>
+
+      <button className="mobile-list-toggle-btn" onClick={() => setShowMobileList(!showMobileList)}>
+        ☰ Danh sách câu hỏi ({selectedOptions.filter(opt => opt.length > 0).length}/{arrQuestion.length})
+      </button>
+
       <div className="left-exam">
         <div className="question-section">
           {(() => {
@@ -364,6 +426,64 @@ const FinalExamForm: React.FC = () => {
               <div>Không tìm thấy ảnh câu hỏi {arrQuestion[currentQuestion]?.number}</div>
             );
           })()}
+        </div>
+
+        {/* Cụm nút bấm chọn đáp án cho Mobile */}
+        <div className="mobile-controls">
+          <div className="mobile-answer-buttons">
+            {arrQuestion[currentQuestion]?.options.map((_: any, index: number) => {
+              const isSelected = selectedOptions[currentQuestion]?.includes(index + 1);
+              return (
+                <button
+                  key={index}
+                  className={`mobile-btn ${isSelected ? 'active' : ''}`}
+                  onClick={() => toggleOption(currentQuestion, index + 1)}
+                >
+                  {index + 1}
+                </button>
+              );
+            })}
+          </div>
+
+          <div className="mobile-navigation">
+            <button className="nav-btn prev" onClick={handlePrevQuestion} disabled={currentQuestion === 0}>
+              Câu trước
+            </button>
+            <button className="nav-btn next" onClick={handleNextQuestion} disabled={currentQuestion === arrQuestion.length - 1}>
+              Câu tiếp theo
+            </button>
+          </div>
+
+          <button className="mobile-end-exam-btn" onClick={handleEndExam}>
+            KẾT THÚC BÀI THI
+          </button>
+
+          {/* Lưới câu hỏi dành riêng cho Mobile (Dạng Modal) */}
+          <div className={`mobile-question-grid ${showMobileList ? 'show' : ''}`}>
+            <div className="mobile-question-content">
+              <div className="grid-header">
+                <div className="grid-title">Danh sách câu hỏi</div>
+                <button className="close-grid-btn" onClick={() => setShowMobileList(false)}>×</button>
+              </div>
+              <div className="grid-container">
+                {arrQuestion.map((_: any, index: number) => {
+                  const isAnswered = selectedOptions[index]?.length > 0;
+                  return (
+                    <button
+                      key={index}
+                      className={`grid-item ${isAnswered ? 'answered' : ''} ${currentQuestion === index ? 'current' : ''}`}
+                      onClick={() => {
+                        handleQuestionChange(index);
+                        setShowMobileList(false); // Tự động đóng Modal sau khi chọn xong
+                      }}
+                    >
+                      {index + 1}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
         </div>
         <div className="footer">
           <div className="left">
@@ -388,12 +508,9 @@ const FinalExamForm: React.FC = () => {
       <div className="right-exam">
         <div className="sidebar-section">
           <div className="top">
-            <div className="time-remaining">
-              Thời gian còn lại:<span>  {timeRemaining === 0 ? (
-                <span>Hết thời gian</span>
-              ) : (
-                <span>{formatTime(timeRemaining)}</span>
-              )}</span>
+            {/* Desktop Time Remaining (will be hidden on Mobile) */}
+            <div className="time-remaining desktop-time" style={{ color: timeOut ? 'red' : 'black' }}>
+              Thời gian còn lại: <span>{formatTime(timeRemaining)}</span>
             </div>
             <div className="question-nav-container">
               {Array.from({ length: Math.ceil(arrQuestion.length / 10) }).map((_, columnIndex) => (

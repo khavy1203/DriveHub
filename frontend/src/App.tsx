@@ -77,9 +77,9 @@ const App: React.FC = () => {
 
               {/* Public Layout Routes */}
               <Route path="/" element={<PublicLayout />}>
-                <Route 
-                  index 
-                  element={isLocal ? <LoginTestStudent /> : <HomePage />} 
+                <Route
+                  index
+                  element={isLocal ? <LoginTestStudent /> : <HomePage />}
                 />
                 <Route path="teststudent" element={<LoginTestStudent />} />
                 <Route path="students" element={<StudentsList />} />

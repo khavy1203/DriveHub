@@ -5,3 +5,4 @@ node-app/src/asset/ImageStudent/*
 node-app/build
 node-app/dist
 node-app/src/upload/originQR/*
+node-app/src/config/config.json

@@ -1,9 +1,10 @@
 {
     "development": {
-       "username": "root",
-        "password": "12345",
+        "username": "root",
+        "password": "040904",
         "database": "userstatus",
         "host": "127.0.0.1",
+        "port": 3307,
         "dialect": "mysql",
         "timezone": "+07:00",
         "logging": false,
@@ -13,7 +14,7 @@
     },
     "test": {
         "username": "root",
-        "password": "12345",
+        "password": "0409",
         "database": "userstatus",
         "host": "127.0.0.1",
         "dialect": "mysql",
