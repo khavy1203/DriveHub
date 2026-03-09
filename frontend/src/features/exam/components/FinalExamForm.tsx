@@ -29,7 +29,6 @@ const FinalExamForm: React.FC = () => {
   const [untestedSubjects, setUntestedSubjects] = useState<Subject[]>([]); // Lưu danh sách môn chưa thi
 
   const [showMobileList, setShowMobileList] = useState<boolean>(false);
-
   // Khởi tạo bài thi ban đầu
   useEffect(() => {
     const initializeExam = async () => {
@@ -100,7 +99,7 @@ const FinalExamForm: React.FC = () => {
       }
 
       const varSubject = varTest.DT[0].subject as Subject;
-      const varArrQuestion = varTest.DT[0].questions;
+      const varArrQuestion = varTest.DT[0].questions ;
 
       if (!varSubject || !varArrQuestion?.length) {
         toast.error("Dữ liệu bài thi không hợp lệ.");
@@ -269,12 +268,12 @@ const FinalExamForm: React.FC = () => {
       const updatedUntestedSubjects: Subject[] = updatedStudent?.rank?.subjects?.filter(
         (subject: any) => !examSubjectIds.includes(subject.id)
       ) || [];
-      if (updatedUntestedSubjects.length == 0) {
+      if(updatedUntestedSubjects.length == 0){
         await post(`/api/students/update-processtest`, {
           IDThiSinh,
           processtest: 3,
         });
-      } else {
+      }else{
         await post(`/api/students/update-processtest`, {
           IDThiSinh,
           processtest: 1,
@@ -284,7 +283,7 @@ const FinalExamForm: React.FC = () => {
       setUntestedSubjects(updatedUntestedSubjects);
       setNextSubjectName(updatedUntestedSubjects.length > 0 ? updatedUntestedSubjects[0].name : null);
 
-      setScore(calculatedScore);
+      // setScore(calculatedScore);
       setShowResult(true);
     } catch (error) {
       console.error("Lỗi khi ghi nhận kết quả:", error);
