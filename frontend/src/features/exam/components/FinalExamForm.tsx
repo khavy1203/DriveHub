@@ -518,7 +518,7 @@ const FinalExamForm: React.FC = () => {
                   <button
                     key={index}
                     style={{
-                      height: '45px', borderRadius: '8px', border: '1px solid #ddd', fontWeight: 'bold', fontSize: '16px',
+                      height: '45px', borderRadius: '8px', border: '1px solid #ddd', fontWeight: 'bold', fontSize: '16px', color: '#333',
                       backgroundColor: isAnswered ? '#94ef94' : 'white',
                       borderColor: currentQuestion === index ? '#ff8484' : (isAnswered ? '#94ef94' : '#ddd')
                     }}
