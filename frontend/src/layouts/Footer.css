@@ -1,3 +1,178 @@
 footer {
     padding-top: 100px;
-}   
+}
+
+footer .subscribe-newsletters {
+    background-color: #fff;
+    border-radius: 16px;
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.10);
+    padding: 28px 24px 24px;
+}
+
+footer .subscribe-newsletters h4 {
+    font-size: 18px;
+    font-weight: 700;
+    color: #2a2a2a;
+    margin-bottom: 10px;
+}
+
+footer .subscribe-newsletters p {
+    font-size: 13px;
+    color: #888;
+    margin-bottom: 18px;
+    line-height: 1.6;
+}
+
+footer .subscribe-newsletters form {
+    background-color: transparent;
+    height: auto;
+    border-radius: 0;
+    position: static;
+    margin-top: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+footer .subscribe-newsletters form input {
+    width: 100%;
+    height: 46px;
+    border-radius: 10px;
+    border: 1.5px solid #e0e0e0;
+    background-color: #fff;
+    padding: 0 16px;
+    font-size: 14px;
+    color: #2a2a2a;
+    outline: none;
+    transition: border-color 0.25s ease, box-shadow 0.25s ease;
+    box-sizing: border-box;
+}
+
+footer .subscribe-newsletters form input::placeholder {
+    color: #bbb;
+}
+
+footer .subscribe-newsletters form input:focus {
+    border-color: #03a4ed;
+    box-shadow: 0 0 0 3px rgba(3, 164, 237, 0.15);
+}
+
+footer .subscribe-newsletters form button.main-button {
+    width: 100%;
+    height: 46px;
+    border-radius: 10px;
+    background: linear-gradient(90deg, #03a4ed 0%, #00c6fb 100%);
+    border: none;
+    color: #fff;
+    font-size: 15px;
+    font-weight: 500;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: opacity 0.2s ease;
+    position: static;
+    top: auto;
+    right: auto;
+}
+
+footer .subscribe-newsletters form button.main-button::after {
+    content: 'Đăng ký';
+}
+
+footer .subscribe-newsletters form button.main-button:hover {
+    opacity: 0.88;
+}
+
+footer .subscribe-newsletters form button.main-button i {
+    font-size: 15px;
+}
+
+@media (max-width: 992px) {
+    footer .col-lg-3 {
+        margin-bottom: 40px;
+    }
+}
+
+@media (max-width: 767px) {
+    footer {
+        padding-top: 60px;
+    }
+
+    footer .col-md-6 {
+        width: 100%;
+        float: none;
+        margin-bottom: 35px;
+    }
+
+    footer .col-md-6:last-child {
+        margin-bottom: 0;
+    }
+
+    footer .footer-item {
+        text-align: center;
+    }
+
+    footer .about ul {
+        display: flex;
+        justify-content: center;
+        gap: 6px;
+        padding: 0;
+        list-style: none;
+    }
+
+    footer .footer-item form {
+        max-width: 280px;
+        margin: 15px auto 0;
+    }
+
+    footer .copyright p {
+        font-size: 13px;
+        padding: 15px 0;
+        margin-top: 30px;
+    }
+}
+
+@media (max-width: 480px) {
+    footer {
+        padding-top: 50px;
+    }
+
+    footer .footer-item h4 {
+        font-size: 16px;
+        margin-bottom: 20px;
+    }
+
+    footer .footer-item p,
+    footer .footer-item ul li a {
+        font-size: 13px;
+    }
+
+    footer .about ul li a {
+        width: 30px;
+        height: 30px;
+        line-height: 30px;
+        font-size: 13px;
+    }
+
+    footer .copyright p {
+        font-size: 12px;
+    }
+}
+
+@media (max-height: 500px) and (orientation: landscape) {
+    footer {
+        padding-top: 40px;
+    }
+
+    footer .footer-item {
+        margin-bottom: 25px;
+    }
+
+    footer .copyright p {
+        margin-top: 20px;
+        padding: 12px 0;
+        font-size: 12px;
+    }
+}

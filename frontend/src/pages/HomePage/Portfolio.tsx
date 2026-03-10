@@ -3,96 +3,126 @@ import "owl.carousel/dist/assets/owl.carousel.css";
 import "owl.carousel/dist/assets/owl.theme.default.css";
 import OwlCarousel from "react-owl-carousel";
 
+interface Teacher {
+  name: string;
+  role: string;
+  img: string;
+  description: string;
+  students: number;
+  successRate: number;
+}
+
 const Portfolio: React.FC = () => {
-  const portfolioItems = [
+  const teachers: Teacher[] = [
     {
-      "title": "Giáo viên xuất sắc",
-      "img": "/assets/images/teacher/tho/1.jpg",
-      "description": "Thầy Nguyễn Văn A đã đào tạo hơn 500 học viên, với 98% học viên đậu lý thuyết và 95% đậu thực hành trong lần thi đầu tiên.",
-      "link": "/"
+      name: "Thầy Nguyễn Văn An",
+      role: "Giảng viên bằng B2",
+      img: "/assets/images/teacher/tho/1.jpg",
+      description: "Hơn 12 năm kinh nghiệm, đào tạo 500+ học viên với tỉ lệ đỗ lý thuyết 98% và thực hành 95% ngay lần đầu.",
+      students: 500,
+      successRate: 98,
     },
     {
-      "title": "Giảng viên tận tâm và chuyên nghiệp",
-      "img": "/assets/images/teacher/tho/2.jpg",
-      "description": "Cô Lê Thị B đã hướng dẫn 300+ học viên vượt qua kỳ thi sát hạch với tỉ lệ đỗ lý thuyết 100% và thực hành 97%.",
-      "link": "/"
+      name: "Cô Lê Thị Bích",
+      role: "Giảng viên bằng A1",
+      img: "/assets/images/teacher/tho/2.jpg",
+      description: "Phong cách giảng dạy tận tâm, hướng dẫn 300+ học viên qua sát hạch với tỉ lệ đỗ lý thuyết 100% và thực hành 97%.",
+      students: 300,
+      successRate: 100,
     },
     {
-      "title": "Kinh nghiệm đào tạo vượt trội",
-      "img": "/assets/images/teacher/tho/3.jpg",
-      "description": "Thầy Trần Quốc C là người đã giúp hơn 400 học viên tự tin cầm lái, với 96% tỷ lệ học viên đậu kỳ thi thực hành ngay từ lần đầu tiên.",
-      "link": "/"
+      name: "Thầy Trần Quốc Cường",
+      role: "Giảng viên bằng C",
+      img: "/assets/images/teacher/tho/3.jpg",
+      description: "Giúp 400+ học viên tự tin cầm lái, tỷ lệ đậu thực hành lần đầu đạt 96% – uy tín hàng đầu tại trung tâm.",
+      students: 400,
+      successRate: 96,
     },
     {
-      "title": "Hỗ trợ tối đa cho học viên",
-      "img": "/assets/images/teacher/tho/1.jpg",
-      "description": "Cô Phạm Ngọc D với 10 năm kinh nghiệm, đã giúp hơn 350 học viên đạt thành công, với tỉ lệ đậu lý thuyết và thực hành đều trên 95%.",
-      "link": "/"
+      name: "Cô Phạm Ngọc Dung",
+      role: "Giảng viên bằng B1",
+      img: "/assets/images/teacher/tho/1.jpg",
+      description: "10 năm kinh nghiệm, đồng hành cùng 350+ học viên, tỉ lệ đỗ lý thuyết và thực hành đều vượt 95%.",
+      students: 350,
+      successRate: 95,
     },
     {
-      "title": "Hỗ trợ tối đa cho học viên",
-      "img": "/assets/images/teacher/tho/2.jpg",
-      "description": "Cô Phạm Ngọc D với 10 năm kinh nghiệm, đã giúp hơn 350 học viên đạt thành công, với tỉ lệ đậu lý thuyết và thực hành đều trên 95%.",
-      "link": "/"
-    }
-    ,
+      name: "Thầy Hoàng Minh Đức",
+      role: "Giảng viên bằng B2",
+      img: "/assets/images/teacher/tho/2.jpg",
+      description: "Phương pháp giảng dạy thực tế, sát đề thi, đã hỗ trợ 280+ học viên đạt chứng chỉ lái xe an toàn.",
+      students: 280,
+      successRate: 97,
+    },
     {
-      "title": "Hỗ trợ tối đa cho học viên",
-      "img": "/assets/images/teacher/tho/3.jpg",
-      "description": "Cô Phạm Ngọc D với 10 năm kinh nghiệm, đã giúp hơn 350 học viên đạt thành công, với tỉ lệ đậu lý thuyết và thực hành đều trên 95%.",
-      "link": "/"
-    }
+      name: "Cô Vũ Thị Oanh",
+      role: "Giảng viên bằng A2",
+      img: "/assets/images/teacher/tho/3.jpg",
+      description: "Nổi tiếng với lớp học ôn tập hiệu quả, giúp 320+ học viên tự tin vượt qua kỳ thi sát hạch lái xe.",
+      students: 320,
+      successRate: 99,
+    },
   ];
 
   return (
     <div id="portfolio" className="our-portfolio section">
       <div className="portfolio-left-dec">
-        <img src="/assets/images/portfolio-left-dec.png" alt="Decoration" />
+        <img src="/assets/images/portfolio-left-dec.png" alt="" />
       </div>
+
       <div className="container">
         <div className="row">
           <div className="col-lg-6 offset-lg-3">
             <div className="section-heading">
               <h2>
-                Đội ngũ <em>giảng viên</em> & <span>thành tích nổi bật</span>
+                Đội ngũ <em>giảng viên</em> &amp; <span>thành tích nổi bật</span>
               </h2>
-              <span>
-                {/* content gì đó */}
-              </span>
+              <p className="pf-section-sub">Những giảng viên tâm huyết, giàu kinh nghiệm – đồng hành cùng bạn trên con đường chinh phục bằng lái xe.</p>
             </div>
           </div>
         </div>
       </div>
+
       <div className="container-fluid">
         <div className="row">
           <div className="col-lg-12">
             <OwlCarousel
               className="owl-carousel owl-portfolio"
               loop
-              margin={30}
-              nav
+              margin={24}
+              nav={false}
               dots
-              items={3}
               responsive={{
-                0: { items: 1 },
-                600: { items: 2 },
+                0:    { items: 1 },
+                600:  { items: 2 },
                 1000: { items: 3 },
               }}
             >
-              {portfolioItems.map((item, index) => (
-                <div className="item" key={index}>
-                  <div className="thumb">
-                    <img src={item.img} alt={item.title} />
-                    <div className="hover-effect">
-                      <div className="inner-content">
-                        {item.link ? (
-                          <a href={item.link} target="_blank" rel="noopener noreferrer">
-                            <h4>{item.title}</h4>
-                          </a>
-                        ) : (
-                          <h4>{item.title}</h4>
-                        )}
-                        <span>{item.description}</span>
+              {teachers.map((teacher, index) => (
+                <div className="pf-card" key={index}>
+                  {/* Image */}
+                  <div className="pf-card-img-wrap">
+                    <img className="pf-card-img" src={teacher.img} alt={teacher.name} />
+                    <div className="pf-card-img-overlay"></div>
+                    <span className="pf-card-role-badge">{teacher.role}</span>
+                  </div>
+
+                  {/* Body */}
+                  <div className="pf-card-body">
+                    <div className="pf-card-avatar">
+                      <img src={teacher.img} alt={teacher.name} />
+                    </div>
+                    <h4 className="pf-card-name">{teacher.name}</h4>
+                    <p className="pf-card-desc">{teacher.description}</p>
+                    <div className="pf-card-stats">
+                      <div className="pf-stat">
+                        <strong>{teacher.successRate}%</strong>
+                        <span>Tỷ lệ đỗ</span>
+                      </div>
+                      <div className="pf-divider-v"></div>
+                      <div className="pf-stat">
+                        <strong>{teacher.students}+</strong>
+                        <span>Học viên</span>
                       </div>
                     </div>
                   </div>

@@ -10,7 +10,6 @@ import { useApi } from '../../../shared/hooks/useApi';
 import { useAuth } from '../hooks/useAuth';
 import { ApiResponseLogin } from '../../../core/types/api.types';
 import { AUTH_ENDPOINTS } from '../services/authApi';
-import '../../../assets/css_login/util.css';
 import '../../../assets/css_login/main.css';
 
 export const LoginForm: React.FC = () => {
@@ -19,6 +18,7 @@ export const LoginForm: React.FC = () => {
   const [userEmail, setUserEmail] = useState<string>('');
   const [password, setPassword] = useState<string>('');
   const [loading, setLoading] = useState<boolean>(false);
+  const [showPassword, setShowPassword] = useState<boolean>(false);
   const { setAuth, isAuthenticated } = useAuth();
 
   useEffect(() => {
@@ -31,7 +31,7 @@ export const LoginForm: React.FC = () => {
     event.preventDefault();
 
     if (!userEmail || !password) {
-      toast.error('Please enter both email and password');
+      toast.error('Vui lòng nhập email và mật khẩu');
       return;
     }
 
@@ -43,90 +43,130 @@ export const LoginForm: React.FC = () => {
       });
 
       if (response.EC === 0) {
-        toast.success('Login successful!');
+        toast.success('Đăng nhập thành công!');
         const token = response.DT.access_token;
         const role = response.DT.groupWithRoles.name || 'User';
         setAuth(token, role);
         navigate('/dashboard');
       } else {
-        toast.error(response.EM || 'Login failed!');
+        toast.error(response.EM || 'Đăng nhập thất bại!');
       }
     } catch (error) {
       console.error('Login failed', error);
-      toast.error('An error occurred during login.');
+      toast.error('Đã có lỗi xảy ra, vui lòng thử lại.');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="limiter">
-      <div className="container-login100 backgr-img">
-        <div className="wrap-login100 p-l-55 p-r-55 p-t-65 p-b-54">
-          <form className="login100-form validate-form" onSubmit={handleSubmit}>
-            <span className="login100-form-title p-b-49">Login</span>
+    <div className="lf-page">
+      <div className="lf-container">
 
-            <div className="wrap-input100 validate-input m-b-23" data-validate="Username is required">
-              <span className="label-input100">Username</span>
-              <input
-                className="input100"
-                type="text"
-                name="userEmail"
-                placeholder="Type your email"
-                value={userEmail}
-                onChange={(e) => setUserEmail(e.target.value)}
-              />
-              <span className="focus-input100" data-symbol="&#xf206;"></span>
+        <div className="lf-left">
+          <div className="lf-deco lf-deco--1"></div>
+          <div className="lf-deco lf-deco--2"></div>
+          <div className="lf-deco lf-deco--3"></div>
+
+          <div className="lf-brand">
+            <div className="lf-brand-logo">
+              <i className="fa fa-graduation-cap"></i>
             </div>
+            <h1 className="lf-brand-name">DriveHub</h1>
+            <p className="lf-brand-tagline">Nền tảng luyện thi bằng lái xe trực tuyến</p>
+          </div>
 
-            <div className="wrap-input100 validate-input" data-validate="Password is required">
-              <span className="label-input100">Password</span>
-              <input
-                className="input100"
-                type="password"
-                name="pass"
-                placeholder="Type your password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-              />
-              <span className="focus-input100" data-symbol="&#xf190;"></span>
-            </div>
+          <ul className="lf-features">
+            <li><i className="fa fa-check-circle"></i> 600+ câu hỏi luyện tập</li>
+            <li><i className="fa fa-check-circle"></i> Thi thử với đề ngẫu nhiên</li>
+            <li><i className="fa fa-check-circle"></i> Theo dõi tiến trình học tập</li>
+          </ul>
+        </div>
 
-            <div className="text-right p-t-8 p-b-31">
-              <a href="#">Forgot password?</a>
-            </div>
+        <div className="lf-right">
+          <div className="lf-form-wrapper">
+            <h2 className="lf-title">Đăng nhập</h2>
+            <p className="lf-subtitle">Chào mừng trở lại! Vui lòng nhập thông tin của bạn.</p>
 
-            <div className="container-login100-form-btn">
-              <div className="wrap-login100-form-btn">
-                <div className="login100-form-bgbtn"></div>
-                <button className="login100-form-btn" type="submit" disabled={loading}>
-                  {loading ? 'Logging in...' : 'Login'}
-                </button>
+            <form className="lf-form" onSubmit={handleSubmit} noValidate>
+
+              <div className="lf-input-group">
+                <label className="lf-label" htmlFor="lf-email">Email</label>
+                <div className="lf-input-wrap">
+                  <i className="fa fa-envelope lf-input-icon"></i>
+                  <input
+                    id="lf-email"
+                    className="lf-input"
+                    type="email"
+                    name="userEmail"
+                    placeholder="Nhập email của bạn"
+                    value={userEmail}
+                    onChange={(e) => setUserEmail(e.target.value)}
+                    autoComplete="email"
+                  />
+                </div>
               </div>
+
+              <div className="lf-input-group">
+                <label className="lf-label" htmlFor="lf-password">Mật khẩu</label>
+                <div className="lf-input-wrap">
+                  <i className="fa fa-lock lf-input-icon"></i>
+                  <input
+                    id="lf-password"
+                    className="lf-input"
+                    type={showPassword ? 'text' : 'password'}
+                    name="pass"
+                    placeholder="Nhập mật khẩu"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    autoComplete="current-password"
+                  />
+                  <button
+                    type="button"
+                    className="lf-toggle-pw"
+                    onClick={() => setShowPassword(!showPassword)}
+                    aria-label={showPassword ? 'Ẩn mật khẩu' : 'Hiện mật khẩu'}
+                  >
+                    <i className={`fa ${showPassword ? 'fa-eye-slash' : 'fa-eye'}`}></i>
+                  </button>
+                </div>
+              </div>
+
+              <div className="lf-forgot-row">
+                <a href="/forgot-password" className="lf-forgot-link">Quên mật khẩu?</a>
+              </div>
+
+              <button className="lf-submit-btn" type="submit" disabled={loading}>
+                {loading ? (
+                  <>
+                    <span className="lf-spinner"></span>
+                    Đang đăng nhập...
+                  </>
+                ) : 'Đăng nhập'}
+              </button>
+
+            </form>
+
+            <div className="lf-divider">
+              <span>hoặc đăng nhập với</span>
             </div>
 
-            <div className="txt1 text-center p-t-54 p-b-20">
-              <span>Or Sign Up Using</span>
-            </div>
-
-            <div className="flex-c-m">
-              <a href="#" className="login100-social-item bg1">
+            <div className="lf-social">
+              <a href="/auth/facebook" className="lf-social-btn lf-social-fb" aria-label="Đăng nhập Facebook">
                 <i className="fa fa-facebook"></i>
               </a>
-              <a href="#" className="login100-social-item bg2">
-                <i className="fa fa-twitter"></i>
-              </a>
-              <a href="#" className="login100-social-item bg3">
+              <a href="/auth/google" className="lf-social-btn lf-social-gg" aria-label="Đăng nhập Google">
                 <i className="fa fa-google"></i>
               </a>
             </div>
 
-            <div className="flex-col-c p-t-155">
-              <span className="txt1 p-b-17">Or Sign Up Using</span>
-              <a href="#" className="txt2">Sign Up</a>
-            </div>
-          </form>
+            <p className="lf-register-text">
+              Chưa có tài khoản?&nbsp;
+              <a href="/register" className="lf-register-link">Đăng ký ngay</a>
+            </p>
+          </div>
         </div>
+
       </div>
     </div>
   );

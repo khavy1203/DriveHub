@@ -36,52 +36,55 @@ const Mainbanner: React.FC = () => {
   return (
     <div className="main-banner" id="top">
       <div className="container">
-        <div className="row">
-          <div className="col-lg-12">
-            <div className="row">
-              <div className="col-lg-6 align-self-center">
-                <OwlCarousel
-                  className="owl-theme"
-                  loop
-                  margin={10}
-                  nav
-                  items={1}
-                  autoplay
-                  autoplayTimeout={5000}
-                  autoplayHoverPause
-                >
-                  {carouselItems.map((item, index) => (
-                    <div key={index} className="item header-text">
-                      <h6>{item.title}</h6>
-                      <h2>
-                        {item.headline.split(" ").map((word, idx) => (
-                          <React.Fragment key={idx}>
-                            {word.startsWith("<em>") ? (
-                              <em>{word.replace("<em>", "").replace("</em>", "")}</em>
-                            ) : word.startsWith("<span>") ? (
-                              <span>{word.replace("<span>", "").replace("</span>", "")}</span>
-                            ) : (
-                              word
-                            )}{" "}
-                          </React.Fragment>
-                        ))}
-                      </h2>
-                      <p>{item.description}</p>
-                      <div className="down-buttons">
-                        <div className="main-blue-button-hover">
-                          <a href={item.buttonLink}>{item.buttonText}</a>
-                        </div>
-                        <div className="call-button">
-                          <a href="#">
-                            <i className="fa fa-phone"></i> {item.phone}
-                          </a>
-                        </div>
-                      </div>
+        <div className="row align-items-center banner-row">
+          <div className="col-lg-6 col-md-12 banner-text-col">
+            <OwlCarousel
+              className="owl-theme"
+              loop
+              margin={10}
+              nav
+              items={1}
+              autoplay
+              autoplayTimeout={5000}
+              autoplayHoverPause
+            >
+              {carouselItems.map((item, index) => (
+                <div key={index} className="item header-text">
+                  <h6>{item.title}</h6>
+                  <h2>
+                    {item.headline.split(" ").map((word, idx) => (
+                      <React.Fragment key={idx}>
+                        {word.startsWith("<em>") ? (
+                          <em>{word.replace("<em>", "").replace("</em>", "")}</em>
+                        ) : word.startsWith("<span>") ? (
+                          <span>{word.replace("<span>", "").replace("</span>", "")}</span>
+                        ) : (
+                          word
+                        )}{" "}
+                      </React.Fragment>
+                    ))}
+                  </h2>
+                  <p>{item.description}</p>
+                  <div className="down-buttons">
+                    <div className="main-blue-button-hover">
+                      <a href={item.buttonLink}>{item.buttonText}</a>
                     </div>
-                  ))}
-                </OwlCarousel>
-              </div>
-            </div>
+                    <div className="call-button">
+                      <a href="#">
+                        <i className="fa fa-phone"></i> {item.phone}
+                      </a>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </OwlCarousel>
+          </div>
+          <div className="col-lg-6 col-md-12 banner-img-col">
+            <img
+              className="banner-hero-img"
+              src="/assets/images/fa24a8ed-58fa-4b3b-8d73-14baf0c29e25.webp"
+              alt="Trung tâm đào tạo lái xe Trung Bộ"
+            />
           </div>
         </div>
       </div>

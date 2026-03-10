@@ -12,6 +12,7 @@ export const Header: React.FC = () => {
     const menuTrigger = document.querySelector('.menu-trigger');
     const navMenu = document.querySelector('.main-nav .nav');
     const navLinks = document.querySelectorAll('.main-nav .nav a');
+    const hasSubmenus = document.querySelectorAll('.has-submenu');
 
     const toggleMenu = (): void => {
       navMenu?.classList.toggle('show');
@@ -21,12 +22,24 @@ export const Header: React.FC = () => {
       navMenu?.classList.remove('show');
     };
 
+    const toggleSubmenu = (e: Event): void => {
+      if (window.innerWidth > 768) return;
+      const item = (e.currentTarget as HTMLElement);
+      const trigger = item.querySelector('.nav-link-custom');
+      if (trigger && (e.target as HTMLElement).closest('.nav-link-custom')) {
+        e.stopPropagation();
+        item.classList.toggle('active');
+      }
+    };
+
     menuTrigger?.addEventListener('click', toggleMenu);
     navLinks.forEach((link) => link.addEventListener('click', closeMenu));
+    hasSubmenus.forEach((item) => item.addEventListener('click', toggleSubmenu));
 
     return () => {
       menuTrigger?.removeEventListener('click', toggleMenu);
       navLinks.forEach((link) => link.removeEventListener('click', closeMenu));
+      hasSubmenus.forEach((item) => item.removeEventListener('click', toggleSubmenu));
     };
   }, []);
 
@@ -83,8 +96,10 @@ export const Header: React.FC = () => {
                 </li>
               </ul>
 
-              <button className="menu-trigger">
-                <span>Menu</span>
+              <button className="menu-trigger" aria-label="Menu">
+                <span className="hb-bar"></span>
+                <span className="hb-bar"></span>
+                <span className="hb-bar"></span>
               </button>
             </nav>
           </div>
