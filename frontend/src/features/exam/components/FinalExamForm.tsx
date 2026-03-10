@@ -5,6 +5,8 @@ import useApiService from "../../../services/useApiService";
 import ResultModal from '../../../components/Client/ResultModal/ResultModal';
 import { toast } from 'react-toastify';
 import './FinalExamForm.css';
+import { VirtualDPad } from './VirtualDPad';
+import { VirtualNumpad } from './VirtualNumpad';
 
 const FinalExamForm: React.FC = () => {
   const { get, post, put, del } = useApiService();
@@ -370,27 +372,17 @@ const FinalExamForm: React.FC = () => {
       </div>
       
       <div className={`exam-container`}>
-        <div className="virtual-dpad">
-          <div className="dpad-row dpad-top">
-            <button className="dpad-btn up" onClick={() => handleQuestionChange(Math.max(0, currentQuestion - 1))} disabled={currentQuestion === 0}>▲</button>
-          </div>
-          <div className="dpad-row dpad-bottom">
-            <button className="dpad-btn left" onClick={() => handleQuestionChange(Math.max(0, currentQuestion - itemsPerColumn))} disabled={currentQuestion < itemsPerColumn}>◀</button>
-            <button className="dpad-btn down" onClick={() => handleQuestionChange(Math.min(arrQuestion.length - 1, currentQuestion + 1))} disabled={currentQuestion === arrQuestion.length - 1}>▼</button>
-            <button className="dpad-btn right" onClick={() => handleQuestionChange(Math.min(arrQuestion.length - 1, currentQuestion + itemsPerColumn))} disabled={currentQuestion + itemsPerColumn >= arrQuestion.length}>▶</button>
-          </div>
-        </div>
-
-        <div className="virtual-numpad">
-          <div className="numpad-row">
-            <button className={`numpad-btn ${selectedOptions[currentQuestion]?.includes(1) ? 'active' : ''}`} onClick={() => toggleOption(currentQuestion, 1)}>1</button>
-            <button className={`numpad-btn ${selectedOptions[currentQuestion]?.includes(2) ? 'active' : ''}`} onClick={() => toggleOption(currentQuestion, 2)}>2</button>
-          </div>
-          <div className="numpad-row">
-            <button className={`numpad-btn ${selectedOptions[currentQuestion]?.includes(3) ? 'active' : ''}`} onClick={() => toggleOption(currentQuestion, 3)}>3</button>
-            <button className={`numpad-btn ${selectedOptions[currentQuestion]?.includes(4) ? 'active' : ''}`} onClick={() => toggleOption(currentQuestion, 4)}>4</button>
-          </div>
-        </div>
+        <VirtualDPad 
+          currentQuestion={currentQuestion} 
+          itemsPerColumn={itemsPerColumn} 
+          totalQuestions={arrQuestion.length} 
+          onQuestionChange={handleQuestionChange} 
+        />
+        <VirtualNumpad 
+          currentQuestion={currentQuestion} 
+          selectedOptions={selectedOptions} 
+          toggleOption={toggleOption} 
+        />
 
         <div className="left-exam">
         <div className="question-section">
