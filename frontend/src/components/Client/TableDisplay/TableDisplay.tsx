@@ -30,8 +30,8 @@ const TableDisplay: React.FC<TableDisplayProps> = ({ arrQuestion, selectedOption
           <tr>
             <th>STT</th>
             <th>Câu hỏi</th>
-            <th>Đáp án đúng</th>
-            <th>Đáp án của bạn</th>
+            <th>Đáp án<br />đúng</th>
+            <th>Đáp án<br />của bạn</th>
           </tr>
         </thead>
         <tbody>
