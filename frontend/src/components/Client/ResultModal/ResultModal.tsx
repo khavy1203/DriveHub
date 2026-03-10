@@ -1,8 +1,7 @@
-import React, { useRef, useState, useEffect } from 'react';
+import React, { useRef } from 'react';
 import TableDisplay from '../TableDisplay/TableDisplay';
 import { useNavigate } from 'react-router-dom';
 import './ResultModal.css';
-import { toast } from "react-toastify";
 
 interface ResultModalProps {
   score: number;
@@ -45,57 +44,9 @@ const ResultModal: React.FC<ResultModalProps> = ({
   onNextExam,
   nextSubjectName
 }) => {
-  const modalRef = useRef<HTMLDivElement | null>(null);
+  
   const navigate = useNavigate();
-  const [countdown, setCountdown] = useState<number>(5); // Khởi tạo đếm ngược 3s
-
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setCountdown((prev) => {
-        if (prev <= 1) {
-          clearInterval(timer);
-          if (nextSubjectName) {
-            onNextExam(); // Chuyển sang bài thi kế tiếp
-          } else {
-            handleClose(); // Kết thúc
-          }
-          return 0;
-        }
-        return prev - 1;
-      });
-    }, 1000);
-
-    // Cleanup timer khi component unmount
-    return () => clearInterval(timer);
-  }, [nextSubjectName, onNextExam]);
-
-  const handlePrintAnswers = () => {
-    if (modalRef.current) {
-      const printWindow = window.open('', '_blank', 'height=800,width=600');
-      const content = modalRef.current.innerHTML;
-      const htmlContent = `
-        <!DOCTYPE html>
-        <html>
-          <head>
-            <title>In đáp án</title>
-            <style>
-              body { font-family: Arial, sans-serif; padding: 20px; }
-              .table-result { width: 100%; border-collapse: collapse; text-align: center; }
-              .table-result th, .table-result td { border: 1px solid #ddd; padding: 8px; }
-              .table-result th { background-color: #f4f4f4; font-weight: bold; }
-              .user-answer.correct { color: green; font-weight: bold; }
-              .user-answer.incorrect { color: red; font-weight: bold; }
-            </style>
-          </head>
-          <body>${content}</body>
-        </html>
-      `;
-      printWindow?.document.open();
-      printWindow?.document.write(htmlContent);
-      printWindow?.focus();
-      printWindow?.document.close();
-    }
-  };
+  const modalRef = useRef<HTMLDivElement | null>(null);
 
   const handleClose = () => {
     onClose();
@@ -105,22 +56,8 @@ const ResultModal: React.FC<ResultModalProps> = ({
   return (
     <div className="modal-overlay">
       <div className="modal-content">
-        <h4 className = "next-exam">
-        {nextSubjectName ? (
-            <div>
-              <button onClick={onNextExam}>Bài thi kế tiếp</button>
-              <span style={{ marginLeft: '10px', color: 'green' }}>
-                (Tiếp tục sau {countdown}s)
-              </span>
-            </div>
-          ) : (
-            <div>
-              <button onClick={handleClose}>Kết thúc</button>
-              <span style={{ marginLeft: '10px', color: 'green' }}>
-                (Kết thúc {countdown}s)
-              </span>
-            </div>
-          )}
+        <h4 className="next-exam">
+          KẾT QUẢ BÀI THI
         </h4>
 
         <div className="modal-body">
@@ -131,26 +68,39 @@ const ResultModal: React.FC<ResultModalProps> = ({
             <p>Hạng: {studentInfo.rank}</p>
             <p>CCCD: {studentInfo.CCCD}</p> */}
             <div className="modal-footer">
-              <p>
-                <strong>Bài thi trước: <span style={{ color: resultStatus === "TRƯỢT" ? "red" : "green" }}>{resultStatus} {`(${score}/${totalQuestions})`}</span></strong>
-              </p>
-              {nextSubjectName && (
-                <strong><p>Bài thi kế tiếp: <span style={{ color: "green" }}>{nextSubjectName}</span> </p></strong>
+              <div className="result-summary-text">
+                <p>
+                  <strong>Bài thi trước: <span className={`result-text ${resultStatus === "TRƯỢT" ? "failed" : "passed"}`}>{resultStatus} {`(${score}/${totalQuestions})`}</span></strong>
+                </p>
+                {nextSubjectName && (
+                  <p>
+                    <strong>Bài thi kế tiếp: <span className="next-subject-text">{nextSubjectName}</span></strong>
+                  </p>
+                )}
+              </div>
+
+              {nextSubjectName ? (
+                <div className="nav-btn-container">
+                  <button className="nav-btn next" onClick={onNextExam}>Bài thi kế tiếp</button>
+                </div>
+              ) : (
+                <div className="nav-btn-container">
+                  <button className="nav-btn end" onClick={handleClose}>Kết thúc</button>
+                </div>
               )}
             </div>
-
           </div>
         </div>
-
       </div>
+
       {
-        (process.env.REACT_APP_BUILD != 'buildlocal') && (
+        (process.env.REACT_APP_BUILD !== 'buildlocal') && (
           <div className="modal-detail" ref={modalRef}>
             <TableDisplay arrQuestion={arrQuestion} selectedOptions={selectedOptions} />
           </div>
         )
       }
-    </div >
+    </div>
   );
 };
 
