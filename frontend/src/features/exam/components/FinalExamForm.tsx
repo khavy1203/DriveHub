@@ -5,6 +5,8 @@ import useApiService from "../../../services/useApiService";
 import ResultModal from '../../../components/Client/ResultModal/ResultModal';
 import { toast } from 'react-toastify';
 import './FinalExamForm.css';
+import { VirtualDPad } from './VirtualDPad';
+import { VirtualNumpad } from './VirtualNumpad';
 
 const FinalExamForm: React.FC = () => {
   const { get, post, put, del } = useApiService();
@@ -27,6 +29,17 @@ const FinalExamForm: React.FC = () => {
   const [testCode, setTestCode] = useState<string | null>(null);
   const [nextSubjectName, setNextSubjectName] = useState<string | null>(null);
   const [untestedSubjects, setUntestedSubjects] = useState<Subject[]>([]); // Lưu danh sách môn chưa thi
+  
+  const [itemsPerColumn, setItemsPerColumn] = useState(10);
+
+  useEffect(() => {
+    const handleResize = () => {
+      setItemsPerColumn(window.innerWidth <= 950 ? 15 : 10);
+    };
+    handleResize();
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   const [showMobileList, setShowMobileList] = useState<boolean>(false);
   // Khởi tạo bài thi ban đầu
@@ -355,17 +368,28 @@ const FinalExamForm: React.FC = () => {
   };
 
   return (
-    <div className={`exam-container`}>
-      <div className="left-exam">
-        <div className="mobile-time-top" style={{ display: 'none' }}>
-          <div className="time-remaining" style={{ color: timeOut ? 'red' : 'black', fontWeight: 'bold' }}>
-            Thời gian còn lại: <span>{timeRemaining === 0 ? "Hết thời gian" : formatTime(timeRemaining)}</span>
-          </div>
+    <>
+      <div className="portrait-lock-screen">
+        <div className="lock-content">
+          <h2>Vui lòng xoay ngang thiết bị</h2>
+          <p>Bài thi yêu cầu thiết bị ở chế độ ngang (Landscape) để hiển thị đầy đủ thông tin.</p>
         </div>
-        <button className="mobile-list-toggle-btn" style={{ display: 'none' }} onClick={() => setShowMobileList(!showMobileList)}>
-          ☰ Danh sách câu hỏi ({selectedOptions.filter(opt => opt.length > 0).length}/{arrQuestion.length})
-        </button>
+      </div>
+      
+      <div className={`exam-container`}>
+        <VirtualDPad 
+          currentQuestion={currentQuestion} 
+          itemsPerColumn={itemsPerColumn} 
+          totalQuestions={arrQuestion.length} 
+          onQuestionChange={handleQuestionChange} 
+        />
+        <VirtualNumpad 
+          currentQuestion={currentQuestion} 
+          selectedOptions={selectedOptions} 
+          toggleOption={toggleOption} 
+        />
 
+        <div className="left-exam">
         <div className="question-section">
           <div className="mobile-current-question-info" style={{ display: 'none' }}>
             Câu {currentQuestion + 1} / {arrQuestion.length}
@@ -382,37 +406,9 @@ const FinalExamForm: React.FC = () => {
             );
           })()}
         </div>
-
-        <div className="mobile-controls" style={{ display: 'none' }}>
-          <div className="mobile-answer-buttons">
-            {arrQuestion[currentQuestion]?.options.map((_: any, index: number) => {
-              const isSelected = selectedOptions[currentQuestion]?.includes(index + 1);
-              return (
-                <button
-                  key={index}
-                  className={`mobile-btn ${isSelected ? 'active' : ''}`}
-                  onClick={() => toggleOption(currentQuestion, index + 1)}
-                >
-                  {index + 1}
-                </button>
-              );
-            })}
-          </div>
-
-          <div className="mobile-navigation">
-            <button className="nav-btn prev" onClick={() => handleQuestionChange((currentQuestion - 1 + arrQuestion.length) % arrQuestion.length)} disabled={currentQuestion === 0}>
-              Câu trước
-            </button>
-            <button className="nav-btn next" onClick={() => handleQuestionChange((currentQuestion + 1) % arrQuestion.length)} disabled={currentQuestion === arrQuestion.length - 1}>
-              Câu tiếp theo
-            </button>
-          </div>
-
-          <button className="mobile-end-exam-btn" onClick={handleEndExam}>
-            KẾT THÚC BÀI THI
-          </button>
+        <div className="virtual-note">
+          <p>Ghi chú: Dùng phím điều hướng để đổi câu, phím số để chọn đáp án</p>
         </div>
-
         <div className="footer">
           <div className="left">
             <img src={'data:image/jpg;base64,' + studentNow?.Anh} className='image-hv' alt="" />
@@ -444,10 +440,10 @@ const FinalExamForm: React.FC = () => {
               )}</span>
             </div>
             <div className="question-nav-container">
-              {Array.from({ length: Math.ceil(arrQuestion.length / 10) }).map((_, columnIndex) => (
+              {Array.from({ length: Math.ceil(arrQuestion.length / itemsPerColumn) }).map((_, columnIndex) => (
                 <div className="question-nav" key={columnIndex}>
-                  {arrQuestion.slice(columnIndex * 10, columnIndex * 10 + 10).map((_, questionIndex) => {
-                    const globalIndex = columnIndex * 10 + questionIndex;
+                  {arrQuestion.slice(columnIndex * itemsPerColumn, columnIndex * itemsPerColumn + itemsPerColumn).map((_, questionIndex) => {
+                    const globalIndex = columnIndex * itemsPerColumn + questionIndex;
                     return (
                       <div
                         key={globalIndex}
@@ -474,7 +470,7 @@ const FinalExamForm: React.FC = () => {
               ))}
             </div>
           </div>
-          <button className="end-exam-btn" onClick={handleEndExam}>Kết Thúc</button>
+          <button className="end-exam-btn" onClick={handleEndExam}>KẾT THÚC</button>
         </div>
       </div>
 
@@ -503,6 +499,7 @@ const FinalExamForm: React.FC = () => {
         />
       )}
     </div>
+    </>
   );
 };
 
