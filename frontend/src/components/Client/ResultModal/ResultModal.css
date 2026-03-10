@@ -20,7 +20,6 @@
   width: 100%;
 }
 
-/* Các class màu sắc dùng chung */
 .result-text.failed {
   color: #dc3545;
 }
@@ -131,29 +130,26 @@ button:hover {
   margin: 10px 0;
 }
 
-/* ======================================================
-   DESKTOP UI (MÀN HÌNH LỚN)
-   ====================================================== */
 @media (min-width: 951px) {
   .modal-overlay {
-    background: rgba(0, 0, 0, 0.7); /* Làm thẫm nền để nổi bật modal */
+    background: rgba(0, 0, 0, 0.7);
     padding: 20px;
     display: flex;
     justify-content: center;
     align-items: center;
-    gap: 0; /* Gắn liền hai khối thành một card duy nhất */
+    gap: 0;
   }
 
   .modal-content {
-    flex: 0 0 380px; /* Chiều rộng Sidebar cố định */
-    height: 85vh;    /* Dãn chiều cao bằng với bảng chi tiết */
+    flex: 0 0 380px;
+    height: 85vh;
     max-width: none;
     margin: 0;
     padding: 40px 20px;
     display: flex;
     flex-direction: column;
     justify-content: center;
-    border-radius: 12px 0 0 12px; /* Bo góc trái mặt trước */
+    border-radius: 12px 0 0 12px;
     background: linear-gradient(135deg, #ffffff 0%, #f0f4f8 100%);
     box-shadow: -10px 0 30px rgba(0,0,0,0.1);
     border-right: 1px solid #e1e8ed;
@@ -165,7 +161,7 @@ button:hover {
     max-width: 900px;
     height: 85vh;
     margin: 0;
-    border-radius: 0 12px 12px 0; /* Bo góc phải mặt sau */
+    border-radius: 0 12px 12px 0;
     background-color: #ffffff;
     box-shadow: 10px 0 30px rgba(0,0,0,0.1);
     border: none;
@@ -202,7 +198,7 @@ button:hover {
     flex: 1;
     display: flex;
     flex-direction: column;
-    justify-content: center; /* Căn giữa nội dung theo chiều dọc của Sidebar */
+    justify-content: center;
     gap: 30px;
   }
 
@@ -219,9 +215,6 @@ button:hover {
   }
 }
 
-/* ======================================================
-   MOBILE LANDSCAPE (CHẾ ĐỘ GAMING) - KHÔNG ĐƯỢC CHẠM VÀO
-   ====================================================== */
 @media (max-width: 950px) and (orientation: landscape) {
   .modal-overlay {
     padding: 10px;
@@ -231,7 +224,7 @@ button:hover {
 
   .modal-content {
     flex: 1;
-    max-width: 25%; /* Thu hẹp cột trái từ 35% xuống 25% */
+    max-width: 25%;
     padding: 10px;
     display: flex;
     flex-direction: column;
@@ -240,12 +233,10 @@ button:hover {
   }
 
   .modal-detail {
-    flex: 3; /* Tăng tỷ lệ bảng lên so với cột thông tin */
+    flex: 3;
     max-height: 95vh;
-    padding: 2px; /* Giảm padding viền để bảng to hơn */
+    padding: 2px;
   }
-
-  /* Các style màu sắc đã có ở global, trong này chỉ chỉnh size */
 
 .modal-overlay .student-info p {
     font-size: 12.5px;
@@ -254,7 +245,7 @@ button:hover {
   .modal-footer {
     display: flex;
     flex-direction: column;
-    align-items: center; /* Căn giữa toàn bộ các khối con (văn bản & nút) */
+    align-items: center;
     width: 100%;
     padding: 0;
     margin-top: 5px;
@@ -262,7 +253,7 @@ button:hover {
 
   .result-summary-text {
     display: inline-block;
-    text-align: left; /* Giúp các chữ 'Bài thi' thẳng hàng dọc với nhau */
+    text-align: left;
     margin: 0 auto;
     width: fit-content;
   }
@@ -286,7 +277,7 @@ button:hover {
     margin-top: 15px;
     display: flex;
     justify-content: center;
-    width: 100%; /* Căn giữa nút bấm so với toàn bộ cột trái */
+    width: 100%;
   }
 
   .result-text, .next-subject-text {
