@@ -41,6 +41,7 @@ const FinalExamForm: React.FC = () => {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
+  const [showMobileList, setShowMobileList] = useState<boolean>(false);
   // Khởi tạo bài thi ban đầu
   useEffect(() => {
     const initializeExam = async () => {
@@ -168,6 +169,10 @@ const FinalExamForm: React.FC = () => {
 
 
   const handleEndExam = async () => {
+    if (!window.confirm("Bạn có chắc chắn muốn nộp bài và kết thúc thi không?")) {
+      return;
+    }
+
     if (!isExamFinished) {
       setIsExamFinished(true); // Đánh dấu bài thi đã kết thúc
       setTimeRemaining(0); // Dừng bộ đếm
@@ -291,7 +296,7 @@ const FinalExamForm: React.FC = () => {
       setUntestedSubjects(updatedUntestedSubjects);
       setNextSubjectName(updatedUntestedSubjects.length > 0 ? updatedUntestedSubjects[0].name : null);
 
-      setScore(calculatedScore);
+      // setScore(calculatedScore);
       setShowResult(true);
     } catch (error) {
       console.error("Lỗi khi ghi nhận kết quả:", error);
@@ -386,6 +391,9 @@ const FinalExamForm: React.FC = () => {
 
         <div className="left-exam">
         <div className="question-section">
+          <div className="mobile-current-question-info" style={{ display: 'none' }}>
+            Câu {currentQuestion + 1} / {arrQuestion.length}
+          </div>
           {(() => {
             const imageSrc = getQuestionImage(arrQuestion[currentQuestion]?.number);
             return imageSrc ? (
