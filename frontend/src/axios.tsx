@@ -14,9 +14,9 @@ const ENV = process.env.REACT_APP_BUILD as keyof typeof constants.CONFIGS || 'de
 
 // Xác định baseURL dựa trên thiết bị
 const getBaseUrl = (): string => {
-  if (isMobileDevice() && ENV == 'development') {
-    return 'http://192.168.1.254:8080'; // IP của BE cho thiết bị điện thoại
-  }
+  // if (isMobileDevice() && ENV == 'development') {
+  //   return 'http://192.168.1.254:8080'; // IP của BE cho thiết bị điện thoại
+  // }
   return constants.CONFIGS[ENV]?.API_BASE_URL || 'http://localhost:8080'; // Mặc định cho các thiết bị khác
 };
 

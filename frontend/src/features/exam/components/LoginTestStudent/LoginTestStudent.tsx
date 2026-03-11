@@ -16,6 +16,11 @@ const LoginTestStudent: React.FC = () => {
     const { get, post, put, del } = useApi();
     const navigate = useNavigate();
 
+    const [donViList] = useState([
+        { id: 505, name: '505 - TRUNG TÂM SÁT HẠCH TRƯỜNG CAO ĐẲNG NGHỀ GIAO THÔNG VẬN TẢI' }
+    ]);
+    const [selectedDonVi, setSelectedDonVi] = useState(505);
+
     const [khoaHocList, setKhoaHocList] = useState<Course[]>([]);
     const [selectedKhoaHoc, setSelectedKhoaHoc] = useState<string | null>(null);
 
@@ -292,6 +297,18 @@ const LoginTestStudent: React.FC = () => {
             <div className="st-main-content">
                 
                 <div className="st-search-form">
+                    <div className="st-form-row">
+                        <label>Đơn vị:</label>
+                        <select
+                            value={selectedDonVi}
+                            onChange={e => setSelectedDonVi(Number(e.target.value))}
+                            className="st-donvi-select"
+                        >
+                            {donViList.map(d => (
+                                <option key={d.id} value={d.id}>{d.name}</option>
+                            ))}
+                        </select>
+                    </div>
                     <div className="st-form-row">
                         <label>Khóa:</label>
                         <select value={selectedKhoaHoc || ""} onChange={handleKhoaHocChange} className="st-khoa-select">
