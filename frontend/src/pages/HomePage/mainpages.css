@@ -1352,14 +1352,11 @@ form#contact {
         font-size: 13px;
     }
 }
-/* ===== TC MOBILE NAVBAR - Chỉ hiện trên mobile, không ảnh hưởng desktop ===== */
 
-/* Ẩn hoàn toàn trên desktop */
 .tc-mobile-navbar {
     display: none;
 }
 
-/* Chỉ hiện từ 992px trở xuống */
 @media (max-width: 992px) {
     .tc-mobile-navbar {
         display: block;
@@ -1380,7 +1377,6 @@ form#contact {
         padding: 0 16px;
     }
 
-    /* Logo */
     .tc-mobile-logo {
         display: flex;
         align-items: center;
@@ -1400,7 +1396,6 @@ form#contact {
         opacity: 0.8;
     }
 
-    /* Menu icon */
     .tc-menu-icon {
         font-size: 26px;
         color: #0270c8;
@@ -1415,7 +1410,6 @@ form#contact {
         transform: scale(1.12);
     }
 
-    /* Dropdown */
     .tc-mobile-dropdown {
         background: #fff;
         border-top: 1px solid #e8ecf4;
@@ -1477,7 +1471,6 @@ form#contact {
         border-top: 1px solid #f0f4f8;
     }
 
-    /* Đẩy nội dung xuống để không bị navbar che */
     .main-banner {
         padding-top: 120px !important;
     }
