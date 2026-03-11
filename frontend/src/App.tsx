@@ -27,6 +27,7 @@ import DashBoardRoute from './pages/DashBoardPage/DashBoardRoute';
 import LoginTestStudent from './components/Client/LoginTestStudent/LoginTestStudent';
 import { FinalExamForm } from './features/exam';
 import QrScannerPage from './pages/HomePage/QRScanner/QrScanner';
+import TrafficCheck from './features/traffic-check/components/TrafficCheck';
 
 import './App.css';
 
@@ -82,6 +83,7 @@ const App: React.FC = () => {
                   element={isLocal ? <LoginTestStudent /> : <HomePage />} 
                 />
                 <Route path="teststudent" element={<LoginTestStudent />} />
+                <Route path="traffic-check" element={<TrafficCheck />} />
                 <Route path="students" element={<StudentsList />} />
                 <Route path="login" element={<LoginForm />} />
                 <Route path="qr-scanner" element={<QrScannerPage />} />

@@ -15,6 +15,7 @@ import azureController from "../controller/azureController";
 import studentController from "../controller/studentController";
 import courseQRController from "../controller/courseQRController";
 import QRController from "../controller/QRController";
+import trafficCheckController from "../controller/trafficCheckController";
 
 
 const routes = express.Router();
@@ -49,6 +50,10 @@ const initWebRoutes = (app) => {
     routes.get('/api/test', (req, res) => {
         res.status(200).json({ message: 'API is working!' });
     });
+
+    // Traffic fine lookup
+    routes.post('/traffic-check/lookup', trafficCheckController.lookupTrafficViolation);
+
     routes.all("*", checkUserJwt, checkUserPermission);
     // CRUD API routes for status
     routes.get("/status", userStatusController.getAllStatus);

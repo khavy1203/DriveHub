@@ -70,6 +70,11 @@ export const Header: React.FC = () => {
                   </NavLink>
                 </li>
                 <li>
+                  <NavLink to="/traffic-check" className={({ isActive }) => (isActive ? 'active' : '')}>
+                    Kiểm Tra Phạt Nguội
+                  </NavLink>
+                </li>
+                <li>
                   <NavLink to="/dashboard" className={({ isActive }) => (isActive ? 'active' : '')}>
                     DashBoard
                   </NavLink>
