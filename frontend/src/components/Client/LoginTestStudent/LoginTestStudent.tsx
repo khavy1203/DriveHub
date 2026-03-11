@@ -6,6 +6,7 @@ import { Course, Status, Rank, Question, Exam, Student } from "../../../features
 import { Subject } from "../../../features/exam/types";
 import './LoginTestStudent.css';
 import { toast } from "react-toastify";
+import bannerImg from "../../../assets/image/banner/banner.jpg";
 
 // Type alias for backward compatibility
 type ThiSinh = Student;
@@ -76,27 +77,6 @@ const LoginTestStudent: React.FC = () => {
         checkStudentInfo();
     }, [selectedKhoaHoc]);
 
-    useEffect(() => {
-        const cleanup = checkCompletionAndReset();
-        return cleanup;
-    }, [studentNow, subjectList]);
-
-    // useEffect(() => {
-    //     const fetchList = async () => {
-    //         try {
-
-    //             if (selectedKhoaHoc) {
-    //                 const responseGetStudents = await get<ApiResponse>(`/api/students?IDKhoaHoc=${selectedKhoaHoc}`);
-    //                 setStudentList(responseGetStudents.DT);
-    //             }
-    //         } catch (error) {
-    //             console.error("Error fetching course list:", error);
-    //         }
-
-    //     };
-    //     fetchList();
-    // }, [selectedKhoaHoc]);
-
     const fetchSubjects = async (idRank: number) => {
         try {
             if (ranks !== null) {
@@ -107,38 +87,13 @@ const LoginTestStudent: React.FC = () => {
                 });
                 setSubjectList(responseGetSubject.DT);
                 if (responseGetSubject.DT.length > 0) {
-                    // console.log('check responseGetSubject.DT', responseGetSubject.DT)
                     setSelectedSubject(responseGetSubject?.DT[0]?.id);
                 }
-
             }
         } catch (error) {
             console.error("Error fetching subjects for rank:", error);
         }
-    }
-
-    const checkCompletionAndReset = () => {
-        let timeoutId: NodeJS.Timeout;
-        if (studentNow && subjectList.length) {
-            timeoutId = setTimeout(() => {
-                const allSubjectCompleted = subjectList.every(subject =>
-                    studentNow.exams?.some((exam: Exam) => exam.IDSubject == subject.id && exam.result !== null)
-                );
-                if (allSubjectCompleted) {
-                    setStudentNow(null);
-                    setSubjectList([]);
-                    setSelectedSubject(null);
-                    setSbd(0);
-                    setIsStartEnabled(false);
-                    localStorage.removeItem("sbd"); // Xóa SBD khỏi localStorage
-                    toast.success("Đã hoàn thành tất cả các bài thi. Giao diện được reset.");
-                }
-            }, 10000);
-            return () => clearTimeout(timeoutId);
-        }
-    }
-
-
+    };
     const handleKhoaHocChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
         setSelectedKhoaHoc(event.target.value);
         setSubjectList([]);
@@ -302,79 +257,130 @@ const LoginTestStudent: React.FC = () => {
         }
     };
 
+    const handleCancel = () => {
+        setStudentNow(null);
+        setSubjectList([]);
+        setSelectedSubject(null);
+        setSbd(null);
+        setIsStartEnabled(false);
+        localStorage.removeItem("sbd");
+        setSelectedKhoaHoc(null);
+    };
+
     return (
         <div className="app-teststudent">
-            {/* header */}
-            <h2>KIỂM TRA LÝ THUYẾT</h2>
-            {/* common */}
-            <div className="exam-info">
-                <div className="exam-info-row">
-                    <label>Khoá:</label>
 
-                    <select value={selectedKhoaHoc || ""} onChange={handleKhoaHocChange}>
-                        <option value="" disabled>
-                            -- Chọn khóa học --
-                        </option>
-                        {khoaHocList.map((khoaHoc) => (
-                            <option key={khoaHoc.IDKhoaHoc} value={khoaHoc.IDKhoaHoc}>
-                                {khoaHoc.TenKhoaHoc}
-                            </option>
-                        ))}
-                    </select>
-
-                </div>
-
-                <div className="exam-info-row">
-                    <label>Số báo danh:</label>
-                    <input
-                        type="text"
-                        value={sbd !== null ? sbd.toString() : ""}
-                        onChange={handleSBDChange}
-                        placeholder="Nhập số báo danh (số > 0)"
-                    />
-                </div>
-
-                {/* <div className="exam-info-row">
-                    <label>Môn học:</label>
-                    <select value={selectedSubject || ""} onChange={handleSubjectChange}>
-                        <option value="" disabled>
-                            -- Chọn Môn học --
-                        </option>
-                        {subjectList.map((mh) => (
-                            <option key={mh?.id} value={mh?.id}>
-                                {mh.name}
-                            </option>
-                        ))}
-                    </select>
-                </div> */}
-
-            </div>
-            {/* infor */}
-            <div className="candidate-info">
-                <div className="image-hv">
-                    <img src={'data:image/jpg;base64,' + studentNow?.Anh} className='logo' alt="" />
-                </div>
-                <div className="candidate-details">
-                    <p><strong>Loại GPLX:</strong> {studentNow?.loaibangthi}</p>
-                    <p><strong>Họ tên:</strong> {studentNow?.HoTen}</p>
-                    <p><strong>Số CMT:</strong> {studentNow?.SoCMT}</p>
-                    <p><strong>Tình trạng:</strong> <span className="process" data-status={studentNow?.processtest?.name || "Chưa thi"}> {studentNow?.processtest?.name} </span></p>
-                </div>
-                <div className="subject-status">
-
-                    {renderSubjectStatus()}
-                </div>
+            {/* Banner */}
+            <div className="st-banner-container">
+                <img src={bannerImg} alt="Banner" className="st-banner-img" />
             </div>
 
-            <div className="buttons buttons-login">
-                <button
-                    className={isStartEnabled ? "enter" : "check-button"}
-                    onClick={isStartEnabled ? handleStartExam : handleCheckStudent}
-                >
-                    {isStartEnabled ? "Vào thi"  : "Kiểm tra thông tin thí sinh"}
-                </button>
+            {/* Sub Header */}
+            <div className="st-sub-header">
+                SÁT HẠCH CẤP GPLX MÔ TÔ
             </div>
-            {/* Nút Reset dữ liệu ở góc phải */}
+
+            {/* Main Content Area */}
+            <div className="st-main-content">
+                
+                {/* Search Form */}
+                <div className="st-search-form">
+                    <div className="st-form-row">
+                        <label>Khóa:</label>
+                        <select value={selectedKhoaHoc || ""} onChange={handleKhoaHocChange} className="st-khoa-select">
+                            <option value="" disabled>-- Chọn khóa học --</option>
+                            {khoaHocList.map((khoaHoc) => (
+                                <option key={khoaHoc.IDKhoaHoc} value={khoaHoc.IDKhoaHoc}>
+                                    {khoaHoc.TenKhoaHoc}
+                                </option>
+                            ))}
+                        </select>
+                    </div>
+
+                    <div className="st-form-row st-sbd-row">
+                        <label>Số báo danh:</label>
+                        <div className="st-sbd-input-group">
+                            <input
+                                type="text"
+                                value={sbd !== null ? sbd.toString() : ""}
+                                onChange={handleSBDChange}
+                                className="st-sbd-input"
+                            />
+                            <button
+                                className="st-btn-check-info"
+                                onClick={handleCheckStudent}
+                            >
+                                <div className="st-btn-check-icon"></div>
+                                <span className="st-btn-check-text">
+                                    Kiểm tra<br/>thông tin
+                                </span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Candidate Info */}
+                <div className="st-candidate-panel">
+                    <div className="st-avatar-box">
+                        {studentNow?.Anh ? (
+                            <img src={'data:image/jpg;base64,' + studentNow?.Anh} className="st-avatar-img" alt="Avatar" />
+                        ) : (
+                            <div className="st-avatar-placeholder"></div>
+                        )}
+                    </div>
+                    
+                    <div className="st-info-details">
+                        <div className="st-info-row">
+                            <span className="st-info-label">Loại GPLX:</span>
+                            <span className="st-info-value">{studentNow?.loaibangthi || "-"}</span>
+                        </div>
+                        <div className="st-info-row">
+                            <span className="st-info-label">Họ tên:</span>
+                            <span className="st-info-value">{studentNow?.HoTen || "-"}</span>
+                        </div>
+                        <div className="st-info-row">
+                            <span className="st-info-label">Ngày sinh:</span>
+                            <span className="st-info-value">{String(studentNow?.NgaySinh || "-")}</span>
+                        </div>
+                        <div className="st-info-row">
+                            <span className="st-info-label">Số định danh:</span>
+                            <span className="st-info-value">{studentNow?.SoCMT || "-"}</span>
+                        </div>
+                        <div className="st-info-row">
+                            <span className="st-info-label">Địa chỉ:</span>
+                            <span className="st-info-value">{(studentNow as any)?.DiaChi || "-"}</span>
+                        </div>
+                        
+                        {/* Ẩn process đi vì trong ảnh không có, hoặc có thể show ở đâu đó nếu cần */}
+                        {studentNow && (
+                             <div className="st-info-row" style={{marginTop: 5, fontSize: "0.85rem", fontStyle: "italic", display: "none"}}>
+                                <span className="st-info-label">Trạng thái:</span>
+                                <span>{studentNow?.processtest?.name}</span>
+                             </div>
+                        )}
+                    </div>
+                </div>
+
+                {/* Footer Buttons */}
+                <div className="st-footer-buttons">
+                    <button 
+                        className="st-btn-login"
+                        onClick={handleStartExam}
+                        disabled={!isStartEnabled}
+                    >
+                        <div className="st-btn-login-icon"></div>
+                        Đăng nhập
+                    </button>
+                    <button 
+                        className="st-btn-cancel"
+                        onClick={handleCancel}
+                    >
+                        Hủy bỏ
+                    </button>
+                </div>
+            </div>
+
+            {/* Nút Reset dữ liệu (chỉ hiện trên dev/admin) */}
             {process.env.REACT_APP_BUILD != "buildlocal" && (
                 <button
                     className="reset-button"
@@ -397,7 +403,6 @@ const LoginTestStudent: React.FC = () => {
             )}
 
         </div>
-
     );
 };
 

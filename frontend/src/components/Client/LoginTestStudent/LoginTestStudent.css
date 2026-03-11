@@ -1,641 +1,488 @@
 /* ============================================================
    LoginTestStudent.css
-   Font: Barlow Condensed (header) + Nunito (body)
-   Theme: Official exam portal — clean cream/navy, authoritative
+   Font: Arial/sans-serif (Desktop App style)
+   Theme: Desktop Window Application Clone
    ============================================================ */
-
-@import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Nunito:wght@400;500;600;700&display=swap');
 
 /* ============================================================
    Variables
    ============================================================ */
-:root {
-  --ls-bg: #f5f0e8;
-  --ls-bg-card: #fffef9;
-  --ls-bg-panel: #ffffff;
-
-  --ls-navy: #0d2b5e;
-  --ls-navy-md: #1a3f7f;
-  --ls-navy-light: #2e5bab;
-  --ls-blue: #1e73be;
-  --ls-blue-light: #4a9fd4;
-
-  --ls-gold: #c8860a;
-  --ls-gold-light: #e8a020;
-
-  --ls-green: #1a7a3c;
-  --ls-green-light: #27ae60;
-  --ls-red: #c0392b;
-  --ls-purple: #7b2d8b;
-
-  --ls-border: rgba(13, 43, 94, 0.14);
-  --ls-border-md: rgba(13, 43, 94, 0.22);
-
-  --ls-text-1: #1a1a2e;
-  --ls-text-2: #3d4465;
-  --ls-text-3: #7a7f9a;
-
-  --ls-shadow-sm: 0 2px 8px rgba(13, 43, 94, 0.10);
-  --ls-shadow-md: 0 4px 20px rgba(13, 43, 94, 0.15);
-  --ls-shadow-lg: 0 8px 36px rgba(13, 43, 94, 0.18);
-
-  --ls-r-sm: 6px;
-  --ls-r-md: 10px;
-  --ls-r-lg: 16px;
-  --ls-r-xl: 22px;
-
-  --ls-t: 200ms cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-/* ============================================================
-   Page wrapper
-   ============================================================ */
-.app-teststudent {
-  font-family: 'Nunito', 'Segoe UI', sans-serif;
-  -webkit-font-smoothing: antialiased;
-
-  /* Responsive: fill screen on mobile, cap on desktop */
-  width: 100%;
-  max-width: 960px;
-  min-height: 100vh;
-  margin: 0 auto;
-  padding: 0 0 48px;
-
-  background:
-    radial-gradient(ellipse at 10% 0%, rgba(200, 134, 10, 0.08) 0%, transparent 55%),
-    radial-gradient(ellipse at 90% 100%, rgba(30, 115, 190, 0.07) 0%, transparent 55%),
-    linear-gradient(160deg, #faf6ee 0%, #f2ecdf 100%);
-
-  border-left: 1px solid var(--ls-border);
-  border-right: 1px solid var(--ls-border);
-  box-shadow: var(--ls-shadow-lg);
-  position: relative;
-  overflow: hidden;
-  box-sizing: border-box;
-}
-
-/* Decorative top bar */
-.app-teststudent::before {
-  content: '';
-  display: block;
-  width: 100%;
-  height: 6px;
-  background: linear-gradient(90deg, var(--ls-navy) 0%, var(--ls-blue) 50%, var(--ls-gold) 100%);
-}
-
-/* ============================================================
-   Heading
-   ============================================================ */
-.app-teststudent>h2 {
-  font-family: 'Barlow Condensed', sans-serif;
-  font-size: clamp(1.5rem, 4vw, 2.2rem);
-  font-weight: 800;
-  letter-spacing: 0.06em;
-  text-align: center;
-  color: var(--ls-navy);
-  text-transform: uppercase;
-  margin: 28px 16px 24px;
-  padding-bottom: 14px;
-  position: relative;
-}
-
-.app-teststudent>h2::after {
-  content: '';
-  position: absolute;
-  bottom: 0;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 80px;
-  height: 3px;
-  border-radius: 2px;
-  background: linear-gradient(90deg, var(--ls-gold), var(--ls-blue));
-}
-
-/* ============================================================
-   Exam info row (khóa + SBD inputs)
-   ============================================================ */
-.exam-info {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  margin: 0 16px 20px;
-  background: var(--ls-bg-panel);
-  border: 1px solid var(--ls-border);
-  border-radius: var(--ls-r-lg);
-  padding: 20px 24px;
-  box-shadow: var(--ls-shadow-sm);
-}
-
-.exam-info-row {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.exam-info-row label {
-  font-weight: 700;
-  color: var(--ls-navy);
-  font-size: 0.875rem;
-  letter-spacing: 0.02em;
-  white-space: nowrap;
-  min-width: 110px;
-  flex-shrink: 0;
-}
-
-.exam-info-row select,
-.exam-info-row input {
-  flex: 1;
-  min-width: 0;
-  /* prevent overflow in flex */
-  padding: 9px 12px;
-  border: 1.5px solid var(--ls-border-md);
-  border-radius: var(--ls-r-sm);
-  font-family: 'Nunito', sans-serif;
-  font-size: 0.9rem;
-  font-weight: 600;
-  color: var(--ls-text-1);
-  background: #fff;
-  transition: border-color var(--ls-t), box-shadow var(--ls-t);
-  appearance: none;
-  -webkit-appearance: none;
-}
-
-.exam-info-row select {
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%230d2b5e' stroke-width='1.8' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
-  background-repeat: no-repeat;
-  background-position: right 12px center;
-  padding-right: 36px;
-}
-
-.exam-info-row select:focus,
-.exam-info-row input:focus {
-  border-color: var(--ls-blue);
-  box-shadow: 0 0 0 3px rgba(30, 115, 190, 0.15);
-  outline: none;
-}
-
-/* ============================================================
-   Candidate info panel
-   ============================================================ */
-.candidate-info {
-  display: flex;
-  gap: 16px;
-  margin: 0 16px 20px;
-  background: var(--ls-bg-panel);
-  border: 1px solid var(--ls-border);
-  border-radius: var(--ls-r-lg);
-  padding: 20px;
-  box-shadow: var(--ls-shadow-sm);
-  flex-wrap: wrap;
-  /* wrap on small screens */
-  align-items: flex-start;
-  box-sizing: border-box;
-}
-
-/* Student photo */
-.image-hv {
-  flex-shrink: 0;
-}
-
-.image-hv img.logo {
-  width: 130px;
-  height: 160px;
-  object-fit: cover;
-  border-radius: var(--ls-r-md);
-  border: 3px solid var(--ls-border-md);
-  box-shadow: var(--ls-shadow-md);
-  display: block;
-  background: #e8e8e0;
-}
-
-/* Candidate text details */
-.candidate-details {
-  flex: 1;
-  min-width: 160px;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  justify-content: center;
-}
-
-.candidate-details p {
-  margin: 0;
-  font-size: 0.9rem;
-  color: var(--ls-text-2);
-  line-height: 1.5;
-  padding: 6px 10px;
-  border-radius: var(--ls-r-sm);
-  background: rgba(13, 43, 94, 0.03);
-  border-left: 3px solid transparent;
-  transition: background var(--ls-t);
-}
-
-.candidate-details p:hover {
-  background: rgba(13, 43, 94, 0.06);
-}
-
-.candidate-details p strong {
-  color: var(--ls-navy);
-  font-weight: 700;
-  margin-right: 4px;
-}
-
-/* Process status badge */
-.process {
-  display: inline-block;
-  font-family: 'Barlow Condensed', sans-serif;
-  font-size: 1rem;
-  font-weight: 700;
-  letter-spacing: 0.06em;
-  padding: 2px 10px;
-  border-radius: 20px;
-}
-
-.process[data-status="Đang thi"] {
-  background: rgba(192, 57, 43, 0.1);
-  color: var(--ls-red);
-  border: 1px solid rgba(192, 57, 43, 0.3);
-}
-
-.process[data-status="Chưa thi"],
-.process[data-status="undefined"],
-.process:not([data-status]) {
-  background: rgba(123, 45, 139, 0.1);
-  color: var(--ls-purple);
-  border: 1px solid rgba(123, 45, 139, 0.25);
-}
-
-.process[data-status="Hoàn thành"] {
-  background: rgba(26, 122, 60, 0.1);
-  color: var(--ls-green);
-  border: 1px solid rgba(26, 122, 60, 0.25);
-}
-
-/* Subject status panel */
-.subject-status {
-  flex: 2;
-  min-width: 260px;
-}
-
-.subject-status h3 {
-  font-family: 'Barlow Condensed', sans-serif;
-  font-size: 1.05rem;
-  font-weight: 700;
-  letter-spacing: 0.05em;
-  color: var(--ls-navy);
-  text-transform: uppercase;
-  margin: 0 0 10px;
-  padding-bottom: 6px;
-  border-bottom: 2px solid var(--ls-border);
-}
-
-/* ============================================================
-   Subject status table
-   ============================================================ */
-.subject-status-table {
-  width: 100%;
-  border-collapse: collapse;
-  background: #fff;
-  border-radius: var(--ls-r-md);
-  overflow: hidden;
-  box-shadow: var(--ls-shadow-sm);
-  font-size: 0.875rem;
-  table-layout: fixed;
-  /* prevent column overflow */
-}
-
-.subject-status-table thead tr {
-  background: linear-gradient(135deg, var(--ls-navy) 0%, var(--ls-navy-md) 100%);
-}
-
-.subject-status-table thead th {
-  padding: 10px 12px;
-  color: #fff;
-  font-family: 'Barlow Condensed', sans-serif;
-  font-size: 0.9rem;
-  font-weight: 700;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  text-align: left;
-  border: none;
-}
-
-.subject-status-table thead th:nth-child(2) {
-  text-align: center;
-  width: 70px;
-}
-
-.subject-status-table thead th:nth-child(3) {
-  text-align: center;
-  width: 100px;
-}
-
-.subject-status-table tbody tr {
-  border-bottom: 1px solid #eef0f5;
-  transition: background var(--ls-t), transform var(--ls-t);
-  cursor: pointer;
-}
-
-.subject-status-table tbody tr:nth-child(even) {
-  background: #f7f8fc;
-}
-
-.subject-status-table tbody tr:hover {
-  background: #e8f0fb;
-}
-
-.subject-status-table td {
-  padding: 9px 12px;
-  color: var(--ls-text-2);
-  font-weight: 500;
-  vertical-align: middle;
-  border: none;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.subject-status-table td:nth-child(2),
-.subject-status-table td:nth-child(3) {
-  text-align: center;
-  font-weight: 700;
-}
-
-/* Pass/Fail color overrides (inline style override) */
-.subject-status-table td[style*="color: green"] {
-  color: var(--ls-green) !important;
-}
-
-.subject-status-table td[style*="color: red"] {
-  color: var(--ls-red) !important;
-}
-
-/* Selected row highlight */
-.subject-status-table tbody tr.selected-row {
-  background: linear-gradient(90deg, rgba(30, 115, 190, 0.12), rgba(30, 115, 190, 0.05)) !important;
-  border-left: 3px solid var(--ls-blue);
-}
-
-.subject-status-table tbody tr.selected-row td {
-  color: var(--ls-navy);
-  font-weight: 700;
-}
-
-/* ============================================================
-   Action buttons
-   ============================================================ */
-.buttons {
-  text-align: center;
-  margin: 0 16px;
-}
-
-.buttons-login {
-  display: flex;
-  gap: 16px;
-  justify-content: center;
-  flex-wrap: wrap;
-  margin: 24px 16px 16px;
-}
-
-/* Check info button */
-.check-button {
-  font-family: 'Barlow Condensed', sans-serif;
-  font-size: 1.05rem;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: #fff;
-  background: linear-gradient(135deg, var(--ls-blue) 0%, var(--ls-navy-md) 100%);
-  border: none;
-  border-radius: var(--ls-r-md);
-  padding: 12px 32px;
-  cursor: pointer;
-  box-shadow: 0 4px 14px rgba(30, 115, 190, 0.35);
-  transition: all var(--ls-t);
-  white-space: nowrap;
-}
-
-.check-button:hover {
-  background: linear-gradient(135deg, var(--ls-navy-md) 0%, var(--ls-navy) 100%);
-  box-shadow: 0 6px 20px rgba(13, 43, 94, 0.4);
-  transform: translateY(-2px);
-}
-
-.check-button:active {
-  transform: translateY(0) scale(0.98);
-  box-shadow: 0 2px 8px rgba(13, 43, 94, 0.3);
-}
-
-/* Enter exam button */
-.buttons .enter {
-  font-family: 'Barlow Condensed', sans-serif;
-  font-size: 1.15rem;
-  font-weight: 800;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: #fff;
-  background: linear-gradient(135deg, #1a8a40 0%, #0f6e2e 100%);
-  border: none;
-  border-radius: var(--ls-r-md);
-  padding: 14px 40px;
-  cursor: pointer;
-  box-shadow: 0 4px 16px rgba(26, 122, 60, 0.4);
-  transition: all var(--ls-t);
-  white-space: nowrap;
-  animation: enter-pulse 2.5s ease-in-out infinite;
-}
-
-@keyframes enter-pulse {
-
-  0%,
-  100% {
-    box-shadow: 0 4px 16px rgba(26, 122, 60, 0.4);
+   :root {
+    --win-bg: #e0ecee; /* Light cyan background like the image */
+    --win-border: #1e6bc7;
+    --win-title-bg: #c94040; 
+    
+    --win-header-orange: #ff7f00; /* For SÁT HẠCH CẤP GPLX MÔ TÔ */
+    --win-label-blue: #0000ff; /* Đơn vị:, Khóa:, Số báo danh:, etc. */
+    --win-text: #000;
+    
+    --win-btn-bg: #ffe4c4; /* Nút Kiểm tra thông tin, Đăng nhập, Hủy bỏ bg */
+    --win-btn-border: #f5bca9;
+    --win-btn-text: #8b4513; /* Nâu đất cho Đăng nhập/Hủy bỏ */
+    --win-btn-text-blue: #0000ff; /* Xanh cho Kiểm tra thông tin */
+    
+    --win-input-border: #a9a9a9;
+    --win-sbd-border: #1e90ff; /* Mép dưới của input SBD đậm hơn */
+    
+    --win-r-sm: 4px;
+    --win-r-md: 8px;
   }
-
-  50% {
-    box-shadow: 0 6px 28px rgba(26, 122, 60, 0.65);
-  }
-}
-
-.buttons .enter:hover {
-  background: linear-gradient(135deg, #22a84e 0%, #1a7a3c 100%);
-  transform: translateY(-2px) scale(1.02);
-}
-
-.buttons .enter:active {
-  transform: translateY(0) scale(0.98);
-  animation: none;
-}
-
-/* ============================================================
-   Reset button (fixed top-right) — override inline styles
-   ============================================================ */
-.reset-button {
-  font-family: 'Nunito', sans-serif !important;
-  font-size: 0.8rem !important;
-  font-weight: 700 !important;
-  padding: 8px 16px !important;
-  background: linear-gradient(135deg, #e74c3c, #c0392b) !important;
-  color: #fff !important;
-  border: none !important;
-  border-radius: var(--ls-r-sm) !important;
-  cursor: pointer !important;
-  box-shadow: 0 2px 8px rgba(192, 57, 43, 0.4) !important;
-  transition: all var(--ls-t) !important;
-  position: fixed !important;
-  top: 12px !important;
-  right: 12px !important;
-  z-index: 1000 !important;
-}
-
-.reset-button:hover {
-  background: linear-gradient(135deg, #c0392b, #96281b) !important;
-  box-shadow: 0 4px 14px rgba(192, 57, 43, 0.5) !important;
-  transform: translateY(-1px) !important;
-}
-
-/* ============================================================
-   Responsive — tablet/mobile
-   ============================================================ */
-@media (max-width: 768px) {
+  
+  /* ============================================================
+     Page wrapper
+     ============================================================ */
   .app-teststudent {
-    border-left: none;
-    border-right: none;
-    box-shadow: none;
+    font-family: Arial, Helvetica, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    
+    width: 100%;
+    max-width: 800px; /* Phù hợp với tỷ lệ của 1 app desktop */
+    margin: 20px auto;
+    
+    background: var(--win-bg);
+    border: 2px solid var(--win-border);
+    border-radius: 4px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+    position: relative;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
   }
-
-  .app-teststudent>h2 {
-    font-size: 1.4rem;
-    margin: 20px 12px 18px;
+  
+  /* ============================================================
+     Title Bar & Header Elements
+     ============================================================ */
+  .st-title-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: #ffffff;
+    padding: 2px 2px 2px 8px;
+    border-bottom: 1px solid #ccc;
   }
-
-  .exam-info {
-    margin: 0 12px 16px;
+  
+  .st-title-text {
+    font-size: 13px;
+    color: #333;
+  }
+  
+  .st-btn-close {
+    background-color: #d9534f;
+    color: white;
+    border: none;
+    padding: 4px 12px;
+    font-size: 14px;
+    cursor: pointer;
+    font-weight: bold;
+  }
+  
+  .st-btn-close:hover {
+    background-color: #c9302c;
+  }
+  
+  /* Banner */
+  .st-banner-container {
+    width: 100%;
+    background: #fff;
+    border-bottom: 1px solid var(--win-border);
+  }
+  
+  .st-banner-img {
+    width: 100%;
+    display: block;
+    height: auto;
+    max-height: 150px;
+    object-fit: fill; /* Ép giãn vừa khung như ảnh mẫu */
+  }
+  
+  /* Sub Header Orange */
+  .st-sub-header {
+    background-color: var(--win-header-orange);
+    color: #0000ff;
+    font-weight: bold;
+    font-size: 18px;
+    padding: 8px 12px;
+    border-bottom: 1px solid var(--win-border);
+    text-transform: uppercase;
+  }
+  
+  /* ============================================================
+     Main Content
+     ============================================================ */
+  .st-main-content {
     padding: 16px;
-  }
-
-  .exam-info-row {
+    display: flex;
     flex-direction: column;
-    align-items: flex-start;
-    gap: 6px;
+    gap: 20px;
   }
-
-  .exam-info-row label {
-    min-width: unset;
-    width: 100%;
+  
+  /* Viền bọc toàn bộ nội dung dưới header */
+  .st-main-content {
+    border: 1px solid #a0a0a0;
+    border-radius: 12px;
+    margin: 10px;
+    background: transparent;
   }
-
-  .exam-info-row select,
-  .exam-info-row input {
-    width: 100%;
-  }
-
-  .candidate-info {
-    margin: 0 12px 16px;
-    padding: 14px;
+  
+  /* ============================================================
+     Form Rows
+     ============================================================ */
+  .st-search-form {
+    display: flex;
     flex-direction: column;
-  }
-
-  .image-hv img.logo {
-    width: 100px;
-    height: 120px;
-  }
-
-  .subject-status {
-    min-width: unset;
-    width: 100%;
-  }
-
-  .subject-status-table {
-    font-size: 0.8rem;
-  }
-
-  .subject-status-table td,
-  .subject-status-table th {
-    padding: 8px 8px;
-  }
-
-  .buttons-login {
-    margin: 16px 12px;
     gap: 12px;
+    margin-left: 30px;
+    margin-top: 10px;
   }
-
-  .check-button,
-  .buttons .enter {
-    width: 100%;
-    text-align: center;
+  
+  .st-form-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
   }
-}
-
-@media (max-width: 480px) {
-  .app-teststudent>h2 {
-    font-size: 1.2rem;
-    letter-spacing: 0.04em;
+  
+  .st-form-row > label {
+    font-weight: bold;
+    color: var(--win-label-blue);
+    font-size: 15px;
+    width: 120px; /* Fixed width for alignment */
+    text-align: left;
   }
-
-  .exam-info {
-    padding: 12px;
+  
+  .st-form-row select,
+  .st-form-row input {
+    font-family: 'Times New Roman', Times, serif; 
+    font-size: 16px;
+    font-weight: bold;
+    padding: 4px 8px;
+    border: 1px solid var(--win-input-border);
   }
-
-  .candidate-info {
-    padding: 12px;
-    gap: 12px;
+  
+  .st-donvi-select, .st-khoa-select {
+    width: 450px;
+    max-width: 100%;
+    background-color: #fff;
   }
-
-  .image-hv img.logo {
+  
+  /* Row chứa SBD & Nút kiểm tra */
+  .st-sbd-row {
+    align-items: center;
+  }
+  
+  .st-sbd-input-group {
+    display: flex;
+    align-items: stretch;
+    gap: 20px;
+  }
+  
+  .st-sbd-input {
     width: 80px;
-    height: 100px;
-    border-radius: var(--ls-r-sm);
+    color: red !important; /* Chữ đỏ */
+    border: none !important;
+    border-bottom: 2px solid var(--win-sbd-border) !important;
+    background: white;
+    font-family: Arial, sans-serif !important;
+    text-align: left;
+    outline: none;
   }
-
-  .candidate-details p {
-    font-size: 0.82rem;
-    padding: 5px 8px;
+  
+  /* Button Kiểm tra thông tin */
+  .st-btn-check-info {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background-color: var(--win-btn-bg);
+    border: 2px solid var(--win-btn-border);
+    border-radius: 4px;
+    padding: 4px 12px;
+    cursor: pointer;
+    box-shadow: 1px 1px 3px rgba(0,0,0,0.2);
   }
-
-  .process {
-    font-size: 0.85rem;
+  
+  .st-btn-check-info:active {
+    box-shadow: inset 1px 1px 2px rgba(0,0,0,0.3);
+    transform: translateY(1px);
   }
-
-  .subject-status-table {
-    font-size: 0.75rem;
+  
+  .st-btn-check-icon {
+    /* Giả lập icon list */
+    width: 24px;
+    height: 24px;
+    background-image: repeating-linear-gradient(
+      180deg,
+      #444 0px,
+      #444 2px,
+      transparent 2px,
+      transparent 6px
+    );
+    border: 1px solid #444;
+    border-radius: 2px;
   }
-
-  .subject-status-table td:nth-child(2),
-  .subject-status-table th:nth-child(2) {
-    width: 50px;
+  
+  .st-btn-check-text {
+    color: var(--win-label-blue);
+    font-weight: bold;
+    font-size: 13px;
+    text-align: center;
+    line-height: 1.2;
   }
-
-  .subject-status-table td:nth-child(3),
-  .subject-status-table th:nth-child(3) {
-    width: 60px;
+  
+  /* ============================================================
+     Candidate Info Panel
+     ============================================================ */
+  .st-candidate-panel {
+    display: flex;
+    gap: 30px;
+    margin-left: 30px;
+    margin-top: 15px;
   }
-
-  .check-button {
-    font-size: 0.95rem;
-    padding: 11px 20px;
+  
+  .st-avatar-box {
+    width: 110px;
   }
-
-  .buttons .enter {
-    font-size: 1rem;
-    padding: 12px 24px;
+  
+  .st-avatar-img,
+  .st-avatar-placeholder {
+    width: 100px;
+    height: 130px;
+    border: 1px solid #333;
+    background-color: #ccc;
+    object-fit: cover;
   }
-}
-
-/* ============================================================
-   Accessibility
-   ============================================================ */
-@media (prefers-reduced-motion: reduce) {
-
-  *,
-  *::before,
-  *::after {
-    animation-duration: 0.01ms !important;
-    transition-duration: 0.01ms !important;
+  
+  .st-info-details {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
   }
-}
+  
+  .st-info-row {
+    display: flex;
+    gap: 15px;
+    font-size: 15px;
+  }
+  
+  .st-info-label {
+    min-width: 90px;
+    color: var(--win-label-blue);
+    flex-shrink: 0;
+  }
+  
+  .st-info-value {
+    color: var(--win-label-blue);
+    font-weight: bold;
+    word-break: break-word; /* Fix text overflow */
+  }
+  
+  /* ============================================================
+     Footer Buttons
+     ============================================================ */
+  .st-footer-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 100px;
+    margin-top: 20px;
+    margin-bottom: 10px;
+  }
+  
+  .st-btn-login,
+  .st-btn-cancel {
+    background-color: var(--win-btn-bg);
+    border: 2px solid var(--win-btn-border);
+    border-radius: 4px;
+    padding: 8px 30px;
+    font-weight: bold;
+    font-size: 14px;
+    cursor: pointer;
+    box-shadow: 1px 1px 3px rgba(0,0,0,0.2);
+    min-width: 100px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+  }
+  
+  .st-btn-login {
+    color: var(--win-btn-text);
+  }
+  
+  .st-btn-cancel {
+    color: var(--win-label-blue);
+  }
+  
+  .st-btn-login:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+  
+  .st-btn-login:not(:disabled):active,
+  .st-btn-cancel:active {
+    box-shadow: inset 1px 1px 2px rgba(0,0,0,0.3);
+    transform: translateY(1px);
+  }
+  
+  .st-btn-login-icon {
+    width: 16px;
+    height: 12px;
+    background-color: #fff;
+    border: 1px solid #ccc;
+  }
+  
+  /* Container viền của form  */
+  .st-main-content-inner {
+      border: 1px solid #a0a0a0;
+      border-radius: 8px;
+      padding: 10px 0;
+      background: #eef2f3; 
+      margin: 10px;
+  }
+  
+  @media (max-width: 900px) {
+    .app-teststudent {
+        margin: 0 auto;
+        border: none;
+        border-radius: 0;
+        max-width: 100vw;
+        min-height: 100vh;
+        width: 100%;
+    }
+  
+    /* Mentor yêu cầu ẩn vĩnh viễn trên mobile */
+    .st-title-bar,
+    .reset-button {
+        display: none !important;
+    }
+  
+    .st-main-content {
+        padding: 10px;
+        gap: 15px;
+    }
+    
+    .st-main-content-inner {
+        margin: 5px;
+        padding: 5px;
+    }
 
-button:focus-visible {
-  outline: 2px solid var(--ls-blue);
-  outline-offset: 3px;
-}
+    .st-donvi-select, .st-khoa-select {
+        width: 100%;
+    }
+  
+    .st-search-form, .st-candidate-panel {
+        margin-left: 0;
+        margin-right: 0;
+        padding: 0 10px;
+    }
+  
+    .st-form-row {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 4px;
+        width: 100%;
+    }
+
+    .st-form-row > label {
+        width: 100%;
+    }
+    
+    .st-sbd-input-group {
+        width: 100%;
+        justify-content: space-between;
+    }
+
+    .st-candidate-panel {
+        flex-direction: column;
+        align-items: center;
+        gap: 15px;
+        margin-top: 10px;
+        text-align: left;
+    }
+
+    .st-info-details {
+        width: 100%;
+    }
+
+    .st-footer-buttons {
+        gap: 10px;
+        justify-content: space-around;
+        padding: 0 10px;
+    }
+    
+    .st-btn-login,
+    .st-btn-cancel {
+        min-width: unset;
+        width: 45%;
+        padding: 8px 10px;
+    }
+  }
+  
+  /* ============================================================
+     Landscape Optimizations (Small Heights)
+     ============================================================ */
+  @media (max-height: 500px) and (orientation: landscape) {
+    .st-banner-img {
+        max-height: 60px; /* Thấp hơn nhiều so với 150px */
+    }
+    
+    .st-sub-header {
+        padding: 4px 10px;
+        font-size: 14px;
+    }
+    
+    .st-main-content {
+        padding: 5px;
+        gap: 8px;
+    }
+    
+    .st-main-content-inner {
+        margin: 2px;
+        padding: 2px;
+    }
+    
+    .st-search-form {
+        gap: 5px;
+    }
+    
+    .st-form-row {
+        flex-direction: row; /* Quay lại ngang để tiết kiệm chiều cao */
+        align-items: center;
+        flex-wrap: nowrap;
+    }
+    
+    .st-form-row > label {
+        width: auto;
+        min-width: 60px;
+        font-size: 13px;
+    }
+    
+    .st-donvi-select, .st-khoa-select {
+        flex: 1;
+        font-size: 13px;
+    }
+    
+    .st-candidate-panel {
+        flex-direction: row; /* Ngang để tiết kiệm cao */
+        align-items: flex-start;
+        gap: 15px;
+    }
+    
+    .st-avatar-img, .st-avatar-placeholder {
+        width: 70px;
+        height: 90px;
+    }
+    
+    .st-info-row {
+        gap: 10px;
+        font-size: 13px;
+    }
+    
+    .st-footer-buttons {
+        margin-top: 5px;
+        margin-bottom: 5px;
+    }
+    
+    .st-btn-login, .st-btn-cancel {
+        padding: 5px 15px;
+        font-size: 13px;
+    }
+  }
