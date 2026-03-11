@@ -626,12 +626,10 @@ button:hover {
     display: none;
 }
 
-/* mobile-current-question-info: ẩn mặc định, chỉ hiện trong landscape mobile qua CSS bên dưới */
 .mobile-current-question-info {
     display: none;
 }
 
-/* Glow effect cho numpad button khi đã chọn đáp án - nhẹ nhàng */
 .numpad-btn.active .keycap-img {
     filter: drop-shadow(0 0 4px rgba(255, 200, 0, 0.7)) brightness(1.08);
 }
@@ -642,7 +640,6 @@ button:hover {
         flex-direction: row !important;
     }
 
-    /* ── Left panel ── */
     .left-exam {
         width: 80%;
         padding: 0;
@@ -653,7 +650,6 @@ button:hover {
         border-radius: 0;
     }
 
-    /* ── Right panel ── */
     .right-exam {
         width: 20%;
         min-width: 145px;
@@ -663,7 +659,6 @@ button:hover {
         display: block !important;
     }
 
-    /* ── Question area takes remaining height ── */
     .question-section {
         flex: 1;
         border-width: 0;
@@ -683,7 +678,6 @@ button:hover {
         font-size: 14px !important;
     }
 
-    /* ── Sidebar ── */
     .sidebar-section {
         padding: 1px 0;
         height: 100vh;
@@ -714,7 +708,6 @@ button:hover {
         color: red;
     }
 
-    /* 2-column grid, compact rows to fit 15 each = 30 total */
     .question-nav-container {
         display: grid;
         grid-template-columns: 1fr 1fr;
@@ -765,7 +758,6 @@ button:hover {
         border-radius: 0;
     }
 
-    /* ── Câu X/30 hiện trong landscape ── */
     .mobile-current-question-info {
         display: block !important;
         font-size: 12px;
@@ -776,7 +768,6 @@ button:hover {
         background: #fff;
     }
 
-    /* ── Instruction note: lệch trái tránh numpad ── */
     .virtual-note {
         display: block;
         position: fixed;
@@ -797,7 +788,6 @@ button:hover {
         display: none !important;
     }
 
-    /* ── Virtual D-Pad ── */
     .virtual-dpad {
         display: flex;
         flex-direction: column;
@@ -849,7 +839,6 @@ button:hover {
         filter: grayscale(1) !important;
     }
 
-    /* ── Virtual Numpad ── */
     .virtual-numpad {
         display: flex;
         flex-direction: column;
@@ -867,19 +856,13 @@ button:hover {
         gap: 10px;
     }
 
-    /* ══════════════════════════════════════════════════════
-       iPhone 6/7/8 (375px height) landscape — fully independent
-       Note: iPhone 6 landscape = 375px height exactly
-    ══════════════════════════════════════════════════════ */
     @media (max-height: 380px) {
-        /* Left panel wider, right panel narrower */
         .left-exam { width: 81%; }
         .right-exam {
             width: 19%;
             min-width: 108px;
         }
 
-        /* Question section */
         .question-section {
             padding: 0 4px;
         }
@@ -887,7 +870,6 @@ button:hover {
             font-size: 12px !important;
         }
 
-        /* Sidebar timer — smaller */
         .sidebar-section {
             padding: 2px 1px;
         }
@@ -900,7 +882,6 @@ button:hover {
             font-size: 10px;
         }
 
-        /* Question list — ultra compact for 375px screen */
         .question-nav-container {
             gap: 1px;
             margin: 0;
@@ -926,20 +907,17 @@ button:hover {
             height: 7px;
         }
 
-        /* End button */
         .end-exam-btn {
             height: 18px;
             font-size: 8px;
             padding: 1px;
         }
 
-        /* Instruction note */
         .virtual-note {
             font-size: 7px;
             padding: 1px 10px;
         }
 
-        /* Virtual keys — iPhone 6: slightly bigger than before, away from edges */
         .virtual-dpad {
             bottom: 8px;
             left: 12px;
