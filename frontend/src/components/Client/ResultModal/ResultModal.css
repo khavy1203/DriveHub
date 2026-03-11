@@ -315,3 +315,126 @@ button:hover {
     overflow: hidden;
   }
 }
+
+@media (max-width: 950px) and (orientation: landscape) and (max-height: 380px) {
+  .modal-overlay {
+    padding: 4px;
+    gap: 4px;
+    align-items: stretch;
+    flex-direction: row !important;
+    width: 100vw !important;
+    height: 100vh !important;
+    top: 0 !important;
+    left: 0 !important;
+    position: fixed !important;
+  }
+
+  .modal-content {
+    flex: 1;
+    max-width: 28%;
+    padding: 6px 8px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    border-radius: 6px;
+    overflow-y: auto;
+  }
+
+  .modal-detail {
+    flex: 3;
+    max-height: 98vh;
+    padding: 2px;
+  }
+
+  .modal-detail td img {
+    max-width: 100%;
+    max-height: 280px;
+    width: auto;
+    height: auto;
+    display: block;
+    margin: 0 auto;
+  }
+
+  h4.next-exam {
+    font-size: 11px;
+    margin: 4px 0;
+  }
+
+  .modal-overlay .student-info p {
+    font-size: 10px;
+    margin: 2px 0;
+  }
+
+  .result-text, .next-subject-text {
+    font-size: 10px;
+    font-weight: bold;
+  }
+
+  .modal-footer {
+    flex-direction: column;
+    align-items: center;
+    padding: 0;
+    margin-top: 3px;
+  }
+
+  .modal-footer p {
+    font-size: 9px;
+    margin: 2px 0;
+  }
+
+  .modal-content button {
+    padding: 4px 8px;
+    font-size: 10px;
+  }
+
+  .nav-btn-container {
+    margin-top: 5px;
+  }
+
+  .result-summary-text {
+    display: inline-block;
+    text-align: left;
+    margin: 0 auto;
+    width: fit-content;
+  }
+
+  .table-result th,
+  .table-result td {
+    padding: 4px 3px;
+    font-size: 11px;
+    word-wrap: break-word;
+    word-break: break-word;
+  }
+
+  .table-result th:nth-child(1),
+  .table-result td:nth-child(1) {
+    width: 30px;
+    padding: 3px 2px;
+    font-size: 11px;
+  }
+
+  .table-result th:nth-child(3),
+  .table-result td:nth-child(3) {
+    width: 50px;
+    padding: 3px 2px;
+    font-size: 11px;
+    white-space: normal;
+  }
+
+  .table-result th:nth-child(4),
+  .table-result td:nth-child(4) {
+    width: 50px;
+    padding: 3px 2px;
+    font-size: 11px;
+    white-space: normal;
+  }
+
+  .modal-detail td img {
+    max-width: 100%;
+    max-height: 280px;
+    width: auto;
+    height: auto;
+    display: block;
+    margin: 0 auto;
+  }
+}

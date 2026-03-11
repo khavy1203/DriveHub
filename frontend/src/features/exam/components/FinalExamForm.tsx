@@ -390,8 +390,11 @@ const FinalExamForm: React.FC = () => {
         />
 
         <div className="left-exam">
+        <div className="virtual-note">
+          Tay trái: nhấn nút để điều hướng &nbsp;|&nbsp; Tay phải: chọn đáp án
+        </div>
         <div className="question-section">
-          <div className="mobile-current-question-info" style={{ display: 'none' }}>
+          <div className="mobile-current-question-info">
             Câu {currentQuestion + 1} / {arrQuestion.length}
           </div>
           {(() => {
@@ -405,9 +408,6 @@ const FinalExamForm: React.FC = () => {
               <div>Không tìm thấy ảnh câu hỏi {arrQuestion[currentQuestion]?.number}</div>
             );
           })()}
-        </div>
-        <div className="virtual-note">
-          <p>Ghi chú: Dùng phím điều hướng để đổi câu, phím số để chọn đáp án</p>
         </div>
         <div className="footer">
           <div className="left">

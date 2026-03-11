@@ -225,7 +225,12 @@
 }
 
 
-@media screen and (max-width: 768px) {
+@media screen and (max-width: 900px) {
+    /* Mentor yêu cầu ẩn vĩnh viễn trên mobile */
+    .header-area {
+        display: none !important;
+    }
+
     .header-area .main-nav .menu-trigger {
         display: flex !important;
     }
