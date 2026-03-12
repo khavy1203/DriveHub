@@ -568,3 +568,22 @@ UNLOCK TABLES;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
 -- Dump completed on 2025-10-23 14:42:28
+
+USE userstatus;
+
+CREATE TABLE IF NOT EXISTS authsession (
+id INT NOT NULL AUTO_INCREMENT,
+sessionId VARCHAR(255) NOT NULL,
+userId INT NOT NULL,
+ip VARCHAR(255) NULL,
+userAgent VARCHAR(255) NULL,
+expiresAt DATETIME NOT NULL,
+revoked TINYINT(1) NOT NULL DEFAULT 0,
+createdAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+updatedAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+PRIMARY KEY (id),
+UNIQUE KEY uq_authsession_sessionId (sessionId),
+KEY idx_authsession_userId (userId),
+KEY idx_authsession_expiresAt (expiresAt),
+KEY idx_authsession_revoked (revoked)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
