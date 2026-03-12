@@ -21,6 +21,37 @@ export const LoginForm: React.FC = () => {
   const [showPassword, setShowPassword] = useState<boolean>(false);
   const { setAuth, isAuthenticated } = useAuth();
 
+  const handleMezonLogin = (): void => {
+    const mezonClientId = process.env.REACT_APP_MEZON_CLIENT_ID;
+    const redirectUri = process.env.REACT_APP_MEZON_REDIRECT_URI || 'https://localhost:3000/mezon-callback';
+    const authorizeUrl = process.env.REACT_APP_MEZON_AUTHORIZE_URL || 'https://oauth2.mezon.ai/oauth2/auth';
+    const mezonScope = process.env.REACT_APP_MEZON_SCOPE || 'openid offline';
+
+    if (!mezonClientId) {
+      toast.error('Thiếu cấu hình REACT_APP_MEZON_CLIENT_ID');
+      return;
+    }
+
+    const stateChars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    const randomStateBytes = new Uint8Array(11);
+    window.crypto.getRandomValues(randomStateBytes);
+    const state = Array.from(randomStateBytes)
+      .map((byte) => stateChars[byte % stateChars.length])
+      .join('');
+
+    sessionStorage.setItem('mezon_oauth_state', state);
+
+    const params = new URLSearchParams({
+      client_id: mezonClientId,
+      redirect_uri: redirectUri,
+      response_type: 'code',
+      scope: mezonScope,
+      state,
+    });
+
+    window.location.href = `${authorizeUrl}?${params.toString()}`;
+  };
+
   useEffect(() => {
     if (isAuthenticated) {
       navigate('/dashboard');
@@ -159,6 +190,26 @@ export const LoginForm: React.FC = () => {
                 <i className="fa fa-google"></i>
               </a>
             </div>
+
+            <button
+              type="button"
+              className="lf-submit-btn"
+              style={{
+                marginTop: '14px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '10px'
+              }}
+              onClick={handleMezonLogin}
+            >
+              <img
+                src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTH3DI4Aqenhf8x4Si2IWRveQ5zYCqIJlCkUg&s"
+                alt="Mezon"
+                style={{ width: '18px', height: '18px', borderRadius: '4px', objectFit: 'cover' }}
+              />
+              Đăng nhập bằng Mezon
+            </button>
 
             <p className="lf-register-text">
               Chưa có tài khoản?&nbsp;

@@ -12,7 +12,7 @@ import 'react-toastify/dist/ReactToastify.css';
 import { isBuildLocal } from './core/config/environment';
 
 // Feature imports
-import { AuthProvider, PrivateRoute, LoginForm } from './features/auth';
+import { AuthProvider, PrivateRoute, LoginForm, MezonCallback } from './features/auth';
 import { StudentsList } from './features/student';
 
 // Shared imports
@@ -64,6 +64,21 @@ const DashBoardLayoutWrapper: React.FC = () => {
  */
 const App: React.FC = () => {
   const isLocal = isBuildLocal();
+  const isMezonCallbackPath = window.location.pathname === '/mezon-callback';
+
+  if (isMezonCallbackPath) {
+    return (
+      <>
+        <ToastContainer />
+        <AuthProvider>
+          <LoadingProvider>
+            <GlobalSpinner />
+            <MezonCallback />
+          </LoadingProvider>
+        </AuthProvider>
+      </>
+    );
+  }
 
   return (
     <>
@@ -86,6 +101,7 @@ const App: React.FC = () => {
                 <Route path="traffic-check" element={<TrafficCheck />} />
                 <Route path="students" element={<StudentsList />} />
                 <Route path="login" element={<LoginForm />} />
+                <Route path="mezon-callback" element={<MezonCallback />} />
                 <Route path="qr-scanner" element={<QrScannerPage />} />
                 <Route path="*" element={<Navigate to="/" replace />} />
               </Route>

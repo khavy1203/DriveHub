@@ -1,16 +1,30 @@
 
 require('dotenv').config();
 const configCors = (app) => {
+    const corsOrigins = (process.env.CORS_ORIGINS || 'http://localhost:3000,https://localhost:3000')
+        .split(',')
+        .map((origin) => origin.trim())
+        .filter(Boolean);
 
     app.use(function (req, res, next) {
+        const requestOrigin = req.headers.origin;
+        const isAllowedOrigin = !requestOrigin || corsOrigins.includes(requestOrigin);
 
-        // const allowedOrigin = process.env.REACT_APP || 'http://localhost:3000';
-        // ;
-        // // Website you wish to allow to connect
-        // res.setHeader('Access-Control-Allow-Origin', allowedOrigin);
+        if (!isAllowedOrigin) {
+            return res.status(403).json({
+                error: 'cors_forbidden',
+                details: {
+                    message: 'Origin is not allowed by CORS',
+                    origin: requestOrigin
+                }
+            });
+        }
 
-        res.setHeader('Access-Control-Allow-Origin', '*');
-        
+        if (requestOrigin) {
+            res.setHeader('Access-Control-Allow-Origin', requestOrigin);
+            res.setHeader('Vary', 'Origin');
+        }
+
         // Request methods you wish to allow
         res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, PATCH, DELETE');
 
@@ -23,7 +37,7 @@ const configCors = (app) => {
         // res.setHeader('Access-Control-Allow-Credentials', true);
 
         if (req.method == 'OPTIONS') {
-            return res.sendStatus(200);
+            return res.status(204).end();
         }
         
         // Pass to next layer of middleware
