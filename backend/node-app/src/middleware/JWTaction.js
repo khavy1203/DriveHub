@@ -92,11 +92,6 @@ const checkUserJwt = async (req, res, next) => {
     if (nonSecurePaths.includes(req.path)) return next();
     let cookies = req.cookies || {};
     let tokenFromHeader = extractToken(req);
-    if (process.env.AUTH_DEBUG === 'true') {
-        const hasCookieAuth = Boolean(cookies.jwt || cookies.session_id);
-        const hasBearerAuth = Boolean(tokenFromHeader);
-        console.log(`[auth] ${req.method} ${req.path} cookie=${hasCookieAuth} bearer=${hasBearerAuth}`);
-    }
     if ((cookies && cookies.jwt) || tokenFromHeader) {
         let token = cookies && cookies.jwt ? cookies.jwt : tokenFromHeader;
 

@@ -4,3 +4,5 @@ dist*
 /OntapLT/frontend
 /v1.0.*
 .history
+.env
+**/.env

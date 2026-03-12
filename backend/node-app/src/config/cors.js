@@ -1,10 +1,14 @@
 
 require('dotenv').config();
 const configCors = (app) => {
-    const corsOrigins = (process.env.CORS_ORIGINS || 'http://localhost:3000,https://localhost:3000')
+    const corsOrigins = (process.env.CORS_ORIGINS || '')
         .split(',')
         .map((origin) => origin.trim())
         .filter(Boolean);
+
+    if (corsOrigins.length === 0) {
+        throw new Error('Missing required env: CORS_ORIGINS');
+    }
 
     app.use(function (req, res, next) {
         const requestOrigin = req.headers.origin;

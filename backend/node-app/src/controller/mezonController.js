@@ -6,10 +6,38 @@ import { createJWT } from '../middleware/JWTaction';
 import loginRegisterService from '../service/loginRegisterService';
 import authSessionService from '../service/authSessionService';
 
-const DEFAULT_MEZON_TOKEN_URL = 'https://oauth2.mezon.ai/oauth2/token';
-const DEFAULT_MEZON_USERINFO_URL = 'https://oauth2.mezon.ai/userinfo';
 const OAUTH_TIMEOUT = Number(process.env.MEZON_TIMEOUT_MS || 10000);
 const STATE_REGEX = /^[A-Za-z0-9]{11}$/;
+
+const requireEnv = (key) => {
+    const value = process.env[key];
+    if (!value || !String(value).trim()) {
+        throw new Error(`Missing required env: ${key}`);
+    }
+    return value;
+};
+
+const parsePositiveIntEnv = (key, fallback) => {
+    const raw = process.env[key];
+    if (raw === undefined || raw === null || String(raw).trim() === '') {
+        return fallback;
+    }
+
+    const parsed = Number(raw);
+    if (!Number.isInteger(parsed) || parsed <= 0) {
+        throw new Error(`Invalid env ${key}. Expected a positive integer.`);
+    }
+    return parsed;
+};
+
+const DEFAULT_MEZON_USER_PROFILE = {
+    address: '',
+    phone: null,
+    genderId: parsePositiveIntEnv('DEFAULT_MEZON_USER_GENDER_ID', 1),
+    groupId: parsePositiveIntEnv('DEFAULT_MEZON_USER_GROUP_ID', 3),
+    active: parsePositiveIntEnv('DEFAULT_MEZON_USER_ACTIVE', 1),
+};
+
 const buildCookieOptions = () => ({
     maxAge: Number(process.env.SESSION_TTL_MS || 7 * 24 * 60 * 60 * 1000),
     httpOnly: true,
@@ -20,14 +48,7 @@ const buildCookieOptions = () => ({
 const pickMezonUser = (userinfo = {}) => {
     const mezonId = userinfo.id || userinfo.sub || userinfo.user_id || null;
     const email = userinfo.email || userinfo.mail || (mezonId ? `${mezonId}@mezon.local` : null);
-    const avatarUrl =
-        userinfo.avatar_url ||
-        userinfo.avatar ||
-        userinfo.picture ||
-        userinfo.profile_image ||
-        userinfo?.user?.avatar_url ||
-        userinfo?.user?.avatar ||
-        null;
+    const avatarUrl = userinfo.avatar_url || null;
     const username =
         userinfo.username ||
         userinfo.name ||
@@ -62,11 +83,7 @@ const createDefaultProfileIfNeeded = async ({ mezonId, email, username }) => {
             email,
             password: hashedPassword,
             username,
-            address: '',
-            phone: null,
-            genderId: 1,
-            groupId: 3,
-            active: 1,
+            ...DEFAULT_MEZON_USER_PROFILE,
             githubId: mezonId ? String(mezonId) : null,
         });
 
@@ -108,20 +125,11 @@ const exchangeCode = async (req, res) => {
             });
         }
 
-        const clientId = process.env.MEZON_CLIENT_ID;
-        const clientSecret = process.env.MEZON_CLIENT_SECRET;
+        const clientId = requireEnv('MEZON_CLIENT_ID');
+        const clientSecret = requireEnv('MEZON_CLIENT_SECRET');
 
-        if (!clientId || !clientSecret) {
-            return res.status(500).json({
-                error: 'server_misconfigured',
-                details: {
-                    message: 'Missing MEZON_CLIENT_ID or MEZON_CLIENT_SECRET',
-                },
-            });
-        }
-
-        const tokenUrl = process.env.MEZON_TOKEN_URL || DEFAULT_MEZON_TOKEN_URL;
-        const userInfoUrl = process.env.MEZON_USERINFO_URL || DEFAULT_MEZON_USERINFO_URL;
+        const tokenUrl = requireEnv('MEZON_TOKEN_URL');
+        const userInfoUrl = requireEnv('MEZON_USERINFO_URL');
 
         const body = new URLSearchParams();
         body.set('grant_type', 'authorization_code');
