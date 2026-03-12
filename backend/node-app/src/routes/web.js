@@ -17,6 +17,7 @@ import courseQRController from "../controller/courseQRController";
 import QRController from "../controller/QRController";
 import trafficCheckController from "../controller/trafficCheckController";
 import mezonController from "../controller/mezonController";
+import userController from "../controller/userController";
 
 
 const routes = express.Router();
@@ -79,6 +80,8 @@ const initWebRoutes = (app) => {
 
     //login
     routes.post("/user/login", loginRegisterController.handleLogin);
+    routes.post("/user/logout", loginRegisterController.handleLogout);
+    routes.get("/account", userController.getUserAccount);
 
     //file 
     routes.post("/file/namestandardizationfile", fileController.nameStandardizationFile);

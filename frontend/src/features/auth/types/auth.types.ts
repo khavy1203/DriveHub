@@ -5,6 +5,7 @@
 
 export interface AuthContextType {
   isAuthenticated: boolean;
+  isAuthLoading: boolean;
   role: string | null;
   displayName: string | null;
   setAuth: (token: string, role: string, displayName?: string) => void;

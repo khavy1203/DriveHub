@@ -60,8 +60,7 @@ export const MezonCallback: React.FC = () => {
         const code = urlParams.get('code') || '';
         const state = urlParams.get('state') || '';
         const sessionState = sessionStorage.getItem('mezon_oauth_state') || '';
-        const localState = localStorage.getItem('mezon_oauth_state') || '';
-        const isStateValid = Boolean(state) && (state === sessionState || state === localState);
+        const isStateValid = Boolean(state) && state === sessionState;
         const redirectUri = process.env.REACT_APP_MEZON_REDIRECT_URI || 'https://localhost:3000/mezon-callback';
         const backendUrl = process.env.REACT_APP_MEZON_BACKEND_URL || 'http://localhost:8080';
 
@@ -127,7 +126,6 @@ export const MezonCallback: React.FC = () => {
         const role = parsed?.DT?.groupWithRoles?.name || 'User';
         const username = parsed?.DT?.username || parsed?.DT?.mezonUser?.username || 'User';
         sessionStorage.removeItem('mezon_oauth_state');
-        localStorage.removeItem('mezon_oauth_state');
 
         if (isPopupFlow) {
           notifyOpener({ type: 'success', token: parsed.DT.access_token, role, username });

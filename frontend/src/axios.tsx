@@ -1,7 +1,6 @@
 import axios, { AxiosInstance } from 'axios';
 import { toast } from 'react-toastify';
 import constants from './constant/constant';
-import Cookies from 'universal-cookie';
 
 
 // Hàm kiểm tra thiết bị là điện thoại
@@ -9,7 +8,6 @@ const isMobileDevice = (): boolean => {
   return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
 };
 
-const cookies = new Cookies();
 const ENV = process.env.REACT_APP_BUILD as keyof typeof constants.CONFIGS || 'development';
 
 // Xác định baseURL dựa trên thiết bị
@@ -22,25 +20,8 @@ const getBaseUrl = (): string => {
 
 const instance: AxiosInstance = axios.create({
   baseURL: getBaseUrl(),
-  // withCredentials: true,  // Đảm bảo vớiCredentials được bật để gửi cookie cùng với request
-  // headers: {
-  //   Authorization: `Bearer ${cookies.get('jwt') || ""}`, // Lấy token từ cookie
-  // },
+  withCredentials: true,
 });
-
-// Request interceptor để gắn token vào header (nếu cần)
-instance.interceptors.request.use(
-  (config) => {
-    const token = cookies.get("jwt") || localStorage.getItem('token');
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
-    return config;
-  },
-  (error) => {
-    return Promise.reject(error);
-  }
-);
 
 // Response interceptor để xử lý lỗi và hiển thị thông báo toast
 instance.interceptors.response.use(

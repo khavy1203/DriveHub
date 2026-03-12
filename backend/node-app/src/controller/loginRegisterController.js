@@ -1,5 +1,13 @@
 require("dotenv").config();
 import loginRegisterNewUser from "../service/loginRegisterService";
+import authSessionService from "../service/authSessionService";
+
+const buildCookieOptions = () => ({
+  maxAge: Number(process.env.SESSION_TTL_MS || 7 * 24 * 60 * 60 * 1000),
+  httpOnly: true,
+  sameSite: 'lax',
+  secure: process.env.COOKIE_SECURE === 'true',
+});
 const handleRegister = async (req, res) => {
   try {
     //email, phone, username, password * validate phía sever
@@ -43,9 +51,14 @@ const handleLogin = async (req, res) => {
   try {
     let data = await loginRegisterNewUser.loginUserService(req.body);
     if (data && data.DT && data.DT.access_token) {
-      res.cookie("jwt", data.DT.access_token, {
-        maxAge: 30 * 24 * 60 * 60 * 1000,
-      }); //gửi kèm cookies về phía client khi đăng nhập thành công
+      const cookieOptions = buildCookieOptions();
+      const session = await authSessionService.createSession({
+        userId: data.DT.userId,
+        req,
+      });
+
+      res.cookie("jwt", data.DT.access_token, cookieOptions);
+      res.cookie("session_id", session.sessionId, cookieOptions);
     }
     res.status(200).json({
       EM: data.EM,
@@ -61,10 +74,13 @@ const handleLogin = async (req, res) => {
     });
   }
 };
-const handleLogout = (req, res) => {
+const handleLogout = async (req, res) => {
   //call logout service
   try {
+    const sessionId = req.cookies?.session_id;
+    await authSessionService.revokeSession(sessionId);
     res.clearCookie("jwt");
+    res.clearCookie("session_id");
     res.status(200).json({
       EM: "Clear cookie successfully",
       EC: 0,

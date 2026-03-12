@@ -4,11 +4,18 @@ import db from '../models/index.js';
 import { getGroupWithRole } from '../service/JWTService';
 import { createJWT } from '../middleware/JWTaction';
 import loginRegisterService from '../service/loginRegisterService';
+import authSessionService from '../service/authSessionService';
 
 const DEFAULT_MEZON_TOKEN_URL = 'https://oauth2.mezon.ai/oauth2/token';
 const DEFAULT_MEZON_USERINFO_URL = 'https://oauth2.mezon.ai/userinfo';
 const OAUTH_TIMEOUT = Number(process.env.MEZON_TIMEOUT_MS || 10000);
 const STATE_REGEX = /^[A-Za-z0-9]{11}$/;
+const buildCookieOptions = () => ({
+    maxAge: Number(process.env.SESSION_TTL_MS || 7 * 24 * 60 * 60 * 1000),
+    httpOnly: true,
+    sameSite: 'lax',
+    secure: process.env.COOKIE_SECURE === 'true',
+});
 
 const pickMezonUser = (userinfo = {}) => {
     const mezonId = userinfo.id || userinfo.sub || userinfo.user_id || null;
@@ -148,11 +155,20 @@ const exchangeCode = async (req, res) => {
         };
 
         const token = createJWT(payload);
+        const cookieOptions = buildCookieOptions();
+        const session = await authSessionService.createSession({
+            userId: user.id,
+            req,
+        });
+
+        res.cookie('jwt', token, cookieOptions);
+        res.cookie('session_id', session.sessionId, cookieOptions);
 
         return res.status(200).json({
             EC: 0,
             EM: 'ok',
             DT: {
+                userId: user.id,
                 access_token: token,
                 groupWithRoles,
                 email: user.email,

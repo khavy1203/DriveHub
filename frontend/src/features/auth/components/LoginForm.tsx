@@ -74,7 +74,6 @@ export const LoginForm: React.FC = () => {
       .join('');
 
     sessionStorage.setItem('mezon_oauth_state', state);
-    localStorage.setItem('mezon_oauth_state', state);
 
     const params = new URLSearchParams({
       client_id: mezonClientId,

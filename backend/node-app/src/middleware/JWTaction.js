@@ -1,5 +1,6 @@
 require("dotenv").config();
 import jwt from "jsonwebtoken";
+import db from '../models/index.js';
 
 const nonSecurePaths = [
     '/user/logout', '/user/login', '/user/register',
@@ -59,9 +60,33 @@ const extractToken = (req) => {
     return null;
 }
 
-const checkUserJwt = (req, res, next) => {//xác thực trước khi gửi xuống  
+const validateSessionFromDb = async (sessionId) => {
+    if (!sessionId) {
+        return null;
+    }
+
+    const session = await db.authsession.findOne({
+        where: {
+            sessionId,
+            revoked: false,
+        },
+        raw: true,
+    });
+
+    if (!session) {
+        return null;
+    }
+
+    if (new Date(session.expiresAt).getTime() <= Date.now()) {
+        return null;
+    }
+
+    return session;
+}
+
+const checkUserJwt = async (req, res, next) => {//xác thực trước khi gửi xuống  
     // Bỏ qua kiểm tra quyền đối với các yêu cầu GET
-    if (req.method == 'GET') {
+    if (req.method == 'GET' && req.path !== '/account') {
         return next();
     }
 
@@ -71,6 +96,20 @@ const checkUserJwt = (req, res, next) => {//xác thực trước khi gửi xuố
     let tokenFromHeader = extractToken(req);
     if ((cookies && cookies.jwt) || tokenFromHeader) {//nếu tồn tại cookie đã được gửi trước đó
         let token = cookies && cookies.jwt ? cookies.jwt : tokenFromHeader;
+
+        if (cookies && cookies.jwt) {
+            const sessionId = cookies.session_id;
+            const session = await validateSessionFromDb(sessionId);
+            if (!session) {
+                return res.status(401).json({
+                    EC: -1,
+                    DT: '',
+                    EM: 'Phiên đăng nhập không hợp lệ hoặc đã hết hạn'
+                })
+            }
+            req.session = session;
+        }
+
         let decode = verifyToken(token);
         if (decode) {
             req.user = decode;//check phần trung gian gửi dữ liệu từ trung gian sang thằng tiếp theo để xác thực, đính kèm req

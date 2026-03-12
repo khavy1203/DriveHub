@@ -5,7 +5,6 @@
 
 import axios, { AxiosInstance } from 'axios';
 import { toast } from 'react-toastify';
-import Cookies from 'universal-cookie';
 import { 
   ENVIRONMENT_CONFIGS, 
   getCurrentEnvironment, 
@@ -13,7 +12,6 @@ import {
 } from '../../core/config/environment';
 import { MESSAGES } from '../../core/constants/messages';
 
-const cookies = new Cookies();
 
 /**
  * Get the base URL based on environment
@@ -40,19 +38,8 @@ const TOAST_CONFIG = {
  */
 const httpClient: AxiosInstance = axios.create({
   baseURL: getBaseUrl(),
+  withCredentials: true,
 });
-
-// Request interceptor - attach token to requests
-httpClient.interceptors.request.use(
-  (config) => {
-    const token = cookies.get('jwt') || localStorage.getItem('token');
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
-    return config;
-  },
-  (error) => Promise.reject(error)
-);
 
 // Response interceptor - handle errors and show toast notifications
 httpClient.interceptors.response.use(

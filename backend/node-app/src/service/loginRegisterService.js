@@ -105,6 +105,7 @@ const loginUserService = async (rawUserAccount) => {
                     EM: 'ok',
                     EC: 0,
                     DT: {
+                        userId: user.id,
                         access_token: token,
                         groupWithRoles: groupWithRoles,
                         email: user.userEmail,
