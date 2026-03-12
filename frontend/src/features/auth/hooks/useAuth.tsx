@@ -9,6 +9,13 @@ import { getConfig } from '../../../core/config/environment';
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+const AUTH_SESSION_KEYS = {
+  token: 'auth_token',
+  role: 'auth_role',
+  displayName: 'auth_display_name',
+  avatarUrl: 'auth_avatar_url',
+} as const;
+
 const clearLegacyAuthStorage = (): void => {
   try {
     localStorage.removeItem('token');
@@ -34,12 +41,18 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   useEffect(() => {
     const hydrateAuth = async () => {
       clearLegacyAuthStorage();
+      const sessionToken = sessionStorage.getItem(AUTH_SESSION_KEYS.token);
 
       try {
-        const baseUrl = getConfig().API_BASE_URL ?? 'http://localhost:8080';
+        const baseUrl = getConfig().API_BASE_URL || 'http://localhost:8080';
         const response = await fetch(`${baseUrl}/api/account`, {
           method: 'GET',
           credentials: 'include',
+          headers: sessionToken
+            ? {
+              Authorization: `Bearer ${sessionToken}`,
+            }
+            : undefined,
         });
 
         if (!response.ok) {
@@ -54,15 +67,38 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
         const payload = await response.json();
         if (payload?.EC === 0 && payload?.DT?.access_token) {
+          const nextToken = payload?.DT?.access_token || sessionToken;
+          const nextRole = payload?.DT?.groupWithRoles?.name || 'User';
+          const nextDisplayName = payload?.DT?.username || null;
+          const nextAvatarUrl = payload?.DT?.avatarUrl || null;
+
           setIsAuthenticated(true);
-          setRole(payload?.DT?.groupWithRoles?.name || 'User');
-          setDisplayName(payload?.DT?.username || null);
-          setAvatarUrl(payload?.DT?.avatarUrl || null);
-          setToken(payload?.DT?.access_token || null);
+          setRole(nextRole);
+          setDisplayName(nextDisplayName);
+          setAvatarUrl(nextAvatarUrl);
+          setToken(nextToken);
+          if (nextToken) {
+            sessionStorage.setItem(AUTH_SESSION_KEYS.token, nextToken);
+          }
+          sessionStorage.setItem(AUTH_SESSION_KEYS.role, nextRole);
+          if (nextDisplayName) {
+            sessionStorage.setItem(AUTH_SESSION_KEYS.displayName, nextDisplayName);
+          } else {
+            sessionStorage.removeItem(AUTH_SESSION_KEYS.displayName);
+          }
+          if (nextAvatarUrl) {
+            sessionStorage.setItem(AUTH_SESSION_KEYS.avatarUrl, nextAvatarUrl);
+          } else {
+            sessionStorage.removeItem(AUTH_SESSION_KEYS.avatarUrl);
+          }
           setIsAuthLoading(false);
           return;
         }
 
+        sessionStorage.removeItem(AUTH_SESSION_KEYS.token);
+        sessionStorage.removeItem(AUTH_SESSION_KEYS.role);
+        sessionStorage.removeItem(AUTH_SESSION_KEYS.displayName);
+        sessionStorage.removeItem(AUTH_SESSION_KEYS.avatarUrl);
         setIsAuthenticated(false);
         setRole(null);
         setDisplayName(null);
@@ -70,6 +106,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         setToken(null);
         setIsAuthLoading(false);
       } catch (e) {
+        sessionStorage.removeItem(AUTH_SESSION_KEYS.token);
+        sessionStorage.removeItem(AUTH_SESSION_KEYS.role);
+        sessionStorage.removeItem(AUTH_SESSION_KEYS.displayName);
+        sessionStorage.removeItem(AUTH_SESSION_KEYS.avatarUrl);
         setIsAuthenticated(false);
         setRole(null);
         setDisplayName(null);
@@ -84,6 +124,18 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const setAuth = (token: string, role: string, nextDisplayName?: string, nextAvatarUrl?: string | null): void => {
     clearLegacyAuthStorage();
+    sessionStorage.setItem(AUTH_SESSION_KEYS.token, token);
+    sessionStorage.setItem(AUTH_SESSION_KEYS.role, role);
+    if (nextDisplayName) {
+      sessionStorage.setItem(AUTH_SESSION_KEYS.displayName, nextDisplayName);
+    } else {
+      sessionStorage.removeItem(AUTH_SESSION_KEYS.displayName);
+    }
+    if (nextAvatarUrl) {
+      sessionStorage.setItem(AUTH_SESSION_KEYS.avatarUrl, nextAvatarUrl);
+    } else {
+      sessionStorage.removeItem(AUTH_SESSION_KEYS.avatarUrl);
+    }
     setIsAuthLoading(false);
     setIsAuthenticated(true);
     setToken(token);
@@ -93,13 +145,17 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   };
 
   const logout = (): void => {
-    const baseUrl = getConfig().API_BASE_URL ?? 'http://localhost:8080';
+    const baseUrl = getConfig().API_BASE_URL || 'http://localhost:8080';
     fetch(`${baseUrl}/api/user/logout`, {
       method: 'POST',
       credentials: 'include',
     });
 
     clearLegacyAuthStorage();
+    sessionStorage.removeItem(AUTH_SESSION_KEYS.token);
+    sessionStorage.removeItem(AUTH_SESSION_KEYS.role);
+    sessionStorage.removeItem(AUTH_SESSION_KEYS.displayName);
+    sessionStorage.removeItem(AUTH_SESSION_KEYS.avatarUrl);
     setIsAuthLoading(false);
     setIsAuthenticated(false);
     setToken(null);

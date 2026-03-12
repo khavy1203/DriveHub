@@ -17,7 +17,7 @@ export type BuildEnvironment =
 
 export const ENVIRONMENT_CONFIGS: Record<BuildEnvironment, EnvironmentConfig> = {
   development: {
-    API_BASE_URL: '',
+    API_BASE_URL: 'http://localhost:8080',
     WS_BASE_URL: 'ws://localhost:8080/ws/student-status',
   },
   production: {
@@ -33,7 +33,7 @@ export const ENVIRONMENT_CONFIGS: Record<BuildEnvironment, EnvironmentConfig> = 
     WS_BASE_URL: 'ws://192.168.1.99:8080/ws/student-status',
   },
   buildlocal_teacher: {
-    API_BASE_URL: '',
+    API_BASE_URL: 'http://localhost:8080',
     WS_BASE_URL: 'ws://localhost:8080/ws/student-status',
   },
 };
