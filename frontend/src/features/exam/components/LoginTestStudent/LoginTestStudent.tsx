@@ -405,18 +405,6 @@ const LoginTestStudent: React.FC = () => {
                 <button
                     className="reset-button"
                     onClick={handleResetStudentData}
-                    style={{
-                        position: 'fixed',
-                        top: '10px',
-                        right: '10px',
-                        padding: '10px 20px',
-                        backgroundColor: '#ff4444',
-                        color: 'white',
-                        border: 'none',
-                        borderRadius: '5px',
-                        cursor: 'pointer',
-                        zIndex: 1000
-                    }}
                 >
                     Reset dữ liệu
                 </button>

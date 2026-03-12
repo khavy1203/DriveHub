@@ -417,3 +417,38 @@
   .st-footer-buttons { gap: 40px; margin-top: 4px; }
   .st-btn-login, .st-btn-cancel { padding: 5px 14px; font-size: 13px; min-width: 100px; }
 }
+
+.reset-button {
+  position: fixed;
+  top: 80px;
+  right: 15px;
+  padding: 8px 16px;
+  background-color: #ff4444;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  font-weight: 600;
+  cursor: pointer;
+  z-index: 1000;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+  transition: background-color 0.2s, transform 0.1s;
+}
+
+.reset-button:hover {
+  background-color: #e63939;
+}
+
+.reset-button:active {
+  transform: translateY(1px);
+}
+
+@media (max-width: 640px) {
+  .reset-button {
+    top: 5px;
+    right: 5px;
+    padding: 3px 8px;
+    font-size: 10px;
+    border-radius: 4px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.15);
+  }
+}
