@@ -6,7 +6,8 @@
 export interface AuthContextType {
   isAuthenticated: boolean;
   role: string | null;
-  setAuth: (token: string, role: string) => void;
+  displayName: string | null;
+  setAuth: (token: string, role: string, displayName?: string) => void;
   logout: () => void;
   getToken: () => string | null;
 }
@@ -31,5 +32,6 @@ export interface LoginResponse {
 export interface AuthState {
   isAuthenticated: boolean;
   role: string | null;
+  displayName: string | null;
   token: string | null;
 }

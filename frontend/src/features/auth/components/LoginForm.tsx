@@ -35,7 +35,8 @@ export const LoginForm: React.FC = () => {
 
       if (data.type === 'success' && data.token) {
         const role = data.role || 'User';
-        setAuth(data.token, role);
+        const username = data.username || 'User';
+        setAuth(data.token, role, username);
         toast.success('Đăng nhập Mezon thành công!');
         navigate('/dashboard');
       } else if (data.type === 'error') {
@@ -161,7 +162,7 @@ export const LoginForm: React.FC = () => {
         toast.success('Đăng nhập thành công!');
         const token = response.DT.access_token;
         const role = response.DT.groupWithRoles.name || 'User';
-        setAuth(token, role);
+          setAuth(token, role, response.DT.username);
         navigate('/dashboard');
       } else {
         toast.error(response.EM || 'Đăng nhập thất bại!');

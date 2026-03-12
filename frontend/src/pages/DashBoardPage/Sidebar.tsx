@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { useAuth } from "../../features/auth/hooks/useAuth";
 
 const Sidebar: React.FC = () => {
-  const { role } = useAuth();
+  const { role, displayName } = useAuth();
 
   return (
     <nav className="sidebar sidebar-offcanvas" id="sidebar">
@@ -15,7 +15,7 @@ const Sidebar: React.FC = () => {
               <span className="login-status online"></span>
             </div>
             <div className="nav-profile-text d-flex flex-column pe-3">
-              <span className="font-weight-medium mb-2">{role || 'Admin'}</span>
+              <span className="font-weight-medium mb-2">{displayName || role || 'Admin'}</span>
               <span className="font-weight-normal text-muted">Quản trị viên</span>
             </div>
           </Link>

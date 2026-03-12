@@ -4,7 +4,7 @@ import { useAuth } from "../../features/auth/hooks/useAuth";
 
 const Header: React.FC = () => {
   const navigate = useNavigate();
-  const { role, logout } = useAuth();
+  const { role, displayName, logout } = useAuth();
 
   const handleToggleSidebar = () => {
     document.body.classList.toggle("sidebar-icon-only");
@@ -42,7 +42,7 @@ const Header: React.FC = () => {
               aria-expanded="false"
             >
               <i className="mdi mdi-account-circle me-2" style={{ fontSize: 22 }}></i>
-              <span className="profile-name">{role || 'Admin'}</span>
+              <span className="profile-name">{displayName || role || 'Admin'}</span>
             </a>
             <div
               className="dropdown-menu navbar-dropdown w-100"

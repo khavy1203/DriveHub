@@ -10,7 +10,7 @@ import './Header.css';
 
 export const Header: React.FC = () => {
   const navigate = useNavigate();
-  const { isAuthenticated, role, logout } = useAuth();
+  const { isAuthenticated, role, displayName, logout } = useAuth();
 
   const handleLogout = () => {
     logout();
@@ -113,7 +113,7 @@ export const Header: React.FC = () => {
               <div className="header-auth">
                 {isAuthenticated ? (
                   <>
-                    <span className="header-role">{role}</span>
+                    <span className="header-role">{displayName || role || 'User'}</span>
                     <button className="header-logout-btn" onClick={handleLogout}>
                       Đăng xuất
                     </button>
