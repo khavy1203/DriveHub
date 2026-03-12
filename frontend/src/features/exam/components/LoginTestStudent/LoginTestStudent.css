@@ -418,8 +418,6 @@
   .st-btn-login, .st-btn-cancel { padding: 5px 14px; font-size: 13px; min-width: 100px; }
 }
 
-
-/* ===================== RESET BUTTON ===================== */
 .reset-button {
   position: fixed;
   top: 80px;
