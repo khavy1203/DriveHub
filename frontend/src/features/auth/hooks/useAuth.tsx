@@ -36,7 +36,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       clearLegacyAuthStorage();
 
       try {
-        const baseUrl = getConfig().API_BASE_URL || 'http://localhost:8080';
+        const baseUrl = getConfig().API_BASE_URL ?? 'http://localhost:8080';
         const response = await fetch(`${baseUrl}/api/account`, {
           method: 'GET',
           credentials: 'include',
@@ -93,7 +93,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   };
 
   const logout = (): void => {
-    const baseUrl = getConfig().API_BASE_URL || 'http://localhost:8080';
+    const baseUrl = getConfig().API_BASE_URL ?? 'http://localhost:8080';
     fetch(`${baseUrl}/api/user/logout`, {
       method: 'POST',
       credentials: 'include',

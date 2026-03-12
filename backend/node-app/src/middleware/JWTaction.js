@@ -84,17 +84,20 @@ const validateSessionFromDb = async (sessionId) => {
     return session;
 }
 
-const checkUserJwt = async (req, res, next) => {//xác thực trước khi gửi xuống  
-    // Bỏ qua kiểm tra quyền đối với các yêu cầu GET
+const checkUserJwt = async (req, res, next) => {
     if (req.method == 'GET' && req.path !== '/account') {
         return next();
     }
 
-    if (nonSecurePaths.includes(req.path)) return next();//nếu path thuộc các đường dẫn không được phép check quyền thì  
-    let cookies = req.cookies;//lấy cookie từ client
-    console.log("check cooki", cookies);
+    if (nonSecurePaths.includes(req.path)) return next();
+    let cookies = req.cookies || {};
     let tokenFromHeader = extractToken(req);
-    if ((cookies && cookies.jwt) || tokenFromHeader) {//nếu tồn tại cookie đã được gửi trước đó
+    if (process.env.AUTH_DEBUG === 'true') {
+        const hasCookieAuth = Boolean(cookies.jwt || cookies.session_id);
+        const hasBearerAuth = Boolean(tokenFromHeader);
+        console.log(`[auth] ${req.method} ${req.path} cookie=${hasCookieAuth} bearer=${hasBearerAuth}`);
+    }
+    if ((cookies && cookies.jwt) || tokenFromHeader) {
         let token = cookies && cookies.jwt ? cookies.jwt : tokenFromHeader;
 
         if (cookies && cookies.jwt) {

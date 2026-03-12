@@ -17,8 +17,8 @@ export type BuildEnvironment =
 
 export const ENVIRONMENT_CONFIGS: Record<BuildEnvironment, EnvironmentConfig> = {
   development: {
-    API_BASE_URL: 'http://127.0.0.1:8080',
-    WS_BASE_URL: 'ws://127.0.0.1:8080/ws/student-status',
+    API_BASE_URL: '',
+    WS_BASE_URL: 'ws://localhost:8080/ws/student-status',
   },
   production: {
     API_BASE_URL: 'http://node-app-9asc.onrender.com',
@@ -33,8 +33,8 @@ export const ENVIRONMENT_CONFIGS: Record<BuildEnvironment, EnvironmentConfig> = 
     WS_BASE_URL: 'ws://192.168.1.99:8080/ws/student-status',
   },
   buildlocal_teacher: {
-    API_BASE_URL: 'http://127.0.0.1:8080',
-    WS_BASE_URL: 'ws://127.0.0.1:8080/ws/student-status',
+    API_BASE_URL: '',
+    WS_BASE_URL: 'ws://localhost:8080/ws/student-status',
   },
 };
 
