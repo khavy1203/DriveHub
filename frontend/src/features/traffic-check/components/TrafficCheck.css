@@ -1,9 +1,9 @@
+/* Existing styles... (maintaining compatibility) */
 .tc-wrapper {
   min-height: 100vh;
   background-color: #f6f8fa;
   font-family: Arial, Helvetica, sans-serif;
   color: #333;
-  /* Use absolute positioning or reset parent spacing to avoid clipping */
   margin-top: -24px; 
   position: relative;
   overflow: visible;
@@ -11,15 +11,13 @@
 
 .tc-banner {
   width: 100%;
-  display: flex;
-  justify-content: center;
-  padding: 30px 20px; /* Increased padding for better height and no clipping */
+  padding: 30px 20px;
   background: linear-gradient(rgba(255,255,255,0.45), rgba(255,255,255,0.45)), 
               url('https://anh.csgt.vn/build/assets/pattern-bg-DcS8pw7K.jpg') center center / 100% auto repeat 
               #f7e195;
   border-bottom: 3.5px solid #eab308;
   height: auto;
-  min-height: 130px; /* Ensure a minimum height like the original */
+  min-height: 130px;
 }
 
 .tc-banner-content {
@@ -28,8 +26,7 @@
   display: flex;
   align-items: center;
   gap: 15px;
-  margin: 0 auto;
-  margin-top: 10px;
+  margin: 10px auto 0;
 }
 
 .tc-banner-logo {
@@ -45,12 +42,10 @@
 }
 
 .tc-banner-line1 {
-  font-family: Arial, sans-serif;
   font-size: 20px;
   font-weight: 700;
   color: #1e1e1e;
   text-transform: uppercase;
-  margin-bottom: 2px;
 }
 
 .tc-banner-line2 {
@@ -62,40 +57,13 @@
   line-height: 1;
 }
 
-/* --- Navbar --- */
-.tc-navbar {
-  display: none; /* Hide on desktop */
-  background: #fdf5e6;
-  border-bottom: 1px solid #e2e8f0;
-  padding: 8px 20px;
-}
-
-.tc-navbar-content {
-  max-width: 1140px;
-  margin: 0 auto;
-  display: flex;
-  align-items: center;
-  gap: 25px;
-  color: #333;
-}
-
-.tc-navbar-content i {
-  font-size: 22px;
-  color: #444;
-}
-
-.tc-navbar-spacer {
-  flex: 1;
-}
-
-/* --- Container --- */
 .tc-container {
   max-width: 1140px;
   margin: 0 auto;
   padding: 24px 16px;
 }
 
-/* --- Form --- */
+/* Form Styles */
 .tc-form-card {
   background: white;
   border-radius: 12px;
@@ -112,7 +80,6 @@
   font-size: 26px;
   font-weight: 700;
   font-family: "Times New Roman", Times, serif;
-  border-radius: 12px 12px 0 0;
 }
 
 .tc-form-body {
@@ -126,12 +93,9 @@
 .tc-field-group label {
   display: block;
   font-size: 15px;
-  font-weight: 400;
-  color: #333;
   margin-bottom: 6px;
 }
 
-/* Combined wrapper with split background */
 .tc-input-wrapper {
   display: flex;
   border: 1px solid #d1d5db;
@@ -141,7 +105,7 @@
 }
 
 .tc-input-prefix {
-  width: 50px;
+  width: 55px;
   background: #f8f9fa;
   border-right: 1px solid #e1e4e8;
   display: flex;
@@ -149,12 +113,6 @@
   justify-content: center;
   color: #4b5563;
   font-weight: 700;
-  font-size: 12px;
-}
-
-.tc-input-prefix i {
-  font-size: 20px;
-  color: #374151;
 }
 
 .tc-input-field, .tc-select-field {
@@ -162,14 +120,13 @@
   border: none;
   padding: 0 12px;
   font-size: 16px;
-  color: #111827;
   outline: none;
-  background: white;
 }
 
-.tc-select-field {
-  cursor: pointer;
-  appearance: none;
+.tc-recaptcha-wrapper {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 20px;
 }
 
 .tc-submit-btn {
@@ -180,107 +137,142 @@
   border: none;
   border-radius: 6px;
   font-size: 18px;
-  font-weight: 500;
+  font-weight: 700;
   cursor: pointer;
-  margin-top: 10px;
-  transition: opacity 0.2s;
+  transition: background 0.2s;
 }
 
-.tc-submit-btn:hover {
-  opacity: 0.9;
+.tc-submit-btn:disabled {
+  background: #94a3b8;
+  cursor: not-allowed;
 }
 
-/* --- Results --- */
-.tc-results-list {
+.tc-btn-loading {
   display: flex;
-  flex-direction: column;
-  gap: 20px;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
 }
 
-.tc-violation-card {
+.tc-spinner {
+  width: 20px;
+  height: 20px;
+  border: 3px solid rgba(255,255,255,0.3);
+  border-top: 3px solid white;
+  border-radius: 50%;
+  animation: tc-spin 0.8s linear infinite;
+}
+
+@keyframes tc-spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Result HTML Styling - Important for csgt.vn layout */
+/* Result HTML Styling - Light Theme (Reverted) */
+.tc-result-html {
+  background: white !important;
+  border-radius: 12px !important;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08) !important;
+  padding: 24px !important;
+  overflow-x: auto;
+  color: #333 !important;
+}
+
+/* Fix CSS for table/alerts from external API */
+.tc-result-html .alert {
+  padding: 15px !important;
+  border-radius: 8px !important;
+  margin-bottom: 15px !important;
+  text-align: center !important;
+}
+
+.tc-result-html .alert-warning {
+  background-color: #fff3cd !important;
+  color: #856404 !important;
+  border: 1px solid #ffeeba !important;
+}
+
+.tc-result-html table, 
+.tc-result-html table tr, 
+.tc-result-html table th, 
+.tc-result-html table td {
+  border: 1px solid black !important;
+  border-collapse: collapse !important;
+}
+
+.tc-result-html table {
+  width: 100% !important;
+  margin-top: 15px !important;
+}
+
+.tc-result-html table th, 
+.tc-result-html table td {
+  padding: 12px !important;
+  text-align: left !important;
+  color: #333 !important;
+}
+
+.tc-result-html td:last-child {
+  text-align: center !important;
+}
+
+.tc-result-html .table th {
+  background-color: #f1f5f9 !important;
+  font-weight: 700 !important;
+  color: #1e293b !important;
+  border-top: 1px solid #e2e8f0 !important;
+}
+
+.tc-result-html .table tr:nth-child(even) {
+  background-color: #f8fafc !important;
+}
+
+.tc-result-html .table tr:hover {
+  background-color: #f1f5f9 !important;
+}
+
+/* Force visibility of hidden external containers */
+.tc-result-html #showViolationData,
+.tc-result-html [id*="Violation"],
+.tc-result-html .modal-overlay,
+.tc-result-html .modal-content {
+  display: block !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+  position: relative !important;
+  transform: none !important;
+}
+
+/* Skeleton animation */
+.tc-skeleton {
+  padding: 24px;
   background: white;
   border-radius: 12px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-  border: 1px solid #ddd;
-  overflow: hidden;
 }
 
-.tc-v-header {
-  background: #f8f9fa;
-  padding: 12px 20px;
-  border-bottom: 1px solid #ddd;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.tc-v-plate {
-  color: #1a73e8;
-  font-weight: 700;
-  font-size: 17px;
-}
-
-.tc-v-status {
-  font-size: 13px;
-  font-weight: 700;
-  padding: 5px 12px;
+.tc-skeleton-bar {
+  height: 16px;
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: tc-skeleton-loading 1.5s infinite;
+  margin-bottom: 12px;
   border-radius: 4px;
 }
 
-.tc-v-status.pending { background: #fff3cd; color: #856404; }
-.tc-v-status.done { background: #d4edda; color: #155724; }
-
-.tc-v-body {
-  padding: 20px;
-  display: grid;
-  grid-template-columns: 1fr 1.2fr;
-  gap: 20px;
+@keyframes tc-skeleton-loading {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
 }
 
-.tc-v-section h3 {
-  font-size: 15px;
-  color: #777;
-  text-transform: uppercase;
-  margin: 0 0 10px 0;
-  font-weight: 700;
-}
-
-.tc-v-section p {
-  margin: 6px 0;
+.tc-error-msg {
+  color: #dc2626;
+  text-align: center;
   font-size: 14px;
-  line-height: 1.5;
-}
-
-/* --- Responsive --- */
-@media (max-width: 900px) {
-  .tc-banner-logo { height: 75px; }
-  .tc-banner-line1 { font-size: 18px; }
-  .tc-banner-line2 { font-size: 26px; }
-  .tc-v-body { grid-template-columns: 1fr; }
+  margin-bottom: 16px;
 }
 
 @media (max-width: 600px) {
-  .tc-banner { 
-    padding: 15px 15px;
-    min-height: 90px;
-  }
-  .tc-banner-logo { height: 62px; }
-  .tc-banner-line1 { font-size: 12px; }
-  .tc-banner-line2 { font-size: 19px; }
-  
-  .tc-navbar { 
-    display: block; /* Show on mobile */
-    padding: 8px 15px; 
-  }
-  .tc-navbar-content { gap: 18px; }
-  .tc-navbar-content i { font-size: 22px; }
-  
-  .tc-title { font-size: 20px; padding: 14px; }
-  .tc-form-body { padding: 16px; }
-  .tc-input-wrapper { height: 48px; }
-  .tc-input-prefix { width: 48px; }
-  
-  .tc-v-header { padding: 10px 15px; }
-  .tc-v-body { padding: 15px; }
+  .tc-banner-logo { height: 60px; }
+  .tc-banner-line1 { font-size: 14px; }
+  .tc-banner-line2 { font-size: 20px; }
 }
-

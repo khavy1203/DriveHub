@@ -19,3 +19,6 @@ export const THEME = {
     WARNING: '#ffc107',
   },
 } as const;
+
+
+export const TRAFFIC_BASE_URL = 'https://api.phatnguoi.vn/web/tra-cuu';

@@ -1,30 +1,130 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
+import useApiService from 'src/services/useApiService';
 import './TrafficCheck.css';
-import type { ViolationRecord } from '../types';
-import httpClient from '../../../shared/services/httpClient';
+import { TRAFFIC_BASE_URL } from 'src/core/constants/config';
 
 const VEHICLE_TYPES = [
   { value: '1', label: 'Xe ô tô', icon: 'airport_shuttle' },
   { value: '2', label: 'Xe máy', icon: 'two_wheeler' },
-  { value: '3', label: 'Xe đạp điện', icon: 'electric_bike' },
+  { value: '3', label: 'Xe máy điện', icon: 'electric_bike' },
 ];
 
-const TrafficCheck: React.FC = () => {
-  const getIsMobile = () => (typeof window !== 'undefined' ? window.innerWidth <= 600 : false);
+type TrafficApiRawResult =
+  | string
+  | {
+      resultHtml?: string;
+      data?: string;
+      message?: string;
+    };
 
-  const [isMobile, setIsMobile] = useState(getIsMobile);
+const MAX_LICENSE_LENGTH = 9;
+const MAX_LICENSE_LETTERS = 2;
+
+const formatLicensePlate = (plate: string) =>
+  plate.trim().toUpperCase().replace(/\s/g, '');
+
+const buildTrafficCheckUrl = (plate: string, vehicleType: string) =>
+  `${TRAFFIC_BASE_URL}/${plate}/${vehicleType}`;
+
+const hasElectronWebRequest = () =>
+  Boolean((window as any).electronAPI?.webRequest);
+
+const extractResultHtml = (
+  result: TrafficApiRawResult,
+): { html: string | null; message?: string } => {
+  if (typeof result === 'string') {
+    return { html: result };
+  }
+
+  if (result?.resultHtml || result?.data) {
+    return { html: result.resultHtml || result.data || null };
+  }
+
+  if (result?.message) {
+    return { html: null, message: result.message };
+  }
+
+  return { html: null };
+};
+
+const sanitizeResultHtml = (rawHtml: string): string => {
+  const container = document.createElement('div');
+  container.innerHTML = rawHtml;
+
+  const selectorsToRemove = [
+    'button',
+    '.modal',
+    '.modal-overlay',
+    '.modal-backdrop',
+    '[id*="modal"]',
+    '.btn',
+    'script',
+    'style',
+    'a[href*="play.google.com"]',
+    'a[href*="apps.apple.com"]',
+    'img[src*="play-store"]',
+    'img[src*="app-store"]',
+  ];
+
+  selectorsToRemove.forEach((selector) => {
+    container.querySelectorAll(selector).forEach((el) => el.remove());
+  });
+
+  container.querySelectorAll('b, span, div').forEach((el) => {
+    if (el.textContent?.includes('Tra cứu nhanh hơn tại ứng dụng')) {
+      el.remove();
+    }
+  });
+
+  const showDataEl = container.querySelector('#showViolationData');
+  if (showDataEl instanceof HTMLElement) {
+    showDataEl.style.display = 'block';
+    showDataEl.style.opacity = '1';
+    showDataEl.style.visibility = 'visible';
+  }
+
+  container.querySelectorAll('[style]').forEach((el) => {
+    if (el instanceof HTMLElement) {
+      const style = el.style;
+      if (style.display === 'none') style.display = 'block';
+      if (style.opacity === '0') style.opacity = '1';
+      if (style.visibility === 'hidden') style.visibility = 'visible';
+    }
+  });
+
+  return container.innerHTML;
+};
+
+/**
+ * Simplified Traffic lookup using api.phatnguoi.vn
+ */
+const TrafficCheck: React.FC = () => {
+  const { get } = useApiService();
   const [loaiXe, setLoaiXe] = useState('1');
   const [bienSo, setBienSo] = useState('');
   const [loading, setLoading] = useState(false);
-  const [results, setResults] = useState<ViolationRecord[] | null>(null);
+  const [resultHtml, setResultHtml] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [searched, setSearched] = useState(false);
 
-  useEffect(() => {
-    const onResize = () => setIsMobile(getIsMobile());
-    window.addEventListener('resize', onResize);
-    return () => window.removeEventListener('resize', onResize);
-  }, []);
+  const selectedVehicle = VEHICLE_TYPES.find((v) => v.value === loaiXe);
+
+  const handleBienSoChange = (rawValue: string) => {
+    const upperValue = rawValue.toUpperCase();
+
+    const valueWithoutSpaces = upperValue.replace(/\s/g, '');
+
+    if (valueWithoutSpaces.length > MAX_LICENSE_LENGTH) {
+      return;
+    }
+
+    const letterCount = (valueWithoutSpaces.match(/[A-Z]/g) || []).length;
+    if (letterCount > MAX_LICENSE_LETTERS) {
+      return;
+    }
+
+    setBienSo(upperValue);
+  };
 
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -32,34 +132,52 @@ const TrafficCheck: React.FC = () => {
       setError('Vui lòng nhập biển số xe.');
       return;
     }
+
     setLoading(true);
     setError(null);
-    setResults(null);
+    setResultHtml(null);
     setSearched(true);
 
     try {
-      const response = await httpClient.post('/api/traffic-check/lookup', {
-        BienKiemSoat: bienSo.trim(),
-        LoaiXe: loaiXe,
-      });
-      const data = response.data;
-      if (data.success && Array.isArray(data.data)) {
-        setResults(data.data);
-      } else if (!data.success) {
-        setError(data.message || 'Hệ thống đang bận. Vui lòng thử lại.');
+      const formattedPlate = formatLicensePlate(bienSo);
+      const url = buildTrafficCheckUrl(formattedPlate, loaiXe);
+
+      let rawResult: TrafficApiRawResult;
+
+      if (hasElectronWebRequest()) {
+        console.log('[Electron Mode] Calling phatnguoi via IPC...');
+        const ipcResponse = await (window as any).electronAPI.webRequest({
+          url,
+          method: 'GET',
+        });
+
+        rawResult = ipcResponse.success
+          ? ipcResponse.data
+          : { message: ipcResponse.message };
+      } else {
+        console.log('[Web Mode] Calling phatnguoi via useApiService...');
+        rawResult = await get<TrafficApiRawResult>(url);
       }
-    } catch {
-      setError('Lỗi kết nối máy chủ.');
+
+      const { html, message } = extractResultHtml(rawResult);
+
+      if (html) {
+        const cleanedHtml = sanitizeResultHtml(html);
+        setResultHtml(cleanedHtml);
+        return;
+      }
+
+      setError(message || 'Không tìm thấy dữ liệu vi phạm.');
+    } catch (error) {
+      console.error('[Search Error]', error);
+      setError('Lỗi kết nối hệ thống tra cứu. Vui lòng thử lại sau.');
     } finally {
       setLoading(false);
     }
   };
 
-  const selectedVehicle = VEHICLE_TYPES.find((v) => v.value === loaiXe);
-
   return (
     <div className="tc-wrapper">
-      {/* Banner */}
       <div className="tc-banner">
         <div className="tc-banner-content">
           <img src="https://anh.csgt.vn/logo-csgt.png" alt="Logo" className="tc-banner-logo" />
@@ -70,19 +188,15 @@ const TrafficCheck: React.FC = () => {
         </div>
       </div>
 
-      {/* Navbar */}
-      {isMobile && (
-        <div className="tc-navbar">
-          <div className="tc-navbar-content">
-            <a href="/"><i className="material-icons">home</i></a>
-            <div className="tc-navbar-spacer"></div>
-            <i className="material-icons">search</i>
-          </div>
+      <div className="tc-navbar">
+        <div className="tc-navbar-content">
+          <a href="/"><i className="material-icons">home</i></a>
+          <div className="tc-navbar-spacer"></div>
+          <i className="material-icons">search</i>
         </div>
-      )}
+      </div>
 
       <div className="tc-container">
-        {/* Form Card */}
         <div className="tc-form-card">
           <div className="tc-title">Tra cứu phạt nguội</div>
           <div className="tc-form-body">
@@ -93,12 +207,12 @@ const TrafficCheck: React.FC = () => {
                   <div className="tc-input-prefix">
                     <i className="material-icons">{selectedVehicle?.icon}</i>
                   </div>
-                  <select 
+                  <select
                     className="tc-select-field"
                     value={loaiXe}
                     onChange={(e) => setLoaiXe(e.target.value)}
                   >
-                    {VEHICLE_TYPES.map(v => (
+                    {VEHICLE_TYPES.map((v) => (
                       <option key={v.value} value={v.value}>{v.label}</option>
                     ))}
                   </select>
@@ -109,65 +223,56 @@ const TrafficCheck: React.FC = () => {
                 <label>Biển số xe</label>
                 <div className="tc-input-wrapper">
                   <div className="tc-input-prefix">123</div>
-                  <input 
+                  <input
                     type="text"
                     className="tc-input-field"
                     placeholder="Nhập biển số xe ví dụ 89a22222"
                     value={bienSo}
-                    onChange={(e) => setBienSo(e.target.value)}
+                    onChange={(e) => handleBienSoChange(e.target.value)}
                   />
                 </div>
               </div>
 
-              {error && <div style={{ color: '#dc2626', marginBottom: '16px', fontSize: '14px', textAlign: 'center' }}>{error}</div>}
+              {error && !resultHtml && (
+                <div className="tc-error-msg">{error}</div>
+              )}
 
               <button type="submit" className="tc-submit-btn" disabled={loading}>
-                {loading ? 'Đang kiểm tra...' : 'Tra cứu'}
+                {loading ? (
+                  <span className="tc-btn-loading">
+                    <span className="tc-spinner"></span>
+                  </span>
+                ) : (
+                  'Tra cứu'
+                )}
               </button>
             </form>
           </div>
         </div>
 
-        {/* Results */}
         {searched && !loading && (
           <div className="tc-results">
-            {results && results.length > 0 ? (
-              <div className="tc-results-list">
-                {results.map((item, idx) => (
-                  <div key={idx} className="tc-violation-card">
-                    <div className="tc-v-header">
-                      <span className="tc-v-plate">Biển số: {bienSo.toUpperCase()}</span>
-                      <span className={`tc-v-status ${item.trang_thai?.toLowerCase().includes('chưa') ? 'pending' : 'done'}`}>
-                        {item.trang_thai || 'Chưa xử phạt'}
-                      </span>
-                    </div>
-                    <div className="tc-v-body">
-                      <div className="tc-v-section">
-                        <h3>Thông tin phương tiện</h3>
-                        <p><strong>Loại xe:</strong> {selectedVehicle?.label}</p>
-                        <p><strong>Màu biển:</strong> {item.mau_bien || 'Nền màu trắng, chữ và số màu đen'}</p>
-                      </div>
-                      <div className="tc-v-section">
-                        <h3>Chi tiết vi phạm</h3>
-                        <p><strong>Thời gian:</strong> {item.ngay_vi_pham}</p>
-                        <p><strong>Địa điểm:</strong> {item.dia_diem}</p>
-                        <p><strong>Lỗi vi phạm:</strong> {item.hanh_vi}</p>
-                      </div>
-                      <div className="tc-v-section">
-                        <h3>Thông tin xử lý</h3>
-                        <p><strong>Đơn vị phát hiện:</strong> {item.don_vi_phat_hien}</p>
-                        <p><strong>Đơn vị giải quyết:</strong> {item.don_vi_giai_quyet}</p>
-                        {item.diachi_diem_giaiquyet && <p><strong>Địa chỉ:</strong> {item.diachi_diem_giaiquyet}</p>}
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
+            {resultHtml ? (
+              <div
+                className="tc-result-html"
+                dangerouslySetInnerHTML={{ __html: resultHtml }}
+              />
             ) : (
-              !error && (
-                <p style={{ textAlign: 'center', color: '#666' }}>Không tìm thấy dữ liệu vi phạm.</p>
+              error && (
+                <div className="tc-no-result">
+                  <i className="material-icons">info_outline</i>
+                  <p>{error}</p>
+                </div>
               )
             )}
+          </div>
+        )}
+
+        {loading && (
+          <div className="tc-skeleton">
+            <div className="tc-skeleton-bar" style={{ width: '60%' }} />
+            <div className="tc-skeleton-bar" style={{ width: '80%' }} />
+            <div className="tc-skeleton-bar" style={{ width: '70%' }} />
           </div>
         )}
       </div>
