@@ -18,7 +18,11 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   roles,
   redirectTo = '/login' 
 }) => {
-  const { isAuthenticated, role } = useAuth();
+  const { isAuthenticated, isAuthLoading, role } = useAuth();
+
+  if (isAuthLoading) {
+    return null;
+  }
 
   if (!isAuthenticated) {
     return <Navigate to={redirectTo} replace />;

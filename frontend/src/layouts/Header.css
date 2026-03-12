@@ -504,14 +504,99 @@
     flex-shrink: 0;
 }
 
+.header-user-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: #fff;
+    border: none;
+    border-radius: 999px;
+    padding: 5px 12px 5px 6px;
+    cursor: pointer;
+    transition: background-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.header-user-chip:hover {
+    background: #eeeeee;
+    box-shadow: 0 6px 18px rgba(15, 23, 42, 0.08);
+}
+
+.header-user-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 0.5px solid #d2dbe7;
+    background: #ffffff;
+}
+
 .header-role {
-    font-size: 13px;
+    font-size: 14px;
     font-weight: 600;
-    color: #fff;
-    background-color: #03a4ed;
-    padding: 3px 10px;
-    border-radius: 20px;
+    color: #1e293b;
+    background-color: transparent;
+    padding: 0;
     white-space: nowrap;
+    letter-spacing: 0.01em;
+    line-height: 1;
+}
+
+.header-user-caret {
+    font-size: 11px;
+    color: #64748b;
+    margin-left: 1px;
+}
+
+.header-profile-menu {
+    position: relative;
+}
+
+.header-dropdown {
+    position: absolute;
+    top: calc(100% + 10px);
+    right: 0;
+    min-width: 190px;
+    background: #fff;
+    border: 1px solid #e7ecf3;
+    box-shadow: 0 14px 34px rgba(15, 23, 42, 0.14);
+    border-radius: 14px;
+    padding: 8px;
+    z-index: 1200;
+    transform-origin: top right;
+    animation: headerDropdownIn 0.16s ease-out;
+}
+
+.header-dropdown-item {
+    width: 100%;
+    border: none;
+    background: transparent;
+    padding: 11px 12px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: #ef4444;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    text-align: left;
+    transition: background-color 0.16s ease, color 0.16s ease;
+}
+
+.header-dropdown-item:hover {
+    background: #fff3f2;
+    color: #dc2626;
+}
+
+@keyframes headerDropdownIn {
+    from {
+        opacity: 0;
+        transform: translateY(-4px) scale(0.98);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
 }
 
 .header-logout-btn {

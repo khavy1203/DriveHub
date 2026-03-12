@@ -21,34 +21,27 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const [role, setRole] = useState<string | null>(null);
 
-  // Initialize authentication state from localStorage
+  // Legacy context: do not hydrate from localStorage.
   useEffect(() => {
-    const token = localStorage.getItem('token');
-    const storedRole = localStorage.getItem('role');
-    if (token && storedRole) {
-      setIsAuthenticated(true);
-      setRole(storedRole);
-    }
+    setIsAuthenticated(false);
+    setRole(null);
   }, []);
 
-  // Set authentication state and save token/role in localStorage
+  // Keep in-memory only.
   const setAuth = (token: string, role: string) => {
-    localStorage.setItem('token', token);
-    localStorage.setItem('role', role);
+    void token;
     setIsAuthenticated(true);
     setRole(role);
   };
 
-  // Clear authentication state and remove token/role from localStorage
+  // Clear in-memory authentication state.
   const logout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('role');
     setIsAuthenticated(false);
     setRole(null);
   };
 
-  // Retrieve the token (useful for API calls)
-  const getToken = () => localStorage.getItem('token');
+  // Token is not persisted in this legacy context.
+  const getToken = () => null;
 
   return (
     <AuthContext.Provider value={{ isAuthenticated, role, setAuth, logout, getToken }}>

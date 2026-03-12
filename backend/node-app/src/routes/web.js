@@ -16,6 +16,8 @@ import studentController from "../controller/studentController";
 import courseQRController from "../controller/courseQRController";
 import QRController from "../controller/QRController";
 import trafficCheckController from "../controller/trafficCheckController";
+import mezonController from "../controller/mezonController";
+import userController from "../controller/userController";
 
 
 const routes = express.Router();
@@ -53,6 +55,7 @@ const initWebRoutes = (app) => {
 
     // Traffic fine lookup
     routes.post('/traffic-check/lookup', trafficCheckController.lookupTrafficViolation);
+    routes.post('/mezon/exchange', mezonController.exchangeCode);
 
     routes.all("*", checkUserJwt, checkUserPermission);
     // CRUD API routes for status
@@ -77,6 +80,8 @@ const initWebRoutes = (app) => {
 
     //login
     routes.post("/user/login", loginRegisterController.handleLogin);
+    routes.post("/user/logout", loginRegisterController.handleLogout);
+    routes.get("/account", userController.getUserAccount);
 
     //file 
     routes.post("/file/namestandardizationfile", fileController.nameStandardizationFile);

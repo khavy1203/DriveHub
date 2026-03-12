@@ -53,8 +53,8 @@ const MAX_FILE_SIZE_MB = 10; // Max upload size
 
 const CONFIGS = {
     development: {
-        API_BASE_URL: 'http://127.0.0.1:8080',
-        WS_BASE_URL: 'ws://127.0.0.1:8080/ws/student-status',
+        API_BASE_URL: 'http://localhost:8080',
+        WS_BASE_URL: 'ws://localhost:8080/ws/student-status',
     },
     production: {
         API_BASE_URL: 'http://node-app-9asc.onrender.com',
@@ -69,8 +69,8 @@ const CONFIGS = {
         WS_BASE_URL: 'ws://192.168.1.99:8080/ws/student-status',
     },
     buildlocal_teacher: {
-        API_BASE_URL: 'http://127.0.0.1:8080',
-        WS_BASE_URL: 'ws://127.0.0.1:8080/ws/student-status',
+        API_BASE_URL: 'http://localhost:8080',
+        WS_BASE_URL: 'ws://localhost:8080/ws/student-status',
     }
 };
 

@@ -3,7 +3,9 @@ import { Link } from "react-router-dom";
 import { useAuth } from "../../features/auth/hooks/useAuth";
 
 const Sidebar: React.FC = () => {
-  const { role } = useAuth();
+  const { role, displayName, avatarUrl } = useAuth();
+  const defaultAvatar = 'https://gravatar.com/avatar/d302cbc4526bf50e64befe198736824c?s=400&d=robohash&r=x';
+  const resolvedAvatar = avatarUrl || defaultAvatar;
 
   return (
     <nav className="sidebar sidebar-offcanvas" id="sidebar">
@@ -11,11 +13,21 @@ const Sidebar: React.FC = () => {
         <li className="nav-item nav-profile">
           <Link to="/dashboard" className="nav-link">
             <div className="nav-profile-image">
-              <i className="mdi mdi-account-circle" style={{ fontSize: 42, color: '#adb5bd' }}></i>
+              <img
+                src={resolvedAvatar}
+                alt="User avatar"
+                style={{ width: 46, height: 46, borderRadius: '50%', objectFit: 'cover', border: '1px solid #d1d5db' }}
+                onError={(e) => {
+                  const target = e.currentTarget;
+                  if (target.src !== defaultAvatar) {
+                    target.src = defaultAvatar;
+                  }
+                }}
+              />
               <span className="login-status online"></span>
             </div>
             <div className="nav-profile-text d-flex flex-column pe-3">
-              <span className="font-weight-medium mb-2">{role || 'Admin'}</span>
+              <span className="font-weight-medium mb-2">{displayName || role || 'Admin'}</span>
               <span className="font-weight-normal text-muted">Quản trị viên</span>
             </div>
           </Link>

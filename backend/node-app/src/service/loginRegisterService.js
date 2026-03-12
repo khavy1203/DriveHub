@@ -35,6 +35,18 @@ const checkPhone = async (userPhone) => {
     return false;
 }
 
+const resolveAvatarUrl = (user) => {
+    if (!user || !user.image) {
+        return null;
+    }
+
+    if (typeof user.image === 'string') {
+        return user.image;
+    }
+
+    return null;
+}
+
 const registerNewUser = async (rawUserData) => {
     try {
         //check email/phone number are exist
@@ -97,6 +109,7 @@ const loginUserService = async (rawUserAccount) => {
                 let payload = {
                     email: user.email,
                     username: user.username,
+                    avatarUrl: resolveAvatarUrl(user),
                     groupWithRoles,
                 }
                 console.log("check payload :>>>", payload);
@@ -105,10 +118,12 @@ const loginUserService = async (rawUserAccount) => {
                     EM: 'ok',
                     EC: 0,
                     DT: {
+                        userId: user.id,
                         access_token: token,
                         groupWithRoles: groupWithRoles,
                         email: user.userEmail,
-                        username: user.userName
+                        username: user.userName,
+                        avatarUrl: resolveAvatarUrl(user)
                     }
                 }
             }

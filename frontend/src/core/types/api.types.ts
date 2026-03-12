@@ -17,6 +17,7 @@ export interface ApiResponseLogin {
     groupWithRoles: GroupWithRoles;
     email: string;
     username: string;
+    avatarUrl?: string | null;
   };
 }
 

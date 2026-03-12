@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import './TrafficCheck.css';
 import type { ViolationRecord } from '../types';
 import httpClient from '../../../shared/services/httpClient';
@@ -10,12 +10,21 @@ const VEHICLE_TYPES = [
 ];
 
 const TrafficCheck: React.FC = () => {
+  const getIsMobile = () => (typeof window !== 'undefined' ? window.innerWidth <= 600 : false);
+
+  const [isMobile, setIsMobile] = useState(getIsMobile);
   const [loaiXe, setLoaiXe] = useState('1');
   const [bienSo, setBienSo] = useState('');
   const [loading, setLoading] = useState(false);
   const [results, setResults] = useState<ViolationRecord[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [searched, setSearched] = useState(false);
+
+  useEffect(() => {
+    const onResize = () => setIsMobile(getIsMobile());
+    window.addEventListener('resize', onResize);
+    return () => window.removeEventListener('resize', onResize);
+  }, []);
 
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -62,13 +71,15 @@ const TrafficCheck: React.FC = () => {
       </div>
 
       {/* Navbar */}
-      <div className="tc-navbar">
-        <div className="tc-navbar-content">
-          <a href="/"><i className="material-icons">home</i></a>
-          <div className="tc-navbar-spacer"></div>
-          <i className="material-icons">search</i>
+      {isMobile && (
+        <div className="tc-navbar">
+          <div className="tc-navbar-content">
+            <a href="/"><i className="material-icons">home</i></a>
+            <div className="tc-navbar-spacer"></div>
+            <i className="material-icons">search</i>
+          </div>
         </div>
-      </div>
+      )}
 
       <div className="tc-container">
         {/* Form Card */}

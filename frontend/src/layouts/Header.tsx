@@ -3,14 +3,18 @@
  * @module layouts/Header
  */
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../features/auth/hooks/useAuth';
 import './Header.css';
 
 export const Header: React.FC = () => {
   const navigate = useNavigate();
-  const { isAuthenticated, role, logout } = useAuth();
+  const { isAuthenticated, role, displayName, avatarUrl, logout } = useAuth();
+  const defaultAvatar = 'https://gravatar.com/avatar/d302cbc4526bf50e64befe198736824c?s=400&d=robohash&r=x';
+  const resolvedAvatar = avatarUrl || defaultAvatar;
+  const [isProfileOpen, setIsProfileOpen] = useState<boolean>(false);
+  const profileMenuRef = useRef<HTMLDivElement | null>(null);
 
   const handleLogout = () => {
     logout();
@@ -51,6 +55,27 @@ export const Header: React.FC = () => {
       hasSubmenus.forEach((item) => item.removeEventListener('click', toggleSubmenu));
     };
   }, []);
+
+  useEffect(() => {
+    if (!isProfileOpen) {
+      return;
+    }
+
+    const handleClickOutside = (event: MouseEvent) => {
+      if (!profileMenuRef.current) {
+        return;
+      }
+
+      if (!profileMenuRef.current.contains(event.target as Node)) {
+        setIsProfileOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [isProfileOpen]);
 
   return (
     <header className="header-area header-sticky">
@@ -112,12 +137,42 @@ export const Header: React.FC = () => {
 
               <div className="header-auth">
                 {isAuthenticated ? (
-                  <>
-                    <span className="header-role">{role}</span>
-                    <button className="header-logout-btn" onClick={handleLogout}>
-                      Đăng xuất
+                  <div className="header-profile-menu" ref={profileMenuRef}>
+                    <button
+                      type="button"
+                      className="header-user-chip"
+                      onClick={() => setIsProfileOpen((prev) => !prev)}
+                      aria-expanded={isProfileOpen}
+                      aria-haspopup="menu"
+                    >
+                      <img
+                        src={resolvedAvatar}
+                        alt="User avatar"
+                        className="header-user-avatar"
+                        onError={(e) => {
+                          const target = e.currentTarget;
+                          if (target.src !== defaultAvatar) {
+                            target.src = defaultAvatar;
+                          }
+                        }}
+                      />
+                      <span className="header-role">{displayName || role || 'User'}</span>
+                      <i className={`fa fa-chevron-${isProfileOpen ? 'up' : 'down'} header-user-caret`} aria-hidden="true"></i>
                     </button>
-                  </>
+
+                    {isProfileOpen ? (
+                      <div className="header-dropdown" role="menu">
+                        <button
+                          className="header-dropdown-item"
+                          onClick={handleLogout}
+                          role="menuitem"
+                        >
+                          <i className="fa fa-sign-out"></i>
+                          Đăng xuất
+                        </button>
+                      </div>
+                    ) : null}
+                  </div>
                 ) : (
                   <NavLink to="/login" className="header-login-btn">
                     Đăng nhập
