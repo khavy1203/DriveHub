@@ -18,7 +18,7 @@ import { MESSAGES } from '../../core/constants/messages';
  */
 const getBaseUrl = (): string => {
   const env = getCurrentEnvironment();
-  return ENVIRONMENT_CONFIGS[env]?.API_BASE_URL || 'http://localhost:8080';
+  return ENVIRONMENT_CONFIGS[env]?.API_BASE_URL;
 };
 
 /**
@@ -67,14 +67,5 @@ httpClient.interceptors.response.use(
   }
 );
 
-// Request interceptor - attach auth token from localStorage
-httpClient.interceptors.request.use((config) => {
-  const token = sessionStorage.getItem('auth_token') || localStorage.getItem('auth_token');
-  if (token) {
-    config.headers['Authorization'] = `Bearer ${token}`;
-    config.headers['x-auth-token'] = token;
-  }
-  return config;
-});
 
 export default httpClient;

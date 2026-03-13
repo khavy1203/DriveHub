@@ -44,7 +44,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       const sessionToken = sessionStorage.getItem(AUTH_SESSION_KEYS.token);
 
       try {
-        const baseUrl = getConfig().API_BASE_URL || 'http://localhost:8080';
+        const baseUrl = getConfig().API_BASE_URL;
         const response = await fetch(`${baseUrl}/api/account`, {
           method: 'GET',
           credentials: 'include',
@@ -145,7 +145,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   };
 
   const logout = (): void => {
-    const baseUrl = getConfig().API_BASE_URL || 'http://localhost:8080';
+    const baseUrl = getConfig().API_BASE_URL;
     fetch(`${baseUrl}/api/user/logout`, {
       method: 'POST',
       credentials: 'include',

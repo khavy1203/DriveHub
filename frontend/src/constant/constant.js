@@ -1,6 +1,3 @@
-const API_BASE_URL = process.env.API_BASE_URL || 'http://127.0.0.1:8080';
-const WS_BASE_URL = process.env.WS_BASE_URL || 'ws://127.0.0.1:8080';
-
 const ROUTES = {
     HOME: '/',
     STUDENT_LIST: '/students',
@@ -49,34 +46,9 @@ const THEME = {
     },
 };
 
-const MAX_FILE_SIZE_MB = 10; // Max upload size
-
-const CONFIGS = {
-    development: {
-        API_BASE_URL: 'http://127.0.0.1:8080',
-        WS_BASE_URL: 'ws://127.0.0.1:8080/ws/student-status',
-    },
-    production: {
-        API_BASE_URL: 'http://node-app-9asc.onrender.com',
-        WS_BASE_URL: 'wss://node-app-9asc.onrender.com/ws/student-status',
-    },
-    buildlocal: {
-        API_BASE_URL: 'http://192.168.1.99:8080',
-        WS_BASE_URL: 'ws://192.168.1.99:8080/ws/student-status',
-    },
-    adminbuildlocal: {
-        API_BASE_URL: 'http://192.168.1.99:8080',
-        WS_BASE_URL: 'ws://192.168.1.99:8080/ws/student-status',
-    },
-    buildlocal_teacher: {
-        API_BASE_URL: 'http://localhost:8080',
-        WS_BASE_URL: 'ws://localhost:8080/ws/student-status',
-    }
-};
+const MAX_FILE_SIZE_MB = 10;
 
 module.exports = {
-    API_BASE_URL,
-    WS_BASE_URL,
     ROUTES,
     WS_PATHS,
     HTTP_STATUS,
@@ -84,5 +56,4 @@ module.exports = {
     MESSAGES,
     THEME,
     MAX_FILE_SIZE_MB,
-    CONFIGS
 };

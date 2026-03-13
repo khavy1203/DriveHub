@@ -27,8 +27,8 @@ const sslOptions = {
 // });
 
 // Tạo server HTTPS
-// const server = https.createServer(sslOptions, app);
-const server = http.createServer( app);
+const server = https.createServer(sslOptions, app);
+// const server = http.createServer( app);
 
 // Uncomment if using WebSocket servers
 // setupChatWebSocket(server, '/ws/chat');
@@ -42,7 +42,7 @@ app.use((req, res) => {
 });
 
 const PORT = process.env.PORT || 8080;
-server.listen(PORT, '127.0.0.1', () => {
+server.listen(PORT, '0.0.0.0', () => {
     const address = server.address();
     const host = address.address === '::' ? 'http://192.168.1.254' : address.address;
     console.log('Server host:', host);

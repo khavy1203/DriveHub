@@ -1,22 +1,8 @@
 import axios, { AxiosInstance } from 'axios';
 import { toast } from 'react-toastify';
-import constants from './constant/constant';
+import { getConfig } from './core/config/environment';
 
-
-// Hàm kiểm tra thiết bị là điện thoại
-const isMobileDevice = (): boolean => {
-  return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-};
-
-const ENV = process.env.REACT_APP_BUILD as keyof typeof constants.CONFIGS || 'development';
-
-// Xác định baseURL dựa trên thiết bị
-const getBaseUrl = (): string => {
-  // if (isMobileDevice() && ENV == 'development') {
-  //   return 'http://192.168.1.254:8080'; // IP của BE cho thiết bị điện thoại
-  // }
-  return constants.CONFIGS[ENV]?.API_BASE_URL || 'http://localhost:8080'; // Mặc định cho các thiết bị khác
-};
+const getBaseUrl = (): string => getConfig().API_BASE_URL;
 
 const instance: AxiosInstance = axios.create({
   baseURL: getBaseUrl(),

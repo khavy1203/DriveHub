@@ -4,7 +4,7 @@ import { ThiSinh, ApiResponse, Course, Status, Subject, Rank, Question, Exam, St
 import useApiService from "../../services/useApiService"; // Sử dụng hook mới
 import ExamFormPrint from "../../features/dashboard/components/PrintLayout/PrintLayout";
 import PrintAllExamLayout from "../../features/dashboard/components/PrintLayout/PrintAllExamLayout";
-import constants from "../../constant/constant";
+import { getConfig } from "../../core/config/environment";
 
 import "./DashBoardPage.css";
 import { toast } from "react-toastify";
@@ -549,8 +549,7 @@ const ExamResultsTable: React.FC = () => {
     useEffect(() => {
         if (!selectedKhoaHoc) return;
 
-        const ENV = process.env.REACT_APP_BUILD as keyof typeof constants.CONFIGS || 'development';
-        const wsBaseUrl = constants.CONFIGS[ENV]?.WS_BASE_URL;
+        const wsBaseUrl = getConfig().WS_BASE_URL;
 
         // Set up WebSocket connection
         const socket = new WebSocket(wsBaseUrl);
