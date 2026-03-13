@@ -46,9 +46,9 @@ const buildCookieOptions = () => ({
 });
 
 const pickMezonUser = (userinfo = {}) => {
-    const mezonId = userinfo.user_id || userinfo.id || userinfo.sub || null;
-    const email = userinfo.email || userinfo.mail || (mezonId ? `${mezonId}@mezon.local` : null);
-    const avatarUrl = userinfo.avatar || userinfo.avatar_url || userinfo.avatarUrl || userinfo.picture || null;
+    const mezonId = userinfo.user_id || null;
+    const email = userinfo.email || null;
+    const avatarUrl = userinfo.avatar || null;
     const username =
         userinfo.username ||
         userinfo.display_name ||
