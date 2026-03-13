@@ -1,23 +1,23 @@
-import React from "react";
+import React, { useState } from "react";
 import Sidebar from "./Sidebar";
 import Header from "./Header";
+import "./DashBoardPage.scss";
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
 }
 
 const DashBoardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
+  const [collapsed, setCollapsed] = useState(false);
+
   return (
-    <div className="container-scroller">
-      {/* <ProBanner /> */}
-      <Sidebar />
-      <div className="container-fluid page-body-wrapper">
-        <Header />
-        <div className="main-panel">
-          <div className="pb-5">
-            {children}
-          </div>
-        </div>
+    <div className={`db-shell ${collapsed ? 'db-collapsed' : ''}`}>
+      <Sidebar collapsed={collapsed} />
+      <div className="db-body">
+        <Header onToggle={() => setCollapsed(c => !c)} collapsed={collapsed} />
+        <main className="db-main">
+          {children}
+        </main>
       </div>
     </div>
   );

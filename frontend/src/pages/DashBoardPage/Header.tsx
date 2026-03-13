@@ -1,85 +1,92 @@
-import React from "react";
-import { useNavigate } from "react-router-dom";
+import React, { useState, useRef, useEffect } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../../features/auth/hooks/useAuth";
 
-const Header: React.FC = () => {
-  const navigate = useNavigate();
-  const { role, displayName, avatarUrl, logout } = useAuth();
+interface DashHeaderProps {
+  onToggle: () => void;
+  collapsed: boolean;
+}
+
+const BREADCRUMB_MAP: Record<string, string> = {
+  '/dashboard/exam-results': 'Tổng quan',
+  '/dashboard/setting':      'Thiết lập chung',
+  '/dashboard/upload':       'Upload dữ liệu',
+  '/dashboard/printer':      'Máy in',
+  '/dashboard':              'Dashboard',
+};
+
+const Header: React.FC<DashHeaderProps> = ({ onToggle, collapsed }) => {
+  const navigate  = useNavigate();
+  const location  = useLocation();
+  const { displayName, role, avatarUrl, logout } = useAuth();
+  const [menuOpen, setMenuOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
+
   const defaultAvatar = 'https://gravatar.com/avatar/d302cbc4526bf50e64befe198736824c?s=400&d=robohash&r=x';
   const resolvedAvatar = avatarUrl || defaultAvatar;
+  const pageName = BREADCRUMB_MAP[location.pathname] || 'Dashboard';
 
-  const handleToggleSidebar = () => {
-    document.body.classList.toggle("sidebar-icon-only");
-  };
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) setMenuOpen(false);
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, []);
 
-  const handleLogout = () => {
-    logout();
-    navigate("/");
-  };
+  const handleLogout = () => { logout(); navigate('/'); };
 
   return (
-    <nav className="navbar col-lg-12 col-12 p-lg-0 fixed-top d-flex flex-row">
-      <div className="navbar-menu-wrapper d-flex align-items-stretch justify-content-between">
-        <a
-          className="navbar-brand brand-logo-mini align-self-center d-lg-none"
-          href="../../index.html"
-        >
-          <img src="../../../assets/images/logo-mini.svg" alt="logo" />
-        </a>
-        <button
-          className="navbar-toggler navbar-toggler align-self-center me-2"
-          type="button"
-          data-toggle="minimize"
-          onClick={handleToggleSidebar}
-        >
-          <i className="mdi mdi-menu"></i>
+    <header className="db-header">
+      <div className="db-header-left">
+        <button className="db-toggle-btn" onClick={onToggle} title={collapsed ? 'Mở rộng' : 'Thu gọn'}>
+          <i className="material-icons">{collapsed ? 'menu_open' : 'menu'}</i>
         </button>
-        <ul className="navbar-nav navbar-nav-right ml-lg-auto">
-          <li className="nav-item nav-profile dropdown border-0">
-            <a
-              className="nav-link dropdown-toggle"
-              id="profileDropdown"
-              href="#"
-              data-bs-toggle="dropdown"
-              aria-expanded="false"
-            >
-              <img
-                src={resolvedAvatar}
-                alt="User avatar"
-                className="me-2"
-                style={{ width: 34, height: 34, borderRadius: '50%', objectFit: 'cover', border: '1px solid #d1d5db' }}
-                onError={(e) => {
-                  const target = e.currentTarget;
-                  if (target.src !== defaultAvatar) {
-                    target.src = defaultAvatar;
-                  }
-                }}
-              />
-              <span className="profile-name">{displayName || role || 'Admin'}</span>
-            </a>
-            <div
-              className="dropdown-menu navbar-dropdown w-100"
-              aria-labelledby="profileDropdown"
-            >
-              <button
-                className="dropdown-item"
-                onClick={handleLogout}
-                style={{ background: 'none', border: 'none', width: '100%', textAlign: 'left', cursor: 'pointer' }}
-              >
-                <i className="mdi mdi-logout me-2 text-danger"></i> Đăng xuất
+        <div className="db-breadcrumb">
+          <span className="db-breadcrumb-root">Dashboard</span>
+          {pageName !== 'Dashboard' && (
+            <>
+              <i className="material-icons db-breadcrumb-sep">chevron_right</i>
+              <span className="db-breadcrumb-current">{pageName}</span>
+            </>
+          )}
+        </div>
+      </div>
+
+      <div className="db-header-right">
+        <div className="db-header-page-name">{pageName}</div>
+        <div className="db-profile" ref={menuRef}>
+          <button className="db-profile-btn" onClick={() => setMenuOpen(o => !o)}>
+            <img
+              src={resolvedAvatar} alt="avatar" className="db-profile-avatar"
+              onError={e => { (e.currentTarget as HTMLImageElement).src = defaultAvatar; }}
+            />
+            <div className="db-profile-info">
+              <span className="db-profile-name">{displayName || 'Admin'}</span>
+              <span className="db-profile-role">{role || 'Quản trị viên'}</span>
+            </div>
+            <i className="material-icons db-profile-chevron">{menuOpen ? 'expand_less' : 'expand_more'}</i>
+          </button>
+
+          {menuOpen && (
+            <div className="db-profile-menu">
+              <div className="db-profile-menu-user">
+                <img src={resolvedAvatar} alt="avatar" onError={e => { (e.currentTarget as HTMLImageElement).src = defaultAvatar; }} />
+                <div>
+                  <div className="db-pm-name">{displayName || 'Admin'}</div>
+                  <div className="db-pm-role">{role || 'Quản trị viên'}</div>
+                </div>
+              </div>
+              <div className="db-profile-menu-divider" />
+              <button className="db-pm-item db-pm-logout" onClick={handleLogout}>
+                <i className="material-icons">logout</i>
+                Đăng xuất
               </button>
             </div>
-          </li>
-        </ul>
-        <button
-          className="navbar-toggler navbar-toggler-right d-lg-none align-self-center"
-          type="button"
-          data-toggle="offcanvas"
-        >
-          <span className="mdi mdi-menu"></span>
-        </button>
+          )}
+        </div>
       </div>
-    </nav>
+    </header>
   );
 };
 

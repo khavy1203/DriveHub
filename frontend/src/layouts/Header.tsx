@@ -100,7 +100,7 @@ export const Header: React.FC = () => {
                 </li> */}
                 <li>
                   <NavLink to="/teststudent" className={({ isActive }) => (isActive ? 'active' : '')}>
-                    Thi Thử 5 Môn
+                    Thi
                   </NavLink>
                 </li>
                 <li>
@@ -113,7 +113,7 @@ export const Header: React.FC = () => {
                     DashBoard
                   </NavLink>
                 </li>
-                <li className="has-submenu">
+                {/* <li className="has-submenu">
                   <span className="nav-link-custom">Tools</span>
                   <ul className="submenu">
                     <li>
@@ -132,7 +132,7 @@ export const Header: React.FC = () => {
                       </NavLink>
                     </li>
                   </ul>
-                </li>
+                </li> */}
               </ul>
 
               <div className="header-auth">

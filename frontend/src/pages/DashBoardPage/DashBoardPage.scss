@@ -1,60 +1,462 @@
+// ─── Dashboard Shell Variables ────────────────────────────────────────────────
+$sidebar-width:       240px;
+$sidebar-collapsed:   68px;
+$header-height:       60px;
+$sidebar-bg:          #0f172a;
+$sidebar-hover:       #1e293b;
+$sidebar-active:      #1e40af;
+$sidebar-text:        #94a3b8;
+$sidebar-text-active: #ffffff;
+$accent:              #3b82f6;
+$surface:             #ffffff;
+$bg:                  #f1f5f9;
+$border:              #e2e8f0;
+$gray-600:            #6b7280;
+$gray-800:            #1e293b;
+$shadow-sm:           0 1px 3px rgba(0,0,0,0.06);
+$shadow-md:           0 4px 16px rgba(0,0,0,0.10);
+$transition:          0.22s ease;
+
+// ─── Shell layout ─────────────────────────────────────────────────────────────
+.db-shell {
+  display: flex;
+  min-height: 100vh;
+  background: $bg;
+  font-family: 'Segoe UI', Arial, sans-serif;
+
+  // Override any legacy bootstrap/vendor styles
+  * { box-sizing: border-box; }
+}
+
+// ─── Sidebar ─────────────────────────────────────────────────────────────────
+.db-sidebar {
+  width: $sidebar-width;
+  min-height: 100vh;
+  background: $sidebar-bg;
+  display: flex;
+  flex-direction: column;
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  z-index: 200;
+  transition: width $transition;
+  overflow: hidden;
+  flex-shrink: 0;
+
+  .db-collapsed & { width: $sidebar-collapsed; }
+}
+
+// Logo
+.db-sidebar-logo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 0 16px;
+  height: $header-height;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+  flex-shrink: 0;
+}
+
+.db-logo-icon {
+  width: 36px;
+  height: 36px;
+  background: $accent;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+
+  .material-icons { font-size: 20px; color: #fff; }
+}
+
+.db-logo-text {
+  font-size: 18px;
+  font-weight: 800;
+  color: #fff;
+  letter-spacing: -0.5px;
+  white-space: nowrap;
+}
+
+// Nav
+.db-sidebar-nav {
+  flex: 1;
+  padding: 12px 8px;
+  overflow-y: auto;
+  overflow-x: hidden;
+
+  &::-webkit-scrollbar { width: 4px; }
+  &::-webkit-scrollbar-track { background: transparent; }
+  &::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 2px; }
+}
+
+.db-nav-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  color: $sidebar-text;
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  border: none;
+  background: none;
+  width: 100%;
+  text-align: left;
+  transition: background $transition, color $transition;
+  white-space: nowrap;
+  margin-bottom: 2px;
+
+  &:hover { background: $sidebar-hover; color: #fff; }
+
+  &.active {
+    background: $sidebar-active;
+    color: $sidebar-text-active;
+
+    .db-nav-icon { color: #fff; }
+  }
+
+  &.open { color: #fff; background: $sidebar-hover; }
+}
+
+.db-nav-icon {
+  font-size: 20px;
+  flex-shrink: 0;
+  color: $sidebar-text;
+}
+
+.db-nav-label { flex: 1; }
+
+.db-nav-arrow {
+  font-size: 18px;
+  flex-shrink: 0;
+  color: $sidebar-text;
+  transition: transform $transition;
+
+  .open & { transform: none; }
+}
+
+.db-nav-group-btn { @extend .db-nav-item; }
+
+.db-nav-sub {
+  padding: 4px 0 4px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.db-nav-sub-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  border-radius: 7px;
+  color: $sidebar-text;
+  text-decoration: none;
+  font-size: 13px;
+  font-weight: 500;
+  transition: background $transition, color $transition;
+  white-space: nowrap;
+
+  .material-icons { font-size: 17px; flex-shrink: 0; }
+
+  &:hover { background: $sidebar-hover; color: #fff; }
+
+  &.active {
+    background: rgba($accent, 0.25);
+    color: lighten($accent, 25%);
+  }
+}
+
+// User profile at bottom of sidebar
+.db-sidebar-user {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 16px;
+  border-top: 1px solid rgba(255,255,255,0.06);
+  flex-shrink: 0;
+}
+
+.db-user-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid rgba(255,255,255,0.15);
+  flex-shrink: 0;
+}
+
+.db-user-info { overflow: hidden; }
+
+.db-user-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: #fff;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.db-user-role {
+  font-size: 11px;
+  color: $sidebar-text;
+  margin-top: 1px;
+}
+
+// ─── Body (header + main) ─────────────────────────────────────────────────────
+.db-body {
+  flex: 1;
+  margin-left: $sidebar-width;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  transition: margin-left $transition;
+
+  .db-collapsed & { margin-left: $sidebar-collapsed; }
+}
+
+// ─── Top header ───────────────────────────────────────────────────────────────
+.db-header {
+  height: $header-height;
+  background: $surface;
+  border-bottom: 1px solid $border;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 24px;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  box-shadow: $shadow-sm;
+  flex-shrink: 0;
+}
+
+.db-header-left {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.db-toggle-btn {
+  width: 36px;
+  height: 36px;
+  border: 1px solid $border;
+  background: $bg;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: $gray-600;
+  transition: background $transition, color $transition;
+  flex-shrink: 0;
+
+  .material-icons { font-size: 20px; }
+
+  &:hover { background: $accent; color: #fff; border-color: $accent; }
+}
+
+.db-breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 14px;
+}
+
+.db-breadcrumb-root { color: $gray-600; }
+
+.db-breadcrumb-sep {
+  font-size: 16px;
+  color: $border;
+}
+
+.db-breadcrumb-current {
+  font-weight: 600;
+  color: $gray-800;
+}
+
+.db-header-right {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.db-header-page-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: $gray-600;
+  background: $bg;
+  padding: 4px 12px;
+  border-radius: 20px;
+  border: 1px solid $border;
+
+  @media (max-width: 640px) { display: none; }
+}
+
+// Profile dropdown
+.db-profile { position: relative; }
+
+.db-profile-btn {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 10px 6px 6px;
+  border: 1px solid $border;
+  border-radius: 40px;
+  background: $bg;
+  cursor: pointer;
+  transition: border-color $transition, background $transition;
+
+  &:hover { border-color: $accent; background: #eff6ff; }
+}
+
+.db-profile-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid $border;
+  flex-shrink: 0;
+}
+
+.db-profile-info {
+  display: flex;
+  flex-direction: column;
+  text-align: left;
+  line-height: 1.2;
+
+  @media (max-width: 520px) { display: none; }
+}
+
+.db-profile-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: $gray-800;
+}
+
+.db-profile-role {
+  font-size: 11px;
+  color: $gray-600;
+}
+
+.db-profile-chevron {
+  font-size: 18px;
+  color: $gray-600;
+
+  @media (max-width: 520px) { display: none; }
+}
+
+.db-profile-menu {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  min-width: 220px;
+  background: $surface;
+  border: 1px solid $border;
+  border-radius: 12px;
+  box-shadow: $shadow-md;
+  overflow: hidden;
+  z-index: 999;
+}
+
+.db-profile-menu-user {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  background: $bg;
+
+  img {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid $border;
+  }
+}
+
+.db-pm-name {
+  font-size: 14px;
+  font-weight: 700;
+  color: $gray-800;
+}
+
+.db-pm-role {
+  font-size: 12px;
+  color: $gray-600;
+  margin-top: 2px;
+}
+
+.db-profile-menu-divider {
+  height: 1px;
+  background: $border;
+}
+
+.db-pm-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 11px 16px;
+  border: none;
+  background: none;
+  font-size: 14px;
+  font-weight: 500;
+  color: $gray-800;
+  cursor: pointer;
+  text-align: left;
+  transition: background $transition;
+
+  .material-icons { font-size: 18px; }
+
+  &:hover { background: $bg; }
+}
+
+.db-pm-logout {
+  color: #dc2626;
+  .material-icons { color: #dc2626; }
+  &:hover { background: #fef2f2; }
+}
+
+// ─── Main content ─────────────────────────────────────────────────────────────
+.db-main {
+  flex: 1;
+  padding: 24px;
+  min-height: 0;
+
+  @media (max-width: 640px) { padding: 14px 12px; }
+}
+
+// ─── Legacy / Compat (keep existing child page styles working) ────────────────
 .custom-modal {
-    display: flex;
-    justify-content: center;
-    width: 100%;
-}
+  display: flex;
+  justify-content: center;
+  width: 100%;
 
-/* Điều chỉnh kích thước modal */
-.custom-modal .modal-dialog {
-    max-width: 80%;
-    /* Tăng chiều rộng modal lên 80% của khung nhìn */
-    width: auto;
-    /* Tự động điều chỉnh kích thước */
-}
+  .modal-dialog { max-width: 80%; width: auto; }
 
-/* Tăng chiều cao modal */
-.custom-modal .modal-content {
+  .modal-content {
     max-height: 80vh;
-    /* Chiều cao tối đa là 80% của chiều cao khung nhìn */
-    max-width: none;
-
-}
-
-/* Thêm khoảng cách bên trong modal */
-.custom-modal .modal-body {
-    padding: 20px;
-    /* Tăng khoảng cách bên trong */
-}
-
-/* Căn giữa nội dung */
-.custom-modal .modal-title {
-    text-align: center;
-    /* Căn giữa tiêu đề */
-}
-
-/* Đặt màu nền và viền nếu cần */
-.custom-modal .modal-content {
     background-color: #f8f9fa;
-    /* Màu nền */
     border-radius: 8px;
-    /* Bo góc */
     border: 1px solid #ddd;
-    /* Viền */
+  }
+
+  .modal-body { padding: 20px; }
+  .modal-title { text-align: center; }
+
+  .table-success { background-color: #34f060 !important; }
+  .table-danger  { background-color: #f8d7da !important; }
 }
 
-.custom-modal .table-success {
-    background-color: #34f060 !important;
-    /* Màu xanh cho "Đạt" */
-}
+.exam-info-row {
+  width: 100%;
 
-.custom-modal .table-danger {
-    background-color: #f8d7da !important;
-    /* Màu đỏ cho "Trượt" */
-}
-
-/* Style chung cho toàn bộ form */
-.exam-info-row .form-control,
-select {
+  .form-control, select {
     width: 100%;
     padding: 10px 15px;
     margin: 5px 0;
@@ -63,81 +465,39 @@ select {
     background-color: #f9f9f9;
     border: 1px solid #ccc;
     border-radius: 8px;
-    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
     transition: all 0.3s ease-in-out;
-}
 
-/* Hiệu ứng hover cho ô input và select */
-.exam-info-row .form-control:hover,
-select:hover {
-    background-color: #fff;
-    border-color: #007bff;
-    box-shadow: 0 2px 5px rgba(0, 123, 255, 0.3);
-}
+    &:hover { background-color: #fff; border-color: #007bff; }
+    &:focus  { outline: none; background-color: #fff; border-color: #007bff; }
+    &::placeholder { color: #aaa; font-style: italic; }
+  }
 
-/* Hiệu ứng focus cho ô input và select */
-.exam-info-row .form-control:focus,
-select:focus {
-    outline: none;
-    background-color: #fff;
-    border-color: #007bff;
-    box-shadow: 0 4px 10px rgba(0, 123, 255, 0.4);
-}
-
-/* Style cho placeholder */
-.exam-info-row .form-control::placeholder {
-    color: #aaa;
-    font-style: italic;
-}
-
-/* Style cho select */
-.exam-info-row select {
-    appearance: none;
-    background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="%23333" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-down"><path d="M6 9l6 6 6-6"></path></svg>');
-    background-repeat: no-repeat;
-    background-position: right 10px center;
-    background-size: 15px;
-    padding-right: 35px;
-}
-
-/* Style hàng chứa input và select */
-
-
-/* Label style */
-.exam-info-row label {
-    font-weight: bold;
-    margin-bottom: 5px;
-    display: block;
-}
-
-.exam-info-row .group {
-    display: flex;
-    justify-content: space-between;
-}
-
-.exam-info-row {
-    width: 100%;
+  label { font-weight: bold; margin-bottom: 5px; display: block; }
+  .group { display: flex; justify-content: space-between; }
 }
 
 .title-result-exam {
-    font-size: 36px;
-    /* Kích thước chữ lớn hơn */
-    font-weight: bold;
-    /* Chữ in đậm */
-    text-align: center;
-    /* Căn giữa chữ */
-    color: transparent;
-    /* Bắt buộc để gradient chữ hoạt động */
-    background: linear-gradient(90deg, #56CCF2, #2F80ED, #56CCF2);
-    /* Gradient xanh dương */
-    background-clip: text;
-    /* Hiển thị gradient trên chữ */
-    -webkit-background-clip: text;
-    /* Tương thích với WebKit */
-    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
-    /* Hiệu ứng đổ bóng chữ */
-    padding: 10px 0;
-    /* Khoảng cách trên dưới */
-    transition: transform 0.3s ease, text-shadow 0.3s ease;
-    /* Hiệu ứng chuyển động mượt */
+  font-size: 36px;
+  font-weight: bold;
+  text-align: center;
+  color: transparent;
+  background: linear-gradient(90deg, #56CCF2, #2F80ED, #56CCF2);
+  background-clip: text;
+  -webkit-background-clip: text;
+  text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+  padding: 10px 0;
+}
+
+// ─── Responsive sidebar on mobile ────────────────────────────────────────────
+@media (max-width: 768px) {
+  .db-sidebar {
+    transform: translateX(-100%);
+    transition: transform $transition, width $transition;
+
+    .db-shell:not(.db-collapsed) & { transform: translateX(0); }
+  }
+
+  .db-body {
+    margin-left: 0 !important;
+  }
 }
