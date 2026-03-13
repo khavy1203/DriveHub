@@ -5,7 +5,7 @@ const configCors = (app) => {
         .split(',')
         .map((origin) => origin.trim())
         .filter(Boolean);
-
+    console.log('corsOrigins', corsOrigins)
     if (corsOrigins.length === 0) {
         throw new Error('Missing required env: CORS_ORIGINS');
     }
@@ -33,7 +33,7 @@ const configCors = (app) => {
         res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, PATCH, DELETE');
 
         // Request headers you wish to allow, thêm authorization để có thể hiểu có header
-        res.setHeader('Access-Control-Allow-Headers', 'X-Requested-With,content-type,Authorization');
+        res.setHeader('Access-Control-Allow-Headers', 'X-Requested-With,content-type,Authorization,x-auth-token');
 
         // Set to true if you need the website to include cookies in the requests sent
         // to the API (e.g. in case you use sessions)
