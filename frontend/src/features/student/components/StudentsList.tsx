@@ -9,7 +9,7 @@ import { useStudentWebSocket } from '../hooks/useStudentWebSocket';
 import { Student, Course, Status } from '../types';
 import { ApiResponse } from '../../../core/types/api.types';
 import { StudentTable } from './StudentTable';
-import './StudentsList.css';
+import './StudentsList.scss';
 
 export const StudentsList: React.FC = () => {
   const { get } = useApi();

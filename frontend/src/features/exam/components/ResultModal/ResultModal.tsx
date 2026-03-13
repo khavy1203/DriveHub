@@ -1,7 +1,7 @@
 import React, { useRef } from 'react';
 import TableDisplay from '../TableDisplay/TableDisplay';
 import { useNavigate } from 'react-router-dom';
-import './ResultModal.css';
+import './ResultModal.scss';
 
 interface ResultModalProps {
   score: number;

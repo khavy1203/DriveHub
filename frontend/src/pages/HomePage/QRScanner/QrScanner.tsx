@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
-import './QrScanner.css';
+import './QrScanner.scss';
 import useApiService from 'src/services/useApiService';
 import { ApiResponse } from "../../../interfaces";
 import { toast } from 'react-toastify';

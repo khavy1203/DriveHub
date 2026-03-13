@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useApi } from "../../../../shared/hooks";
 import { ApiResponse } from "../../../../core/types";
 import { Rank, Course } from "../../../../features/student/types";
-import "./UploadFiles.css";
+import "./UploadFiles.scss";
 
 const UploadFiles: React.FC = () => {
   const { get, post } = useApi();

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import './TrafficCheck.css';
+import './TrafficCheck.scss';
 import { TRAFFIC_BASE_URL } from 'src/core/constants/config';
 
 const VEHICLE_TYPES = [

@@ -1,6 +1,6 @@
 import React, { forwardRef } from "react";
 import moment from "moment";
-import "./PrintLayout.css";
+import "./PrintLayout.scss";
 import { Exam, Subject, ThiSinh } from "../../../../interfaces";
 
 // const data = [

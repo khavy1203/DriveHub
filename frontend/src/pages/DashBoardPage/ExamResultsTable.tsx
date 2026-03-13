@@ -6,7 +6,7 @@ import ExamFormPrint from "../../features/dashboard/components/PrintLayout/Print
 import PrintAllExamLayout from "../../features/dashboard/components/PrintLayout/PrintAllExamLayout";
 import { getConfig } from "../../core/config/environment";
 
-import "./DashBoardPage.css";
+import "./DashBoardPage.scss";
 import { toast } from "react-toastify";
 import ReactDOMServer from "react-dom/server";
 import * as XLSX from 'xlsx'; // Import thư viện xlsx

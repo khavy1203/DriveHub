@@ -4,7 +4,7 @@
  */
 
 import React from 'react';
-import './Footer.css';
+import './Footer.scss';
 
 export const Footer: React.FC = () => {
   return (

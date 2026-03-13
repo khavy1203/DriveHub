@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import useApiService from "../../../../services/useApiService";
 import { ApiResponse, UserStatus, Rank, Subject } from "../../../../interfaces";
-import "./SettingForm.css";
+import "./SettingForm.scss";
 // Định nghĩa kiểu dữ liệu cho trạng thái người dùng
 
 const Setting: React.FC = () => {

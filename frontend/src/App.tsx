@@ -29,7 +29,7 @@ import { FinalExamForm } from './features/exam';
 import QrScannerPage from './pages/HomePage/QRScanner/QrScanner';
 import TrafficCheck from './features/traffic-check/components/TrafficCheck';
 
-import './App.css';
+import './App.scss';
 
 /**
  * Public Layout Component

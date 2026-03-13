@@ -4,7 +4,7 @@ import { ThiSinh, Test, ApiResponse, Subject, Question, Student } from "../../..
 import useApiService from "../../../services/useApiService";
 import ResultModal from './ResultModal/ResultModal';
 import { toast } from 'react-toastify';
-import './FinalExamForm.css';
+import './FinalExamForm.scss';
 import { VirtualDPad } from './VirtualDPad';
 import { VirtualNumpad } from './VirtualNumpad';
 

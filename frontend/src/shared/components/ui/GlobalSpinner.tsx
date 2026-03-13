@@ -5,7 +5,7 @@
 
 import React from 'react';
 import { useLoading } from '../../hooks/useLoading';
-import './GlobalSpinner.css';
+import './GlobalSpinner.scss';
 
 export const GlobalSpinner: React.FC = () => {
   const { loading } = useLoading();

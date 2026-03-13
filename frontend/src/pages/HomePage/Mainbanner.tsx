@@ -2,7 +2,7 @@ import React from "react";
 import OwlCarousel from "react-owl-carousel"; // Thư viện hỗ trợ carousel
 import "owl.carousel/dist/assets/owl.carousel.css"; // CSS của OwlCarousel
 import "owl.carousel/dist/assets/owl.theme.default.css";
-import "./mainpages.css"; // CSS của riêng bạn
+import "./mainpages.scss"; // CSS của riêng bạn
 
 const Mainbanner: React.FC = () => {
   const carouselItems = [

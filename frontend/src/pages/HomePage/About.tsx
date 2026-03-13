@@ -1,5 +1,5 @@
 import React from 'react';
-import "./mainpages.css";
+import "./mainpages.scss";
 const About: React.FC = () => {
   const achievements = [
     {

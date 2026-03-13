@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import './TableDisplay.css';
+import './TableDisplay.scss';
 
 interface TableDisplayProps {
   arrQuestion: {

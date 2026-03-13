@@ -6,7 +6,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../features/auth/hooks/useAuth';
-import './Header.css';
+import './Header.scss';
 
 export const Header: React.FC = () => {
   const navigate = useNavigate();

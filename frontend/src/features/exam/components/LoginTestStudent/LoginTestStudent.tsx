@@ -4,7 +4,7 @@ import { useApi } from "../../../../shared/hooks";
 import { ApiResponse } from "../../../../core/types";
 import { Course, Status, Rank, Question, Exam, Student } from "../../../../features/student/types";
 import { Subject } from "../../../../features/exam/types";
-import './LoginTestStudent.css';
+import './LoginTestStudent.scss';
 import { toast } from "react-toastify";
 
 

@@ -1,5 +1,5 @@
 import React from 'react';
-import './GlobalSpinner.css';
+import './GlobalSpinner.scss';
 import { useLoading } from './LoadingContext'; // Import LoadingContext
 
 const GlobalSpinner: React.FC = () => {
