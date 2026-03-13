@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import useApiService from 'src/services/useApiService';
 import './TrafficCheck.css';
 import { TRAFFIC_BASE_URL } from 'src/core/constants/config';
 
@@ -28,6 +27,24 @@ const buildTrafficCheckUrl = (plate: string, vehicleType: string) =>
 
 const hasElectronWebRequest = () =>
   Boolean((window as any).electronAPI?.webRequest);
+
+const requestTrafficWeb = async (url: string): Promise<TrafficApiRawResult> => {
+  const response = await fetch(url, {
+    method: 'GET',
+    credentials: 'omit',
+  });
+
+  if (!response.ok) {
+    throw new Error(`Traffic API request failed with status ${response.status}`);
+  }
+
+  const contentType = response.headers.get('content-type') || '';
+  if (contentType.includes('application/json')) {
+    return response.json();
+  }
+
+  return response.text();
+};
 
 const extractResultHtml = (
   result: TrafficApiRawResult,
@@ -99,7 +116,6 @@ const sanitizeResultHtml = (rawHtml: string): string => {
  * Simplified Traffic lookup using api.phatnguoi.vn
  */
 const TrafficCheck: React.FC = () => {
-  const { get } = useApiService();
   const [loaiXe, setLoaiXe] = useState('1');
   const [bienSo, setBienSo] = useState('');
   const [loading, setLoading] = useState(false);
@@ -155,8 +171,8 @@ const TrafficCheck: React.FC = () => {
           ? ipcResponse.data
           : { message: ipcResponse.message };
       } else {
-        console.log('[Web Mode] Calling phatnguoi via useApiService...');
-        rawResult = await get<TrafficApiRawResult>(url);
+        console.log('[Web Mode] Calling phatnguoi via fetch (credentials: omit)...');
+        rawResult = await requestTrafficWeb(url);
       }
 
       const { html, message } = extractResultHtml(rawResult);

@@ -6,3 +6,7 @@ node-app/build
 node-app/dist
 node-app/src/upload/originQR/*
 node-app/.env
+node-app/.env.*
+node-app/.env.build
+*.env
+.env

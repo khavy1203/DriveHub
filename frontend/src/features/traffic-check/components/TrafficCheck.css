@@ -63,6 +63,19 @@
   padding: 24px 16px;
 }
 
+.tc-navbar {
+  display: none;
+}
+
+.tc-navbar-content {
+  display: flex;
+  align-items: center;
+}
+
+.tc-navbar-spacer {
+  flex: 1;
+}
+
 /* Form Styles */
 .tc-form-card {
   background: white;
@@ -272,6 +285,31 @@
 }
 
 @media (max-width: 600px) {
+  .tc-navbar {
+    display: block;
+    background: #f2e9d6;
+    border-bottom: 1px solid #e0d4bc;
+  }
+
+  .tc-navbar-content {
+    max-width: 1140px;
+    margin: 0 auto;
+    padding: 10px 14px;
+  }
+
+  .tc-navbar .material-icons {
+    font-size: 24px;
+    color: #1f2937;
+    vertical-align: middle;
+  }
+
+  .tc-navbar a {
+    color: inherit;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+  }
+
   .tc-banner-logo { height: 60px; }
   .tc-banner-line1 { font-size: 14px; }
   .tc-banner-line2 { font-size: 20px; }
