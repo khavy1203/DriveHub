@@ -1,5 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
-import { toast } from 'react-toastify';
+import React, { useEffect, useRef } from 'react';
 import { useAuth } from '../hooks/useAuth';
 
 interface SafeJsonResult {
@@ -31,10 +30,7 @@ const extractErrorMessage = (payload: any): string => {
 export const MezonCallback: React.FC = () => {
   const { setAuth } = useAuth();
   const isPopupFlow = typeof window !== 'undefined' && Boolean(window.opener && window.opener !== window);
-  const [error, setError] = useState<string>('');
-  const [status, setStatus] = useState<string>('Dang xu ly dang nhap Mezon...');
   const hasHandledCallbackRef = useRef<boolean>(false);
-  const isError = Boolean(error);
 
   useEffect(() => {
     if (hasHandledCallbackRef.current) {
@@ -66,23 +62,21 @@ export const MezonCallback: React.FC = () => {
 
         if (!code || !state) {
           const message = 'Thieu code hoac state trong callback URL.';
-          setError(message);
-          setStatus('Dang nhap that bai');
           notifyOpener({ type: 'error', message });
           if (isPopupFlow) {
             window.close();
           }
+          window.location.replace('/#/login');
           return;
         }
 
         if (!isStateValid) {
           const message = 'State mismatch. Vui long dang nhap lai.';
-          setError(message);
-          setStatus('Dang nhap that bai');
           notifyOpener({ type: 'error', message });
           if (isPopupFlow) {
             window.close();
           }
+          window.location.replace('/#/login');
           return;
         }
 
@@ -103,46 +97,41 @@ export const MezonCallback: React.FC = () => {
 
         if (!response.ok) {
           const message = extractErrorMessage(parsed) || `HTTP ${response.status}`;
-          setError(message);
-          setStatus('Dang nhap that bai');
           notifyOpener({ type: 'error', message });
           if (isPopupFlow) {
             window.close();
           }
+          window.location.replace('/#/login');
           return;
         }
 
         if (!parsed || parsed?.EC !== 0 || !parsed?.DT?.access_token) {
           const message = extractErrorMessage(parsed);
-          setError(message);
-          setStatus('Dang nhap that bai');
           notifyOpener({ type: 'error', message });
           if (isPopupFlow) {
             window.close();
           }
+          window.location.replace('/#/login');
           return;
         }
 
         const role = parsed?.DT?.groupWithRoles?.name || 'User';
         const username = parsed?.DT?.username || parsed?.DT?.mezonUser?.username || 'User';
         const avatarUrl = parsed?.DT?.avatarUrl || null;
+        const accessToken = parsed.DT.access_token as string;
         sessionStorage.removeItem('mezon_oauth_state');
 
         if (isPopupFlow) {
-          notifyOpener({ type: 'success', token: parsed.DT.access_token, role, username, avatarUrl });
+          notifyOpener({ type: 'success', token: accessToken, role, username, avatarUrl });
           window.close();
           return;
         }
 
-        setAuth(parsed.DT.access_token, role, username, avatarUrl);
-
-        toast.success('Dang nhap Mezon thanh cong!');
-        setStatus('Dang nhap thanh cong, dang chuyen huong...');
-        window.location.replace('/#/dashboard');
+        localStorage.setItem('token', accessToken);
+        setAuth(accessToken, role, username, avatarUrl);
+        window.location.replace('/');
       } catch (err: any) {
         const message = err?.message || 'Khong the xu ly callback Mezon.';
-        setError(message);
-        setStatus('Dang nhap that bai');
         if (window.opener && window.opener !== window && !window.opener.closed) {
           window.opener.postMessage(
             {
@@ -153,7 +142,10 @@ export const MezonCallback: React.FC = () => {
             window.location.origin
           );
           window.close();
+          return;
         }
+
+        window.location.replace('/#/login');
       }
     };
 
@@ -171,72 +163,22 @@ export const MezonCallback: React.FC = () => {
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        padding: '24px',
-        background: 'radial-gradient(circle at 15% 20%, #dbeafe 0%, #eff6ff 45%, #f8fafc 100%)',
+        background: '#ffffff',
       }}
     >
       <style>
-        {`@keyframes mezonSpin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-          @keyframes mezonPulse { 0% { opacity: 0.5; } 50% { opacity: 1; } 100% { opacity: 0.5; } }`}
+        {`@keyframes mezonSpin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }`}
       </style>
-
       <div
         style={{
-          width: '100%',
-          maxWidth: '580px',
-          background: 'rgba(255, 255, 255, 0.96)',
-          border: '1px solid #e5e7eb',
-          borderRadius: '18px',
-          boxShadow: '0 22px 56px rgba(30, 41, 59, 0.16)',
-          padding: '28px',
-          backdropFilter: 'blur(8px)',
+          width: '28px',
+          height: '28px',
+          borderRadius: '999px',
+          border: '3px solid #bfdbfe',
+          borderTopColor: '#2563eb',
+          animation: 'mezonSpin 0.8s linear infinite',
         }}
-      >
-        <div style={{ display: 'flex', alignItems: 'center', gap: '14px', marginBottom: '14px' }}>
-          <div
-            style={{
-              width: '34px',
-              height: '34px',
-              borderRadius: '999px',
-              border: isError ? '2px solid #fda4af' : '2px solid #93c5fd',
-              borderTopColor: isError ? '#e11d48' : '#2563eb',
-              animation: isError ? 'mezonPulse 1.2s ease-in-out infinite' : 'mezonSpin 0.9s linear infinite',
-              flexShrink: 0,
-            }}
-          />
-          <div>
-            <h2 style={{ margin: 0, color: '#1e293b', fontSize: '40px', lineHeight: 1, fontWeight: 800, letterSpacing: '-0.02em' }}>
-              Mezon Callback
-            </h2>
-          </div>
-        </div>
-
-        <p style={{ marginTop: 0, marginBottom: '10px', color: '#334155', fontSize: '18px', fontWeight: 500 }}>
-          {status}
-        </p>
-        {!error ? (
-          <p style={{ margin: 0, color: '#64748b', fontSize: '14px' }}>
-            He thong dang hoan tat xac thuc OAuth2 va se chuyen huong sau vai giay...
-          </p>
-        ) : null}
-
-        {error ? (
-          <div
-            style={{
-              marginTop: '14px',
-              background: '#fff1f2',
-              border: '1px solid #fecdd3',
-              color: '#9f1239',
-              padding: '14px',
-              borderRadius: '10px',
-              fontSize: '16px',
-              lineHeight: 1.5,
-            }}
-          >
-            <strong>Loi:</strong> {error}
-          </div>
-        ) : null}
-      </div>
+      />
     </div>
   );
 };

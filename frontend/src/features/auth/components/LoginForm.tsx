@@ -3,7 +3,7 @@
  * @module features/auth/components/LoginForm
  */
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { useApi } from '../../../shared/hooks/useApi';
@@ -20,7 +20,7 @@ export const LoginForm: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(false);
   const [isMezonLoading, setIsMezonLoading] = useState<boolean>(false);
   const [showPassword, setShowPassword] = useState<boolean>(false);
-  const { setAuth, isAuthenticated } = useAuth();
+  const { setAuth, isAuthenticated, isAuthLoading } = useAuth();
   const popupRef = useRef<Window | null>(null);
 
   useEffect(() => {
@@ -75,7 +75,7 @@ export const LoginForm: React.FC = () => {
     };
   }, [isMezonLoading]);
 
-  const handleMezonLogin = (): void => {
+  const handleMezonLogin = useCallback((): void => {
     const mezonClientId = process.env.REACT_APP_MEZON_CLIENT_ID;
     const redirectUri = process.env.REACT_APP_MEZON_REDIRECT_URI || 'https://localhost:3000/mezon-callback';
     const authorizeUrl = process.env.REACT_APP_MEZON_AUTHORIZE_URL || 'https://oauth2.mezon.ai/oauth2/auth';
@@ -156,7 +156,7 @@ export const LoginForm: React.FC = () => {
       // Some browsers can block move/resize operations.
     }
     popup.focus();
-  };
+  }, []);
 
   useEffect(() => {
     if (isAuthenticated) {

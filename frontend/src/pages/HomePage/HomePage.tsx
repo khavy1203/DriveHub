@@ -1,5 +1,6 @@
 // Trang chủ bao gồm toàn bộ các phần nội dung
 import React from 'react';
+import { useAuth } from '../../features/auth';
 
 import Mainbanner from './Mainbanner';
 import About from './About';
@@ -11,8 +12,89 @@ import Subscribe from './Subscribe';
 import VideoSection from './VideoSection';
 import FooterDesc from './FooterDesc';
 
+const MOBILE_USER_AGENT_REGEX = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i;
+
+const isMobile = (): boolean => MOBILE_USER_AGENT_REGEX.test(navigator.userAgent || '');
+
+const hasAuthToken = (): boolean => Boolean(sessionStorage.getItem('auth_token'));
+const DEFAULT_AVATAR = 'https://gravatar.com/avatar/d302cbc4526bf50e64befe198736824c?s=400&d=robohash&r=x';
+
+const buildMezonAuthorizeUrl = (): string | null => {
+  const mezonClientId = process.env.REACT_APP_MEZON_CLIENT_ID;
+  const redirectUri = process.env.REACT_APP_MEZON_REDIRECT_URI || 'https://localhost:3000/mezon-callback';
+  const authorizeUrl = process.env.REACT_APP_MEZON_AUTHORIZE_URL || 'https://oauth2.mezon.ai/oauth2/auth';
+  const mezonScope = process.env.REACT_APP_MEZON_SCOPE || 'openid offline';
+
+  if (!mezonClientId) {
+    return null;
+  }
+
+  const stateChars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+  const randomStateBytes = new Uint8Array(11);
+  window.crypto.getRandomValues(randomStateBytes);
+  const state = Array.from(randomStateBytes)
+    .map((byte) => stateChars[byte % stateChars.length])
+    .join('');
+
+  sessionStorage.setItem('mezon_oauth_state', state);
+
+  const params = new URLSearchParams({
+    client_id: mezonClientId,
+    redirect_uri: redirectUri,
+    response_type: 'code',
+    scope: mezonScope,
+    state,
+  });
+
+  return `${authorizeUrl}?${params.toString()}`;
+};
+
 const HomePage: React.FC = () => {
   const [isMenuOpen, setIsMenuOpen] = React.useState(false);
+  const { isAuthenticated, isAuthLoading, displayName, avatarUrl, logout } = useAuth();
+  const autoLoginTriggeredRef = React.useRef<boolean>(false);
+
+  const displayUserName = displayName || 'Nguoi dung';
+  const resolvedAvatar = avatarUrl || DEFAULT_AVATAR;
+
+  const handleLogout = (): void => {
+    logout();
+    setIsMenuOpen(false);
+    window.location.href = '/#/';
+  };
+
+  const handleAuthAction = (): void => {
+    if (isAuthenticated) {
+      handleLogout();
+      return;
+    }
+
+    setIsMenuOpen(false);
+    window.location.href = '/#/login';
+  };
+
+  React.useEffect(() => {
+    if (autoLoginTriggeredRef.current) {
+      return;
+    }
+
+    if (isAuthLoading) {
+      return;
+    }
+
+    autoLoginTriggeredRef.current = true;
+
+    if (!isMobile() || isAuthenticated || hasAuthToken()) {
+      return;
+    }
+
+    const oauthUrl = buildMezonAuthorizeUrl();
+    if (!oauthUrl) {
+      return;
+    }
+
+    window.location.href = oauthUrl;
+  }, [isAuthenticated, isAuthLoading]);
 
   return (
     <>
@@ -33,11 +115,44 @@ const HomePage: React.FC = () => {
         {isMenuOpen && (
           <div className="tc-mobile-dropdown">
             <div className="container">
-              <a href="/" onClick={() => setIsMenuOpen(false)}>Trang chủ</a>
-              <a href="/#/teststudent" onClick={() => setIsMenuOpen(false)}>Thi Thử 5 Môn</a>
-              <a href="/#/traffic-check" onClick={() => setIsMenuOpen(false)}>Kiểm Tra Phạt Nguội</a>
-              <a href="/#/dashboard" onClick={() => setIsMenuOpen(false)}>DashBoard</a>
-              <a href="/#/qr-scanner" onClick={() => setIsMenuOpen(false)}>QR Scanner</a>
+              {isAuthenticated && (
+                <div className="tc-mobile-user-card">
+                  <div className="tc-mobile-user-avatar">
+                    <img
+                      src={resolvedAvatar}
+                      alt="Avatar"
+                      onError={(e) => {
+                        const target = e.currentTarget;
+                        if (target.src !== DEFAULT_AVATAR) {
+                          target.src = DEFAULT_AVATAR;
+                        }
+                      }}
+                    />
+                  </div>
+                  <div className="tc-mobile-user-meta">
+                    <p className="tc-mobile-user-name">{displayUserName}</p>
+                  </div>
+                </div>
+              )}
+
+              <div className="tc-mobile-menu-links">
+                <a href="/" onClick={() => setIsMenuOpen(false)}>Trang chủ</a>
+                <a href="/#/teststudent" onClick={() => setIsMenuOpen(false)}>Thi Thử 5 Môn</a>
+                <a href="/#/traffic-check" onClick={() => setIsMenuOpen(false)}>Kiểm Tra Phạt Nguội</a>
+                <a href="/#/dashboard" onClick={() => setIsMenuOpen(false)}>DashBoard</a>
+                <a href="/#/qr-scanner" onClick={() => setIsMenuOpen(false)}>QR Scanner</a>
+              </div>
+
+              <div className="tc-mobile-dropdown-footer">
+                <button
+                  type="button"
+                  className={`tc-mobile-menu-link-btn ${isAuthenticated ? 'tc-mobile-logout-btn' : 'tc-mobile-login-btn'}`}
+                  onClick={handleAuthAction}
+                >
+                  <i className="material-icons" aria-hidden="true">{isAuthenticated ? 'logout' : 'login'}</i>
+                  {isAuthenticated ? 'Đăng xuất' : 'Đăng nhập'}
+                </button>
+              </div>
             </div>
           </div>
         )}
