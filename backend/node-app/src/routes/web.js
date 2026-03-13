@@ -18,6 +18,7 @@ import QRController from "../controller/QRController";
 import trafficCheckController from "../controller/trafficCheckController";
 import mezonController from "../controller/mezonController";
 import userController from "../controller/userController";
+import gplxController from "../controller/gplxController";
 
 
 const routes = express.Router();
@@ -55,6 +56,9 @@ const initWebRoutes = (app) => {
 
     // Traffic fine lookup
     routes.post('/traffic-check/lookup', trafficCheckController.lookupTrafficViolation);
+    routes.get('/gplx/captcha-session', gplxController.getCaptchaSession);
+    routes.get('/gplx/captcha-image/:sessionId', gplxController.getCaptchaImage);
+    routes.post('/gplx/lookup', gplxController.lookupGPLX);
     routes.post('/mezon/exchange', mezonController.exchangeCode);
 
     routes.all("*", checkUserJwt, checkUserPermission);
@@ -139,6 +143,9 @@ const initWebRoutes = (app) => {
     routes.put("/qr/update", QRController.updateQR);
     routes.post("/qr", QRController.createQR);
     routes.delete("/qr/:id", QRController.deleteQR);
+
+    routes.post('/gplx/import', memoryUpload.single('file'), gplxController.importExcel);
+    routes.get('/gplx/list', gplxController.getList);
 
     return app.use("/api", routes);
 };

@@ -10,8 +10,8 @@ const nonSecurePaths = [
     '/rank/getRank',
     '/exam/create-exam',
     '/testpractice/receivetestpractice',
-    '/gplx/lookup',
     '/traffic-check/lookup',
+    '/gplx/lookup',
 ];
 
 const createJWT = (payload) => {

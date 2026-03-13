@@ -11,6 +11,8 @@ const UploadFiles: React.FC = () => {
   const [selectedFileTestQuestion, setSelectedFileTestQuestion] = useState<File | null>(null);
   const [selectedFile600Question, setSelectedFile600Question] = useState<File | null>(null);
   const [selectedFileExcelForUpdate, setSelectedFileExcelForUpdate] = useState<File | null>(null);
+  const [selectedFileGplx, setSelectedFileGplx] = useState<File | null>(null);
+  const [gplxImportMsg, setGplxImportMsg] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
 
   const [khoaHocList, setKhoaHocList] = useState<any[]>([]);
@@ -287,6 +289,30 @@ const UploadFiles: React.FC = () => {
           <label>Upload Excel để cập nhật hạng GPLX cho thí sinh:</label>
           <input type="file" accept=".xlsx" onChange={handleFileChangeExcelForUpdate} />
           <button onClick={handleUpdateXmlWithExcel}>Cập nhật</button>
+        </div>
+      </div>
+
+      <div className="import-file-child">
+        <div className="upload-section">
+          <label>Import dữ liệu GPLX (tra cứu theo CCCD):</label>
+          <input type="file" accept=".xlsx,.xls" onChange={e => setSelectedFileGplx(e.target.files?.[0] || null)} />
+          <button onClick={async () => {
+            if (!selectedFileGplx) { setGplxImportMsg({ type: 'error', text: 'Vui lòng chọn file Excel.' }); return; }
+            const formData = new FormData();
+            formData.append('file', selectedFileGplx);
+            try {
+              const res: any = await post('/api/gplx/import', formData);
+              setGplxImportMsg({ type: 'success', text: res?.EM || 'Import thành công!' });
+              setSelectedFileGplx(null);
+            } catch {
+              setGplxImportMsg({ type: 'error', text: 'Lỗi khi import dữ liệu GPLX.' });
+            }
+          }}>Import GPLX</button>
+          {gplxImportMsg && (
+            <p style={{ color: gplxImportMsg.type === 'success' ? 'green' : 'red', marginTop: 8 }}>
+              {gplxImportMsg.text}
+            </p>
+          )}
         </div>
       </div>
 

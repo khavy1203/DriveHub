@@ -105,7 +105,7 @@ export const Header: React.FC = () => {
                 </li>
                 <li>
                   <NavLink to="/traffic-check" className={({ isActive }) => (isActive ? 'active' : '')}>
-                    Kiểm Tra Phạt Nguội
+                    GPLX
                   </NavLink>
                 </li>
                 <li>
