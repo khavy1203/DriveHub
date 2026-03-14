@@ -103,23 +103,6 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Prepare VPS directory
-        uses: appleboy/ssh-action@v1.0.3
-        with:
-          host: ${{ secrets.VPS_HOST }}
-          username: ${{ secrets.VPS_USER }}
-          key: ${{ secrets.VPS_SSH_KEY }}
-          script: mkdir -p /opt/drivehub
-
-      - name: Copy docker-compose to VPS
-        uses: appleboy/scp-action@v0.1.7
-        with:
-          host: ${{ secrets.VPS_HOST }}
-          username: ${{ secrets.VPS_USER }}
-          key: ${{ secrets.VPS_SSH_KEY }}
-          source: docker-compose.prod.yml
-          target: /opt/drivehub/
-
       - name: Deploy on VPS
         uses: appleboy/ssh-action@v1.0.3
         with:
@@ -128,14 +111,79 @@ jobs:
           key: ${{ secrets.VPS_SSH_KEY }}
           script: |
             set -e
+            mkdir -p /opt/drivehub
             cd /opt/drivehub
+
+            # Write docker-compose.prod.yml
+            cat > docker-compose.prod.yml << 'COMPOSEEOF'
+            version: '3.9'
+            services:
+              frontend:
+                image: ghcr.io/${{ github.repository_owner }}/drivehub-frontend:latest
+                restart: unless-stopped
+                ports:
+                  - "80:80"
+                depends_on:
+                  - backend
+                networks:
+                  - app_network
+              backend:
+                image: ghcr.io/${{ github.repository_owner }}/drivehub-backend:latest
+                restart: unless-stopped
+                ports:
+                  - "8080:8080"
+                environment:
+                  - NODE_ENV=production
+                  - PORT=8080
+                  - JWT_SECRET=${JWT_SECRET}
+                  - MEZON_CLIENT_ID=${MEZON_CLIENT_ID}
+                  - MEZON_CLIENT_SECRET=${MEZON_CLIENT_SECRET}
+                  - MEZON_AUTHORIZE_URL=${MEZON_AUTHORIZE_URL}
+                  - MEZON_TOKEN_URL=${MEZON_TOKEN_URL}
+                  - MEZON_USERINFO_URL=${MEZON_USERINFO_URL}
+                  - REDIRECT_URI=${REDIRECT_URI}
+                  - CORS_ORIGINS=${CORS_ORIGINS}
+                  - DB_HOST=mysql_db
+                  - DB_PORT=3306
+                  - DB_NAME=${DB_NAME}
+                  - DB_USER=${DB_USER}
+                  - DB_PASS=${DB_PASS}
+                depends_on:
+                  mysql_db:
+                    condition: service_healthy
+                networks:
+                  - app_network
+              mysql_db:
+                image: mysql:8.0
+                restart: unless-stopped
+                environment:
+                  - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
+                  - MYSQL_DATABASE=${DB_NAME}
+                  - MYSQL_USER=${DB_USER}
+                  - MYSQL_PASSWORD=${DB_PASS}
+                volumes:
+                  - mysql_data:/var/lib/mysql
+                ports:
+                  - "3307:3306"
+                healthcheck:
+                  test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${MYSQL_ROOT_PASSWORD}"]
+                  interval: 10s
+                  timeout: 5s
+                  retries: 5
+                networks:
+                  - app_network
+            volumes:
+              mysql_data:
+            networks:
+              app_network:
+                driver: bridge
+            COMPOSEEOF
 
             # Login to GHCR
             echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
 
             # Write production .env
-            cat > .env <<'ENVEOF'
-            GITHUB_REPOSITORY_LOWER=${{ github.repository_owner }}
+            cat > .env << 'ENVEOF'
             JWT_SECRET=${{ secrets.JWT_SECRET }}
             MEZON_CLIENT_ID=${{ secrets.MEZON_CLIENT_ID }}
             MEZON_CLIENT_SECRET=${{ secrets.MEZON_CLIENT_SECRET }}
@@ -153,7 +201,7 @@ jobs:
             # Pull new images
             docker compose -f docker-compose.prod.yml pull
 
-            # Restart services (zero-downtime rolling)
+            # Restart services
             docker compose -f docker-compose.prod.yml up -d --remove-orphans
 
             # Clean up old images
