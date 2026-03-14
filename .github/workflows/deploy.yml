@@ -209,8 +209,11 @@ jobs:
             # Pull new images
             docker compose -f docker-compose.prod.yml pull
 
-            # Restart services
-            docker compose -f docker-compose.prod.yml up -d --remove-orphans
+            # Stop existing containers (giải phóng port)
+            docker compose -f docker-compose.prod.yml down 2>/dev/null || true
+
+            # Start services
+            docker compose -f docker-compose.prod.yml up -d
 
             # Clean up old images
             docker image prune -f
