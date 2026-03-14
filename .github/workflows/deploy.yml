@@ -114,12 +114,14 @@ jobs:
             mkdir -p /opt/drivehub
             cd /opt/drivehub
 
-            # Giải phóng port 80 (dừng mọi thứ)
-            systemctl stop nginx apache2 caddy 2>/dev/null || true
-            systemctl disable nginx apache2 caddy 2>/dev/null || true
-            # Restart Docker daemon để kill docker-proxy và giải phóng tất cả ports
-            systemctl restart docker
-            sleep 5
+            # Dừng tất cả containers đang chạy
+            docker ps -q | xargs -r docker stop 2>/dev/null || true
+            docker ps -aq | xargs -r docker rm 2>/dev/null || true
+            # Kill docker-proxy và process giữ port 80
+            pkill -9 -f "docker-proxy" 2>/dev/null || true
+            fuser -k 80/tcp 2>/dev/null || true
+            # Đợi port release
+            sleep 3
 
             # Write docker-compose.prod.yml
             cat > docker-compose.prod.yml << 'COMPOSEEOF'
