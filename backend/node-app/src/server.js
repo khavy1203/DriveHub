@@ -17,18 +17,12 @@ app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
 app.use(cookieParser());
 
-// Cấu hình chứng chỉ SSL
-const sslOptions = {
-    key: fs.readFileSync('certs/key.pem'),
-    cert: fs.readFileSync('certs/cert.pem'),
-};
 // botTelegram(app).catch((error) => {
 //     console.error("Failed to initialize bot:", error);
 // });
 
-// Tạo server HTTPS
-const server = https.createServer(sslOptions, app);
-// const server = http.createServer( app);
+// Tạo server HTTP
+const server = http.createServer(app);
 
 // Uncomment if using WebSocket servers
 // setupChatWebSocket(server, '/ws/chat');
