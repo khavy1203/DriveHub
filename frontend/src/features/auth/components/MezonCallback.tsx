@@ -57,7 +57,7 @@ export const MezonCallback: React.FC = () => {
         const state = urlParams.get('state') || '';
         const sessionState = sessionStorage.getItem('mezon_oauth_state') || '';
         const isStateValid = Boolean(state) && state === sessionState;
-        const redirectUri = process.env.REACT_APP_MEZON_REDIRECT_URI || 'https://localhost:3000/mezon-callback';
+        const redirectUri = process.env.REACT_APP_MEZON_REDIRECT_URI || `${window.location.origin}/mezon-callback`;
         const backendUrl = process.env.REACT_APP_MEZON_BACKEND_URL || 'http://localhost:8080';
 
         if (!code || !state) {
