@@ -114,11 +114,13 @@ jobs:
             mkdir -p /opt/drivehub
             cd /opt/drivehub
 
-            # Giải phóng port 80 nếu bị chiếm bởi nginx/apache
+            # Giải phóng port 80
             systemctl stop nginx 2>/dev/null || true
             systemctl stop apache2 2>/dev/null || true
             systemctl disable nginx 2>/dev/null || true
             systemctl disable apache2 2>/dev/null || true
+            fuser -k 80/tcp 2>/dev/null || true
+            sleep 2
 
             # Write docker-compose.prod.yml
             cat > docker-compose.prod.yml << 'COMPOSEEOF'
