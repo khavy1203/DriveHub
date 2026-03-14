@@ -118,6 +118,10 @@ jobs:
             # Force remove tất cả containers
             docker ps -aq | xargs -r docker rm -f 2>/dev/null || true
 
+            # Disable nginx trên host (chiếm port 80)
+            sudo systemctl stop nginx 2>/dev/null || true
+            sudo systemctl disable nginx 2>/dev/null || true
+
             # Write docker-compose.prod.yml
             cat > docker-compose.prod.yml << 'COMPOSEEOF'
             version: '3.9'
