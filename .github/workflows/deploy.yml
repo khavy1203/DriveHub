@@ -109,19 +109,18 @@ jobs:
           host: ${{ secrets.VPS_HOST }}
           username: ${{ secrets.VPS_USER }}
           key: ${{ secrets.VPS_SSH_KEY }}
+          command_timeout: 25m
           script: |
             set -e
             mkdir -p /opt/drivehub
             cd /opt/drivehub
 
-            # Dừng tất cả containers đang chạy
-            docker ps -q | xargs -r docker stop 2>/dev/null || true
-            docker ps -aq | xargs -r docker rm 2>/dev/null || true
-            # Kill docker-proxy và process giữ port 80
-            pkill -9 -f "docker-proxy" 2>/dev/null || true
+            # Force remove tất cả containers (không dùng pkill)
+            docker ps -aq | xargs -r docker rm -f 2>/dev/null || true
+
+            # Kill process còn giữ port 80
             fuser -k 80/tcp 2>/dev/null || true
-            # Đợi port release
-            sleep 3
+            sleep 2
 
             # Write docker-compose.prod.yml
             cat > docker-compose.prod.yml << 'COMPOSEEOF'
@@ -207,14 +206,8 @@ jobs:
             MYSQL_ROOT_PASSWORD=${{ secrets.MYSQL_ROOT_PASSWORD }}
             ENVEOF
 
-            # Pull new images
-            docker compose -f docker-compose.prod.yml pull
-
-            # Stop existing containers (giải phóng port)
-            docker compose -f docker-compose.prod.yml down 2>/dev/null || true
-
-            # Start services
-            docker compose -f docker-compose.prod.yml up -d
+            # Pull image mới và start (--pull always để đảm bảo image mới nhất)
+            docker compose -f docker-compose.prod.yml up -d --pull always
 
             # Clean up old images
             docker image prune -f
