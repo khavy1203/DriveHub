@@ -114,13 +114,16 @@ jobs:
             mkdir -p /opt/drivehub
             cd /opt/drivehub
 
-            # Giải phóng port 80
-            systemctl stop nginx 2>/dev/null || true
-            systemctl stop apache2 2>/dev/null || true
-            systemctl disable nginx 2>/dev/null || true
-            systemctl disable apache2 2>/dev/null || true
+            # Giải phóng port 80 (dừng mọi thứ)
+            systemctl stop nginx apache2 caddy 2>/dev/null || true
+            systemctl disable nginx apache2 caddy 2>/dev/null || true
+            # Stop tất cả Docker containers đang chạy
+            docker ps -q | xargs -r docker stop 2>/dev/null || true
+            docker ps -q | xargs -r docker rm 2>/dev/null || true
+            # Kill process bất kỳ đang giữ port 80
             fuser -k 80/tcp 2>/dev/null || true
-            sleep 2
+            kill -9 $(lsof -t -i:80) 2>/dev/null || true
+            sleep 3
 
             # Write docker-compose.prod.yml
             cat > docker-compose.prod.yml << 'COMPOSEEOF'
