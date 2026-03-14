@@ -21,8 +21,8 @@ export const ENVIRONMENT_CONFIGS: Record<BuildEnvironment, EnvironmentConfig> = 
     WS_BASE_URL: 'wss://localhost:8080/ws/student-status',
   },
   production: {
-    API_BASE_URL: 'http://node-app-9asc.onrender.com',
-    WS_BASE_URL: 'wss://node-app-9asc.onrender.com/ws/student-status',
+    API_BASE_URL: process.env.REACT_APP_MEZON_BACKEND_URL || 'http://167.172.78.124:8080',
+    WS_BASE_URL: `${(process.env.REACT_APP_MEZON_BACKEND_URL || 'http://167.172.78.124:8080').replace(/^http/, 'ws')}/ws/student-status`,
   },
   buildlocal: {
     API_BASE_URL: 'http://192.168.1.99:8080',
