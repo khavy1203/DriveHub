@@ -199,14 +199,11 @@ jobs:
             MYSQL_ROOT_PASSWORD=${{ secrets.MYSQL_ROOT_PASSWORD }}
             ENVEOF
 
-            # Pull image mới
-            docker compose -f docker-compose.prod.yml pull
-
-            # Stop containers cũ đúng cách (docker compose down cleanup proxy)
+            # Stop containers cũ (giải phóng ports trước khi pull)
             docker compose -f docker-compose.prod.yml down --remove-orphans 2>/dev/null || true
-            sleep 3
 
-            # Start services
+            # Pull và start
+            docker compose -f docker-compose.prod.yml pull
             docker compose -f docker-compose.prod.yml up -d
 
             # Clean up old images
