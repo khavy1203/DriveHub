@@ -205,12 +205,14 @@ jobs:
             MYSQL_ROOT_PASSWORD=${{ secrets.MYSQL_ROOT_PASSWORD }}
             ENVEOF
 
-            # Kill port 80 ngay trước khi start (tránh systemd restart kịp)
-            fuser -k 80/tcp 2>/dev/null || true
-            sleep 1
+            # Pull image mới
+            docker compose -f docker-compose.prod.yml pull
 
-            # Pull image mới và start
-            docker compose -f docker-compose.prod.yml up -d --pull always
+            # Stop containers cũ để giải phóng ports
+            docker compose -f docker-compose.prod.yml down 2>/dev/null || true
+
+            # Start services
+            docker compose -f docker-compose.prod.yml up -d
 
             # Clean up old images
             docker image prune -f
