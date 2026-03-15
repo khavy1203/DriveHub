@@ -16,8 +16,8 @@ export type BuildEnvironment =
 
 export const ENVIRONMENT_CONFIGS: Record<BuildEnvironment, EnvironmentConfig> = {
   development: {
-    API_BASE_URL: 'https://localhost:8080',
-    WS_BASE_URL: 'wss://localhost:8080/ws/student-status',
+    API_BASE_URL: 'http://localhost:8080',
+    WS_BASE_URL: 'ws://localhost:8080/ws/student-status',
   },
   production: {
     API_BASE_URL: process.env.REACT_APP_MEZON_BACKEND_URL || 'http://167.172.78.124:8080',
