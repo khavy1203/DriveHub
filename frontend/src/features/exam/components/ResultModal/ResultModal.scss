@@ -1,440 +1,235 @@
-.modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
-  background: rgba(0, 0, 0, 0.5);
+.premium-result-overlay {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  background: rgba(0, 0, 0, 0.85) !important;
+  display: flex !important;
+  flex-direction: row !important;
+  justify-content: center !important;
+  align-items: center !important;
+  z-index: 999999999 !important;
+  padding: 40px;
+  backdrop-filter: blur(12px) !important;
+  gap: 30px;
+}
+
+.result-sidebar-container {
+  flex: 0 0 380px;
+  max-width: 400px;
+  height: 85vh;
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 40px 30px;
   display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 1000;
-  /* Đảm bảo modal nằm trên cùng */
-
-}
-
-.modal-overlay .modal-footer {
-  display: flex;
-  justify-content: center; 
-  padding: 10px;
-  width: 100%;
-}
-
-.result-text.failed {
-  color: #dc3545;
-}
-
-.result-text.passed, .next-subject-text {
-  color: #28a745;
-}
-
-.nav-btn-container {
-  margin-top: 15px;
-  display: flex;
-  justify-content: center;
-}
-
-/* .modal-overlay .modal-footer button{
-  background-color: rgb(0, 255, 106);
-  color: black;
-} */
-
-.modal-detail {
-  flex: 2;
-  width: 100%;
-  /* Chiều rộng của div */
-  max-height: 85vh;
-  /* Chiều cao tối đa của div */
-  overflow-y: auto;
-  /* Thêm thanh cuộn dọc nếu nội dung vượt quá chiều cao */
-  overflow-x: hidden;
-  /* Ẩn thanh cuộn ngang nếu có */
-  padding: 10px;
-  /* Thêm khoảng cách bên trong */
-  border: 1px solid #ccc;
-  /* Đường viền cho rõ ràng */
-  background-color: #f9f9f9;
-  /* Màu nền */
-
-
-}
-
-.modal-content {
-  background-color: white;
-  padding: 20px;
-  border-radius: 8px;
-  max-width: 600px;
-  width: 100%;
+  flex-direction: column;
+  box-shadow: 0 20px 50px rgba(0,0,0,0.4);
+  position: relative;
+  overflow: hidden;
   text-align: center;
-}
+  border: 1px solid rgba(255,255,255,0.2);
 
-.answer-item {
-  margin: 10px 0;
-}
-
-.correct {
-  color: green;
-}
-
-.incorrect {
-  color: red;
-}
-
-.nav-btn {
-  padding: 12px 25px;
-  font-size: 16px;
-  font-weight: 600;
-  border-radius: 6px;
-  transition: all 0.2s;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  text-transform: uppercase;
-}
-
-.nav-btn.next {
-  background-color: #007bff;
-  color: white;
-}
-
-.nav-btn.next:hover {
-  background-color: #0056b3;
-  transform: translateY(-2px);
-  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
-}
-
-.nav-btn.end {
-  background-color: #dc3545;
-  color: white;
-}
-
-.nav-btn.end:hover {
-  background-color: #c82333;
-  transform: translateY(-2px);
-  box-shadow: 0 6px 12px rgba(220, 53, 69, 0.2);
-}
-
-button {
-  padding: 10px 20px;
-  background-color: #007bff;
-  color: white;
-  border: none;
-  cursor: pointer;
-  border-radius: 4px;
-}
-
-button:hover {
-  background-color: #0056b3;
-}
-
-.modal-overlay .student-info p {
-  font-size: 18px;
-  margin: 10px 0;
-}
-
-@media (min-width: 951px) {
-  .modal-overlay {
-    background: rgba(0, 0, 0, 0.7);
-    padding: 20px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 0;
-  }
-
-  .modal-content {
-    flex: 0 0 380px;
-    height: 85vh;
-    max-width: none;
-    margin: 0;
-    padding: 40px 20px;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    border-radius: 12px 0 0 12px;
-    background: linear-gradient(135deg, #ffffff 0%, #f0f4f8 100%);
-    box-shadow: -10px 0 30px rgba(0,0,0,0.1);
-    border-right: 1px solid #e1e8ed;
-    z-index: 10;
-  }
-
-  .modal-detail {
-    flex: 1;
-    max-width: 900px;
-    height: 85vh;
-    margin: 0;
-    border-radius: 0 12px 12px 0;
-    background-color: #ffffff;
-    box-shadow: 10px 0 30px rgba(0,0,0,0.1);
-    border: none;
-    z-index: 5;
-  }
-
-  h4.next-exam {
-    font-size: 26px;
-    color: #1a2a3a;
-    margin-bottom: 40px;
-    position: relative;
-    font-weight: 800;
-  }
-
-  h4.next-exam::after {
+  &::before {
     content: '';
     position: absolute;
-    bottom: -15px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 60px;
-    height: 4px;
-    background: #007bff;
-    border-radius: 2px;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 8px;
+    background: linear-gradient(90deg, #3182ce, #63b3ed);
   }
 
-  .modal-overlay .student-info p {
-    font-size: 18px;
-    color: #4a5568;
-    margin: 20px 0;
+  h4.next-exam-title {
+    font-size: 28px;
+    color: #1a202c;
+    margin-bottom: 30px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    position: relative;
+    padding-bottom: 20px;
+
+    &::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 60px;
+      height: 4px;
+      background: #3182ce;
+      border-radius: 2px;
+    }
   }
 
-  .modal-body {
+  .modal-body-content {
     flex: 1;
     display: flex;
     flex-direction: column;
     justify-content: center;
-    gap: 30px;
+  }
+
+  .result-summary-text-box {
+    margin-bottom: 50px;
+
+    p {
+      margin: 20px 0;
+      font-size: 19px;
+      color: #4a5568;
+      
+      strong {
+        color: #2d3748;
+      }
+    }
+
+    .result-status-pill {
+      display: block;
+      margin-top: 10px;
+      font-weight: 900;
+      font-size: 24px;
+      padding: 10px 20px;
+      border-radius: 12px;
+      
+      &.failed { 
+        color: #e53e3e; 
+        background: #fff5f5;
+        border: 1px solid #feb2b2;
+      }
+      &.passed { 
+        color: #38a169; 
+        background: #f0fff4;
+        border: 1px solid #9ae6b4;
+      }
+    }
+
+    .next-subject-name-text {
+      color: #3182ce;
+      font-weight: 700;
+      text-decoration: underline;
+    }
   }
 
   .nav-btn {
-    padding: 15px 40px;
+    width: 100%;
+    padding: 16px;
     font-size: 18px;
-    margin-top: 20px;
+    font-weight: 800;
+    border-radius: 12px;
+    border: none;
+    text-transform: uppercase;
     cursor: pointer;
-  }
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 4px 14px rgba(49, 130, 206, 0.4);
 
-  .nav-btn:hover {
-    transform: translateY(-3px) scale(1.02);
-    box-shadow: 0 8px 20px rgba(0, 123, 255, 0.3);
+    &.next-btn {
+      background: linear-gradient(135deg, #3182ce, #63b3ed);
+      color: #ffffff;
+
+      &:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 25px rgba(49, 130, 206, 0.6);
+      }
+    }
+
+    &.end-btn {
+      background: linear-gradient(135deg, #e53e3e, #f56565);
+      color: white;
+
+      &:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 25px rgba(229, 62, 62, 0.6);
+      }
+    }
+  }
+}
+
+.result-detail-table-container {
+  flex: 1;
+  width: 100%;
+  max-width: 1000px;
+  height: 85vh;
+  background: #ffffff;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 20px 50px rgba(0,0,0,0.4);
+  border: 1px solid #e2e8f0;
+  display: flex !important;
+  flex-direction: column !important;
+
+  & > div { // TableDisplay container
+    width: 100%;
+    height: 100%;
+    overflow-y: auto !important;
+    
+    &::-webkit-scrollbar { width: 10px; }
+    &::-webkit-scrollbar-track { background: #f7fafc; }
+    &::-webkit-scrollbar-thumb {
+      background: #cbd5e0;
+      border-radius: 5px;
+      border: 2px solid #f7fafc;
+      &:hover { background: #a0aec0; }
+    }
+  }
+}
+
+/* Mobile landscape optimization */
+@media (max-width: 1200px) {
+  .premium-result-overlay {
+    padding: 20px;
+    gap: 20px;
   }
 }
 
 @media (max-width: 950px) and (orientation: landscape) {
-  .modal-overlay {
+  .premium-result-overlay {
     padding: 10px;
     gap: 10px;
-    align-items: stretch;
-  }
-
-  .modal-content {
-    flex: 1;
-    max-width: 25%;
-    padding: 10px;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    border-radius: 8px;
-  }
-
-  .modal-detail {
-    flex: 3;
-    max-height: 95vh;
-    padding: 2px;
-  }
-
-.modal-overlay .student-info p {
-    font-size: 12.5px;
-  }
-
-  .modal-footer {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    width: 100%;
-    padding: 0;
-    margin-top: 5px;
-  }
-
-  .result-summary-text {
-    display: inline-block;
-    text-align: left;
-    margin: 0 auto;
-    width: fit-content;
-  }
-
-  .modal-footer p {
-    font-size: 10px;
-    margin: 5px 0;
-  }
-
-  h4.next-exam {
-    font-size: 14px;
-    margin: 10px 0;
-  }
-
-  .modal-content button {
-    padding: 6px 12px;
-    font-size: 11px;
-  }
-
-  .nav-btn-container {
-    margin-top: 15px;
-    display: flex;
-    justify-content: center;
-    width: 100%;
-  }
-
-  .result-text, .next-subject-text {
-    font-size: 12px;
-    font-weight: bold;
-  }
-
-  .modal-detail td img {
-    max-width: 800px;
-    max-height: 450px;
-  }
-}
-
-@media (max-width: 769px) and (orientation: portrait) {
-  .modal-detail td img {
-    max-width: 200px;
-    max-height: 200px;
-  }
-
-  .table-result th:nth-child(3),
-  .table-result td:nth-child(3),
-  .table-result th:nth-child(4),
-  .table-result td:nth-child(4),
-  .table-result th:nth-child(1),
-  .table-result td:nth-child(1) {
-    width: 10px;
-    word-wrap: break-word;
-    overflow: hidden;
-  }
-
-  .table-result th:nth-child(2),
-  .table-result td:nth-child(2) {
-    width: 200px;
-    word-wrap: break-word;
-    overflow: hidden;
-  }
-}
-
-@media (max-width: 950px) and (orientation: landscape) and (max-height: 380px) {
-  .modal-overlay {
-    padding: 4px;
-    gap: 4px;
-    align-items: stretch;
     flex-direction: row !important;
-    width: 100vw !important;
-    height: 100vh !important;
-    top: 0 !important;
-    left: 0 !important;
-    position: fixed !important;
   }
 
-  .modal-content {
-    flex: 1;
-    max-width: 28%;
-    padding: 6px 8px;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    border-radius: 6px;
-    overflow-y: auto;
+  .result-sidebar-container {
+    flex: 0 0 200px; // Further reduced for iPhone 6
+    max-width: 200px;
+    height: 95vh;
+    padding: 15px 10px;
+
+    h4.next-exam-title {
+      font-size: 16px;
+      margin-bottom: 10px;
+      padding-bottom: 8px;
+      letter-spacing: 0.5px;
+      
+      &::after { width: 30px; height: 2px; }
+    }
+
+    .result-summary-text-box {
+      margin-bottom: 15px;
+      p { font-size: 12px; margin: 6px 0; }
+      .result-status-pill { font-size: 14px; padding: 4px 8px; border-radius: 8px; }
+      .next-subject-name-text { font-size: 11px; }
+    }
+
+    .nav-btn { 
+      padding: 8px; 
+      font-size: 12px;
+      border-radius: 6px;
+    }
   }
 
-  .modal-detail {
-    flex: 3;
-    max-height: 98vh;
-    padding: 2px;
+  .result-detail-table-container {
+    height: 95vh;
   }
+}
 
-  .modal-detail td img {
-    max-width: 100%;
-    max-height: 280px;
-    width: auto;
-    height: auto;
-    display: block;
-    margin: 0 auto;
-  }
-
-  h4.next-exam {
-    font-size: 11px;
-    margin: 4px 0;
-  }
-
-  .modal-overlay .student-info p {
-    font-size: 10px;
-    margin: 2px 0;
-  }
-
-  .result-text, .next-subject-text {
-    font-size: 10px;
-    font-weight: bold;
-  }
-
-  .modal-footer {
-    flex-direction: column;
-    align-items: center;
-    padding: 0;
-    margin-top: 3px;
-  }
-
-  .modal-footer p {
-    font-size: 9px;
-    margin: 2px 0;
-  }
-
-  .modal-content button {
-    padding: 4px 8px;
-    font-size: 10px;
-  }
-
-  .nav-btn-container {
-    margin-top: 5px;
-  }
-
-  .result-summary-text {
-    display: inline-block;
-    text-align: left;
-    margin: 0 auto;
-    width: fit-content;
-  }
-
-  .table-result th,
-  .table-result td {
-    padding: 4px 3px;
-    font-size: 11px;
-    word-wrap: break-word;
-    word-break: break-word;
-  }
-
-  .table-result th:nth-child(1),
-  .table-result td:nth-child(1) {
-    width: 30px;
-    padding: 3px 2px;
-    font-size: 11px;
-  }
-
-  .table-result th:nth-child(3),
-  .table-result td:nth-child(3) {
-    width: 50px;
-    padding: 3px 2px;
-    font-size: 11px;
-    white-space: normal;
-  }
-
-  .table-result th:nth-child(4),
-  .table-result td:nth-child(4) {
-    width: 50px;
-    padding: 3px 2px;
-    font-size: 11px;
-    white-space: normal;
-  }
-
-  .modal-detail td img {
-    max-width: 100%;
-    max-height: 280px;
-    width: auto;
-    height: auto;
-    display: block;
-    margin: 0 auto;
+@media (max-height: 450px) and (orientation: landscape) {
+  .result-sidebar-container {
+    padding: 10px;
+    .result-summary-text-box {
+       margin-bottom: 5px;
+       p { margin: 3px 0; font-size: 11px; }
+       .result-status-pill { font-size: 12px; }
+    }
+    .nav-btn { padding: 6px; font-size: 11px; }
   }
 }

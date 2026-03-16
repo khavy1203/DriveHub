@@ -1,4 +1,5 @@
 import React, { useRef } from 'react';
+import ReactDOM from 'react-dom';
 import TableDisplay from '../TableDisplay/TableDisplay';
 import { useNavigate } from 'react-router-dom';
 import './ResultModal.scss';
@@ -44,7 +45,7 @@ const ResultModal: React.FC<ResultModalProps> = ({
   onNextExam,
   nextSubjectName
 }) => {
-  
+  console.log('ANTIGRAVITY_RESULT_MODAL_FIX_V2');
   const navigate = useNavigate();
   const modalRef = useRef<HTMLDivElement | null>(null);
 
@@ -53,39 +54,34 @@ const ResultModal: React.FC<ResultModalProps> = ({
     navigate('/testStudent');
   };
 
-  return (
-    <div className="modal-overlay">
-      <div className="modal-content">
-        <h4 className="next-exam">
+  return ReactDOM.createPortal(
+    <div className="premium-result-overlay" data-antigravity="fix">
+      <div className="result-sidebar-container">
+        <h4 className="next-exam-title">
           KẾT QUẢ BÀI THI
         </h4>
 
-        <div className="modal-body">
-          <div className="student-info">
-            {/* <h3>Thông tin học viên:</h3>
-            <p>Số Báo Danh: <strong>{studentInfo.studentID}</strong></p>
-            <p>Họ và tên: <strong>{studentInfo.fullName}</strong></p>
-            <p>Hạng: {studentInfo.rank}</p>
-            <p>CCCD: {studentInfo.CCCD}</p> */}
-            <div className="modal-footer">
-              <div className="result-summary-text">
+        <div className="modal-body-content">
+          <div className="result-summary-section">
+            <div className="modal-footer-box">
+              <div className="result-summary-text-box">
                 <p>
-                  <strong>Bài thi trước: <span className={`result-text ${resultStatus === "TRƯỢT" ? "failed" : "passed"}`}>{resultStatus} {`(${score}/${totalQuestions})`}</span></strong>
+                  <strong>Bài thi trước: <span className={`result-status-pill ${resultStatus === "TRƯỢT" ? "failed" : "passed"}`}>{resultStatus} {`(${score}/${totalQuestions})`}</span></strong>
                 </p>
                 {nextSubjectName && (
                   <p>
-                    <strong>Bài thi kế tiếp: <span className="next-subject-text">{nextSubjectName}</span></strong>
+                    <strong>Bài thi kế tiếp: <span className="next-subject-name-text">{nextSubjectName}</span></strong>
                   </p>
                 )}
               </div>
 
               {nextSubjectName ? (
-                <div className="nav-btn-container">
-                  <button className="nav-btn next" onClick={onNextExam}>Bài thi kế tiếp</button>
+                <div className="nav-btn-wrapper">
+                  <button className="nav-btn next-btn" onClick={onNextExam}>Bài thi kế tiếp</button>
                 </div>
               ) : (
-                <div className="nav-btn-container">
-                  <button className="nav-btn end" onClick={handleClose}>Kết thúc</button>
+                <div className="nav-btn-wrapper">
+                  <button className="nav-btn end-btn" onClick={handleClose}>Kết thúc</button>
                 </div>
               )}
             </div>
@@ -93,14 +89,11 @@ const ResultModal: React.FC<ResultModalProps> = ({
         </div>
       </div>
 
-      {
-        (process.env.REACT_APP_BUILD !== 'buildlocal') && (
-          <div className="modal-detail" ref={modalRef}>
-            <TableDisplay arrQuestion={arrQuestion} selectedOptions={selectedOptions} />
-          </div>
-        )
-      }
-    </div>
+      <div className="result-detail-table-container" ref={modalRef}>
+        <TableDisplay arrQuestion={arrQuestion} selectedOptions={selectedOptions} />
+      </div>
+    </div>,
+    document.body
   );
 };
 

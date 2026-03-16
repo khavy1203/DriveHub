@@ -13,7 +13,7 @@ const FinalExamForm: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
   let { IDThiSinh, IDSubject } = location.state as { IDThiSinh: number, IDSubject: number };
-
+  
   const [studentNow, setStudentNow] = useState<ThiSinh | null>(null);
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [selectedOptions, setSelectedOptions] = useState<number[][]>([]);
@@ -296,7 +296,7 @@ const FinalExamForm: React.FC = () => {
       setUntestedSubjects(updatedUntestedSubjects);
       setNextSubjectName(updatedUntestedSubjects.length > 0 ? updatedUntestedSubjects[0].name : null);
 
-      // setScore(calculatedScore);
+      setScore(calculatedScore);
       setShowResult(true);
     } catch (error) {
       console.error("Lỗi khi ghi nhận kết quả:", error);
@@ -473,6 +473,7 @@ const FinalExamForm: React.FC = () => {
           <button className="end-exam-btn" onClick={handleEndExam}>KẾT THÚC</button>
         </div>
       </div>
+    </div>
 
       {showResult && (
         <ResultModal
@@ -494,11 +495,10 @@ const FinalExamForm: React.FC = () => {
           onViewAnswers={handleViewAnswers}
           arrQuestion={arrQuestion}
           selectedOptions={selectedOptions}
-          onNextExam={handleNextExam} // Truyền callback cho bài thi kế tiếp
-          nextSubjectName={nextSubjectName} // Thêm prop mới
+          onNextExam={handleNextExam}
+          nextSubjectName={nextSubjectName}
         />
       )}
-    </div>
     </>
   );
 };
