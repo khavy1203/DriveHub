@@ -50,7 +50,7 @@ jobs:
             REACT_APP_MEZON_BACKEND_URL=${{ secrets.REACT_APP_MEZON_BACKEND_URL }}
             REACT_APP_MEZON_REDIRECT_URI=${{ secrets.REACT_APP_MEZON_REDIRECT_URI }}
             REACT_APP_MEZON_CLIENT_ID=${{ secrets.MEZON_CLIENT_ID }}
-            REACT_APP_MEZON_AUTHORIZE_URL=${{ secrets.REACT_APP_MEZON_AUTHORIZE_URL }}
+            REACT_APP_MEZON_AUTHORIZE_URL=${{ secrets.MEZON_AUTHORIZE_URL }}
             REACT_APP_MEZON_SCOPE=openid offline
             REACT_APP_BUILD=production
 
