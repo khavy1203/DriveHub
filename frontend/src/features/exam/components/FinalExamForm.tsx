@@ -308,7 +308,15 @@ const FinalExamForm: React.FC = () => {
     setShowAnswers(true);
   };
 
-  const handleCloseResult = () => {
+  const handleCloseResult = async () => {
+    try {
+      await post(`/api/students/update-processtest`, {
+        IDThiSinh,
+        processtest: 1,
+      });
+    } catch (error) {
+      console.error("Lỗi khi reset trạng thái:", error);
+    }
     setShowResult(false);
   };
 

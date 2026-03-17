@@ -244,6 +244,17 @@ const resetall = async (req, res) => {
 
 
 
+const deleteKhoaHoc = async (req, res) => {
+    try {
+        const { id } = req.params;
+        if (!id) return res.status(400).json({ EM: 'Thiếu IDKhoaHoc', EC: -1, DT: '' });
+        const data = await userStatusService.deleteKhoaHoc(id);
+        return res.status(200).json({ EM: data.EM, EC: data.EC, DT: data.DT });
+    } catch (error) {
+        return res.status(500).json({ EM: 'Lỗi server', EC: -1, DT: '' });
+    }
+};
+
 export default {
     getInfoStudents,
     createStatus,
@@ -258,5 +269,6 @@ export default {
     bulkUpdateStudentStatus,
     handleImportPaymentFile,
     updateProcesstest,
-    resetall
+    resetall,
+    deleteKhoaHoc
 };

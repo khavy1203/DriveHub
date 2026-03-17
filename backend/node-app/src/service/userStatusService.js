@@ -833,6 +833,34 @@ const updateProcesstest = async (IDThiSinh, processtest) => {
     }
 };
 
+const deleteKhoaHoc = async (IDKhoaHoc) => {
+    try {
+        // Lấy danh sách IDThiSinh thuộc khoá học
+        const thiSinhList = await db.thisinh.findAll({
+            where: { IDKhoaHoc },
+            attributes: ['IDThiSinh'],
+        });
+        const ids = thiSinhList.map(ts => ts.IDThiSinh);
+
+        if (ids.length > 0) {
+            // Xoá bài thi của các thí sinh trong khoá
+            await db.exam.destroy({ where: { IDThisinh: ids } });
+            // Xoá bản ghi khoahoc_thisinh
+            await db.khoahoc_thisinh.destroy({ where: { IDThiSinh: ids } });
+            // Xoá thí sinh
+            await db.thisinh.destroy({ where: { IDThiSinh: ids } });
+        }
+
+        // Xoá khoá học
+        await db.khoahoc.destroy({ where: { IDKhoaHoc } });
+
+        return { EM: 'Xoá khoá học thành công', EC: 0, DT: [] };
+    } catch (error) {
+        console.log('deleteKhoaHoc error', error);
+        return { EM: 'Lỗi khi xoá khoá học', EC: -1, DT: [] };
+    }
+};
+
 const resetall = async () => {
     try {
 
@@ -870,5 +898,6 @@ export default {
     getThiSinhSBDOfCourse,
     getTokenNLTB_LOCAL,
     updateProcesstest,
-    resetall
+    resetall,
+    deleteKhoaHoc
 };

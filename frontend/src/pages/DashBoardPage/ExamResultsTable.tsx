@@ -817,6 +817,26 @@ const ExamResultsTable: React.FC = () => {
         setShowPrintModalAllExam(false);
     };
 
+    const handleDeleteKhoaHoc = async () => {
+        if (!selectedKhoaHoc) return;
+        const course = khoaHocList.find(k => k.IDKhoaHoc === selectedKhoaHoc);
+        const confirmMsg = `Bạn có chắc muốn XOÁ khoá học "${course?.TenKhoaHoc}"?\nToàn bộ thí sinh và bài thi của khoá này sẽ bị xoá vĩnh viễn.`;
+        if (!window.confirm(confirmMsg)) return;
+        try {
+            const res = await del<ApiResponse>(`/api/course/${selectedKhoaHoc}`);
+            if (res.EC === 0) {
+                toast.success('Xoá khoá học thành công!');
+                const updated = await get<ApiResponse<Course[]>>('/api/course');
+                setKhoaHocList(updated.DT || []);
+                setSelectedKhoaHoc(updated.DT?.length ? updated.DT[updated.DT.length - 1].IDKhoaHoc : null);
+            } else {
+                toast.error(res.EM);
+            }
+        } catch (error) {
+            toast.error('Lỗi khi xoá khoá học.');
+        }
+    };
+
     // Hàm reset trạng thái của thí sinh
     const handleResetStatus = async (studentId: number) => {
         try {
@@ -1010,6 +1030,15 @@ const ExamResultsTable: React.FC = () => {
                                 </option>
                             ))}
                         </select>
+                        <Button
+                            variant="danger"
+                            size="sm"
+                            onClick={handleDeleteKhoaHoc}
+                            disabled={!selectedKhoaHoc}
+                            title="Xoá khoá học này (bao gồm toàn bộ thí sinh và bài thi)"
+                        >
+                            Xoá khoá học
+                        </Button>
                         <input
                             type="text"
                             placeholder="Tìm kiếm theo số báo danh"
@@ -1231,15 +1260,6 @@ const ExamResultsTable: React.FC = () => {
                             }
                         >
                             IN TOÀN BỘ
-                        </Button>
-                        <Button
-                            variant="warning"
-                            className="me-2"
-                            onClick={async () => {
-                                handleResetStatus(studentDetail?.IDThiSinh as number);
-                            }}
-                        >
-                            Reset tình trạng thi
                         </Button>
 
                     </div>

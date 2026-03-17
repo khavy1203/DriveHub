@@ -78,6 +78,7 @@ const initWebRoutes = (app) => {
 
 
     routes.get("/course", userStatusController.getCourse);
+    routes.delete("/course/:id", userStatusController.deleteKhoaHoc);
 
     routes.post("/import-xml", memoryUpload.single('file'), userStatusController.handleImportXMLStudent); // Đính kèm middleware upload để xử lý file import học sinh
     routes.post("/import-payment", memoryUpload.single('file'), userStatusController.handleImportPaymentFile); // Đính kèm middleware upload để xử lý file
