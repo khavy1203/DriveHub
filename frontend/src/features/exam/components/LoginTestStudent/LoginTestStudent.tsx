@@ -390,7 +390,7 @@ const LoginTestStudent: React.FC = () => {
                         disabled={!isStartEnabled}
                     >
                         <div className="st-btn-login-icon"></div>
-                        Đăng nhập
+                        Vào thi
                     </button>
                     <button 
                         className="st-btn-cancel"
