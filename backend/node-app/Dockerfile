@@ -41,6 +41,7 @@ RUN npm ci --omit=dev
 
 COPY --from=builder /app/build ./build
 COPY --from=builder /app/certs ./certs
+COPY --from=builder /app/.sequelizerc ./.sequelizerc
 
 EXPOSE 8080
 
