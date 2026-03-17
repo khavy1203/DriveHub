@@ -10,7 +10,7 @@ const Setting: React.FC = () => {
   const [ranks, setRanks] = useState<Rank[]>([]);
 
   const [newStatus, setNewStatus] = useState("");
-  const [newRanks, setnewRanks] = useState("");
+  const [newRankName, setNewRankName] = useState("");
 
   const [editingStatusId, setEditingStatusId] = useState<number | null>(null);
   const [editingRankId, setEditingRankId] = useState<number | null>(null);
@@ -100,10 +100,10 @@ const Setting: React.FC = () => {
   };
 
   const handleCreateRank = async () => {
-    if (!newRanks.trim()) return alert("Tên hạng không được để trống.");
+    if (!newRankName.trim()) return alert("Tên hạng không được để trống.");
     try {
-      await post("/api/rank/create-rank", { name: newRanks });
-      setnewRanks("");
+      await post("/api/rank/create-rank", { name: newRankName });
+      setNewRankName("");
       const updated = await get<ApiResponse<Rank[]>>("/api/rank/getRank");
       setRanks(updated.DT);
     } catch { alert("Lỗi khi tạo hạng."); }
@@ -252,8 +252,8 @@ const Setting: React.FC = () => {
                 className="s-input"
                 type="text"
                 placeholder="Nhập tên hạng xe mới..."
-                value={newRanks}
-                onChange={(e) => setnewRanks(e.target.value)}
+                value={newRankName}
+                onChange={(e) => setNewRankName(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && handleCreateRank()}
               />
               <button className="s-btn s-btn--primary" onClick={handleCreateRank}>+ Thêm</button>

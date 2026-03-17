@@ -549,13 +549,13 @@ const bulkUpdateStudentStatus = async (IDKhoaHoc, SoBaoDanhList, status) => {
         const thiSinhLastInfo_B11 = await getLastInfoStudents(IDKhoaHoc, status, 'B11');
         const thiSinhLastInfo_C = await getLastInfoStudents(IDKhoaHoc, status, 'C');
 
-        let indexContinute_B2 = 0;
-        let indexContinute_B11 = 0;
-        let indexContinute_C = 0;
+        let indexContinue_B2 = 0;
+        let indexContinue_B11 = 0;
+        let indexContinue_C = 0;
 
-        if (!!thiSinhLastInfo_B2?.khoahoc_thisinh?.stt) indexContinute_B2 = thiSinhLastInfo_B2?.khoahoc_thisinh?.stt;
-        if (!!thiSinhLastInfo_B11?.khoahoc_thisinh?.stt) indexContinute_B11 = thiSinhLastInfo_B11?.khoahoc_thisinh?.stt;
-        if (!!thiSinhLastInfo_C?.khoahoc_thisinh?.stt) indexContinute_C = thiSinhLastInfo_C?.khoahoc_thisinh?.stt;
+        if (!!thiSinhLastInfo_B2?.khoahoc_thisinh?.stt) indexContinue_B2 = thiSinhLastInfo_B2?.khoahoc_thisinh?.stt;
+        if (!!thiSinhLastInfo_B11?.khoahoc_thisinh?.stt) indexContinue_B11 = thiSinhLastInfo_B11?.khoahoc_thisinh?.stt;
+        if (!!thiSinhLastInfo_C?.khoahoc_thisinh?.stt) indexContinue_C = thiSinhLastInfo_C?.khoahoc_thisinh?.stt;
 
         await Promise.all(
             SoBaoDanhList.map(async (soBaoDanh, index) => {
@@ -568,9 +568,9 @@ const bulkUpdateStudentStatus = async (IDKhoaHoc, SoBaoDanhList, status) => {
                         const rankUpdate = existingThiSinhMap.get(IDThiSinh).loaibangthi;
 
                         let sttUpdate = 1;
-                        if (rankUpdate == 'B2') sttUpdate = ++indexContinute_B2;
-                        else if (rankUpdate == 'B11') sttUpdate = ++indexContinute_B11;
-                        else if (rankUpdate == 'C') sttUpdate = ++indexContinute_C;
+                        if (rankUpdate == 'B2') sttUpdate = ++indexContinue_B2;
+                        else if (rankUpdate == 'B11') sttUpdate = ++indexContinue_B11;
+                        else if (rankUpdate == 'C') sttUpdate = ++indexContinue_C;
                         // console.log('check existingKhoaHoc_ThiSinhMap.get(sbdString)', existingKhoaHoc_ThiSinhMap.get(sbdString))
                         const infoSttStudent = existingKhoaHoc_ThiSinhMap.get(sbdString);
                         if (infoSttStudent.stt == null || infoSttStudent.IDstatus != status)
