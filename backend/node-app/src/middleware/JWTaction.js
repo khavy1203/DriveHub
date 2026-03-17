@@ -1,5 +1,6 @@
 require("dotenv").config();
 import jwt from "jsonwebtoken";
+import { ADMIN_ACCOUNT } from "../constants/constants.js";
 
 const nonSecurePaths = [
     '/user/logout', '/user/login', '/user/register',
@@ -78,11 +79,11 @@ const checkUserPermission = (req, res, next) => {
 
     if (req.user) {
         let email = req.user.email;
-        if (email === process.env.ADMIN_EMAIL) return next();
+        if (email === ADMIN_ACCOUNT.email) return next();
 
         let roles = req.user.groupWithRoles.Roles;
         let currentUrl = req.path;
-
+        
         if (!roles || roles.length == 0) {
             return res.status(403).json({ EC: -1, DT: '', EM: 'Bạn chưa được Admin cho phép quyền truy cập' });
         }

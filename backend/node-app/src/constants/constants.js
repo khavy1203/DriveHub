@@ -6,6 +6,12 @@ const subjectName = {
     CT: "Cấu tạo và sửa chữa thông thường"
 }
 
+const ADMIN_ACCOUNT = {
+    email: 'admin@gmail.com',
+    username: 'Admin',
+}
+
 module.exports = {
-    subjectName
+    subjectName,
+    ADMIN_ACCOUNT,
 }
