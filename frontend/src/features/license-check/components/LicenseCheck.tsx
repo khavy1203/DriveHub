@@ -61,14 +61,14 @@ const LicenseCheck: React.FC = () => {
 
       setLookup((prev) => ({
         ...prev,
-        error: data?.EM || 'Khong tai duoc captcha, vui long thu lai',
+        error: data?.EM || 'Không tải được captcha, vui lòng thử lại',
       }));
       setCaptcha((prev) => ({ ...prev, loading: false }));
     } catch (error) {
       const message = error instanceof Error ? error.message : '';
       setLookup((prev) => ({
         ...prev,
-        error: `Khong ket noi duoc backend: ${message}`,
+        error: `Không kết nối được backend: ${message}`,
       }));
       setCaptcha((prev) => ({ ...prev, loading: false }));
     }
@@ -85,17 +85,17 @@ const LicenseCheck: React.FC = () => {
     const captchaCode = form.captchaCode.trim();
 
     if (!cccd) {
-      setLookup((prev) => ({ ...prev, error: 'Vui lÃ²ng nháº­p sá»‘ CMND/CCCD.' }));
+      setLookup((prev) => ({ ...prev, error: 'Vui lòng nhập số CMND/CCCD.' }));
       return;
     }
 
     if (!captchaCode) {
-      setLookup((prev) => ({ ...prev, error: 'Vui lÃ²ng nháº­p mÃ£ captcha.' }));
+      setLookup((prev) => ({ ...prev, error: 'Vui lòng nhập mã captcha.' }));
       return;
     }
 
     if (!captcha.sessionId) {
-      setLookup((prev) => ({ ...prev, error: 'Captcha háº¿t háº¡n, vui lÃ²ng lÃ m má»›i.' }));
+      setLookup((prev) => ({ ...prev, error: 'Captcha hết hạn, vui lòng làm mới.' }));
       loadCaptcha();
       return;
     }
@@ -123,7 +123,7 @@ const LicenseCheck: React.FC = () => {
       } else {
         setLookup((prev) => ({
           ...prev,
-          error: result?.EM || 'KhÃ´ng tÃ¬m tháº¥y thÃ´ng tin GPLX.',
+          error: result?.EM || 'Không tìm thấy thông tin GPLX.',
         }));
 
         if (result?.EM?.toLowerCase().includes('captcha')) {
@@ -131,7 +131,7 @@ const LicenseCheck: React.FC = () => {
         }
       }
     } catch {
-      setLookup((prev) => ({ ...prev, error: 'Lá»—i káº¿t ná»‘i. Vui lÃ²ng thá»­ láº¡i sau.' }));
+      setLookup((prev) => ({ ...prev, error: 'Lỗi kết nối. Vui lòng thử lại sau.' }));
     } finally {
       setLookup((prev) => ({ ...prev, loading: false }));
     }
@@ -143,8 +143,8 @@ const LicenseCheck: React.FC = () => {
         <div className="tc-banner-content">
           <img src="https://anh.csgt.vn/logo-csgt.png" alt="Logo" className="tc-banner-logo" />
           <div className="tc-banner-text">
-            <span className="tc-banner-line1">Cá»”NG TRA Cá»¨U THÃ”NG TIN</span>
-            <span className="tc-banner-line2">GIáº¤Y PHÃ‰P LÃI XE</span>
+            <span className="tc-banner-line1">CỔNG TRA CỨU THÔNG TIN</span>
+            <span className="tc-banner-line2">GIẤY PHÉP LÁI XE</span>
           </div>
         </div>
       </div>
@@ -155,18 +155,18 @@ const LicenseCheck: React.FC = () => {
           <div className="tc-form-body">
             <div className="tc-section-title">
               <i className="material-icons">manage_search</i>
-              Tra cá»©u giáº¥y phÃ©p lÃ¡i xe
+              Tra cứu giấy phép lái xe
             </div>
 
             <form onSubmit={handleGplxSearch}>
               <div className="tc-field-group">
-                <label>Sá»‘ CMND / CCCD / Há»™ chiáº¿u</label>
+                <label>Số CMND / CCCD / Hộ chiếu</label>
                 <div className="tc-input-wrapper">
                   <div className="tc-input-prefix"><i className="material-icons">badge</i></div>
                   <input
                     type="text"
                     className="tc-input-field"
-                    placeholder="Nháº­p sá»‘ CCCD / CMND"
+                    placeholder="Nhập số CCCD / CMND"
                     value={form.cccd}
                     onChange={(e) => setForm((prev) => ({ ...prev, cccd: e.target.value }))}
                     maxLength={20}
@@ -175,7 +175,7 @@ const LicenseCheck: React.FC = () => {
               </div>
 
               <div className="tc-field-group">
-                <label>MÃ£ xÃ¡c nháº­n (captcha)</label>
+                <label>Mã xác nhận (captcha)</label>
                 <div className="tc-captcha-inline">
                   <div className="tc-captcha-img-wrap">
                     {captcha.loading ? (
@@ -185,7 +185,7 @@ const LicenseCheck: React.FC = () => {
                     ) : captcha.base64 ? (
                       <img src={captcha.base64} alt="captcha" className="tc-captcha-img" />
                     ) : (
-                      <div className="tc-captcha-img tc-captcha-empty" onClick={loadCaptcha}>Nhan de tai</div>
+                      <div className="tc-captcha-img tc-captcha-empty" onClick={loadCaptcha}>Nhấn để tải</div>
                     )}
 
                     <button
@@ -193,7 +193,7 @@ const LicenseCheck: React.FC = () => {
                       className="tc-captcha-refresh"
                       onClick={loadCaptcha}
                       disabled={captcha.loading}
-                      title="Lam moi captcha"
+                      title="Làm mới captcha"
                     >
                       <i className="material-icons">refresh</i>
                     </button>
@@ -202,7 +202,7 @@ const LicenseCheck: React.FC = () => {
                   <input
                     type="text"
                     className="tc-captcha-input"
-                    placeholder="Nháº­p mÃ£ trong áº£nh"
+                    placeholder="Nhập mã trong ảnh"
                     value={form.captchaCode}
                     onChange={(e) => setForm((prev) => ({ ...prev, captchaCode: e.target.value }))}
                     maxLength={8}
@@ -221,11 +221,11 @@ const LicenseCheck: React.FC = () => {
               <button type="submit" className="tc-submit-btn" disabled={lookup.loading || captcha.loading}>
                 {lookup.loading ? (
                   <>
-                    <span className="tc-spinner" /> Äang tra cá»©u...
+                    <span className="tc-spinner" /> Đang tra cứu...
                   </>
                 ) : (
                   <>
-                    <i className="material-icons">search</i> Tra cá»©u
+                    <i className="material-icons">search</i> Tra cứu
                   </>
                 )}
               </button>
@@ -235,13 +235,13 @@ const LicenseCheck: React.FC = () => {
 
         <div className="tc-footer-note">
           <i className="material-icons">info</i>
-          Dá»¯ liá»‡u Ä‘Æ°á»£c cáº­p nháº­t tá»« há»‡ thá»‘ng Cá»¥c CSGT - Bá»™ CÃ´ng An
+          Dữ liệu được cập nhật từ hệ thống Cục CSGT - Bộ Công An
         </div>
 
         {lookup.loading && (
           <div className="tc-gplx-loading">
             <div className="tc-spinner-large" />
-            <p>Äang tra cá»©u du liá»‡u tá»« há»‡ thá»‘ng Cá»¥c CSGT...</p>
+            <p>Đang tra cứu dữ liệu từ hệ thống Cục CSGT...</p>
           </div>
         )}
 
@@ -269,5 +269,3 @@ const LicenseCheck: React.FC = () => {
 };
 
 export default LicenseCheck;
-
-
