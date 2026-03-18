@@ -149,6 +149,8 @@ jobs:
                   - DB_DATABASE=${DB_NAME}
                   - DB_USERNAME=${DB_USER}
                   - DB_PASSWORD=${DB_PASS}
+                volumes:
+                  - backend_upload:/app/build/upload
                 depends_on:
                   mysql_db:
                     condition: service_healthy
@@ -175,6 +177,7 @@ jobs:
                   - app_network
             volumes:
               mysql_data:
+              backend_upload:
             networks:
               app_network:
                 driver: bridge

@@ -22,9 +22,9 @@ module.exports = {
         define: { freezeTableName: true },
     },
     docker_production: {
-        username: process.env.DB_USER || 'root',
-        password: process.env.DB_PASS || '12345',
-        database: process.env.DB_NAME || 'userstatus',
+        username: process.env.DB_USERNAME || 'root',
+        password: process.env.DB_PASSWORD || '12345',
+        database: process.env.DB_DATABASE || 'userstatus',
         host: process.env.DB_HOST || 'mysql_db',
         dialect: 'mysql',
         timezone: '+07:00',
