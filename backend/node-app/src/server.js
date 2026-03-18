@@ -15,7 +15,8 @@ app.use((req, res, next) => {
     res.on('finish', () => {
         const ms = Date.now() - start;
         const level = res.statusCode >= 500 ? 'ERROR' : res.statusCode >= 400 ? 'WARN' : 'INFO';
-        console.log(`[${level}] ${new Date().toISOString()} ${req.method} ${req.originalUrl} ${res.statusCode} ${ms}ms`);
+        const origin = req.headers.origin || req.headers.referer || '-';
+        console.log(`[${level}] ${new Date().toISOString()} ${req.method} ${req.originalUrl} ${res.statusCode} ${ms}ms | origin: ${origin}`);
     });
     next();
 });
