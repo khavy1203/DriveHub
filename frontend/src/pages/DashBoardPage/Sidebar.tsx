@@ -13,7 +13,7 @@ interface NavItem {
 
 const NAV_ITEMS: NavItem[] = [
   { label: 'Tổng quan',    icon: 'dashboard',      to: '/dashboard/exam-results' },
-  { label: 'Tra cứu GPLX', icon: 'manage_search',  to: '/traffic-check' },
+  { label: 'Tra cứu GPLX', icon: 'manage_search',  to: '/license-check' },
   {
     label: 'Cài đặt', icon: 'settings',
     children: [

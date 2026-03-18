@@ -107,7 +107,7 @@
     flex-direction: column;
     justify-content: flex-start;
     height: 100%;
-    gap: 5px;
+    gap: 0px;
     margin: 3%;
 }
 
@@ -622,7 +622,7 @@ button:hover {
     }
 }
 
-.virtual-dpad, .virtual-numpad, .virtual-note {
+.virtual-controls, .virtual-dpad, .virtual-numpad, .virtual-note {
     display: none;
 }
 
@@ -683,13 +683,14 @@ button:hover {
         height: 100vh;
         display: flex;
         flex-direction: column;
-        overflow: visible;
+        justify-content: space-between;
+        overflow: hidden;
     }
 
     .sidebar-section .top {
-        flex: 1;
-        overflow-y: auto;
-        overflow-x: hidden;
+        flex: 0 0 93%;
+        overflow: hidden;
+        min-height: 0;
         padding-bottom: 0;
     }
 
@@ -710,9 +711,24 @@ button:hover {
 
     .question-nav-container {
         display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 1px;
+        grid-template-columns: repeat(var(--question-column-count, 1), minmax(0, 1fr));
+        gap: 2px;
         margin: 0 1px;
+        padding-bottom: 0;
+        flex: 1;
+        min-height: 0;
+        overflow-y: auto;
+        overflow-x: hidden;
+        scrollbar-width: none;
+        -ms-overflow-style: none;
+    }
+
+    .question-nav-container::-webkit-scrollbar {
+        display: none;
+    }
+
+    .question-nav {
+        margin: 0;
     }
 
     .question-btn {
@@ -751,11 +767,18 @@ button:hover {
     }
 
     .end-exam-btn {
-        padding: 2px;
-        font-size: 11px;
-        height: 22px;
-        margin-top: 0;
+        position: static;
+        z-index: auto;
+        width: 100%;
+        min-width: 0;
+        max-width: none;
+        flex: 0 0 7%;
+        min-height: 26px;
+        height: auto;
+        margin: 0;
         border-radius: 0;
+        padding: 4px 6px;
+        font-size: 11px;
     }
 
     .mobile-current-question-info {
@@ -788,13 +811,26 @@ button:hover {
         display: none !important;
     }
 
+    .virtual-controls {
+        display: flex;
+        position: fixed;
+        left: 12px;
+        right: calc(20% + 8px);
+        bottom: 18px;
+        z-index: 100;
+        justify-content: space-around;
+        align-items: flex-end;
+        pointer-events: none;
+    }
+    .virtual-controls__dpad,
+    .virtual-controls__numpad {
+        pointer-events: auto;
+    }
     .virtual-dpad {
         display: flex;
         flex-direction: column;
         align-items: center;
-        position: fixed;
-        bottom: 18px;
-        left: 22px;
+        position: static;
         z-index: 100;
         transform: scale(0.82);
         transform-origin: bottom left;
@@ -843,9 +879,7 @@ button:hover {
         display: flex;
         flex-direction: column;
         gap: 8px;
-        position: fixed;
-        bottom: 18px;
-        right: calc(20% + 8px);
+        position: static;
         z-index: 100;
         opacity: 0.95;
         transform: scale(0.82);
@@ -885,6 +919,7 @@ button:hover {
         .question-nav-container {
             gap: 1px;
             margin: 0;
+            padding-bottom: 1px;
         }
         .question-btn {
             height: 14px;
@@ -908,9 +943,14 @@ button:hover {
         }
 
         .end-exam-btn {
-            height: 18px;
+            width: 100%;
+            min-width: 0;
+            max-width: none;
+            flex: 0 0 7%;
+            min-height: 18px;
+            height: auto;
             font-size: 8px;
-            padding: 1px;
+            padding: 1px 2px;
         }
 
         .virtual-note {
@@ -918,16 +958,17 @@ button:hover {
             padding: 1px 10px;
         }
 
-        .virtual-dpad {
+        .virtual-controls {
+            left: 8px;
+            right: calc(19% + 6px);
             bottom: 8px;
-            left: 12px;
+        }
+        .virtual-dpad {
             transform: scale(0.62) !important;
             transform-origin: bottom left;
             gap: 3px;
         }
         .virtual-numpad {
-            bottom: 8px;
-            right: calc(19% + 6px);
             transform: scale(0.62) !important;
             transform-origin: bottom right;
             gap: 5px;

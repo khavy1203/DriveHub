@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useMemo, useState, useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from "react-router-dom";
 import { ThiSinh, Test, ApiResponse, Subject, Question, Student } from "../../../interfaces";
 import useApiService from "../../../services/useApiService";
@@ -30,16 +30,35 @@ const FinalExamForm: React.FC = () => {
   const [nextSubjectName, setNextSubjectName] = useState<string | null>(null);
   const [untestedSubjects, setUntestedSubjects] = useState<Subject[]>([]); // Lưu danh sách môn chưa thi
   
-  const [itemsPerColumn, setItemsPerColumn] = useState(10);
+  const [isMobileExamLayout, setIsMobileExamLayout] = useState(false);
+  const MAX_ITEMS_PER_COLUMN = 15;
 
   useEffect(() => {
     const handleResize = () => {
-      setItemsPerColumn(window.innerWidth <= 950 ? 15 : 10);
+      setIsMobileExamLayout(window.innerWidth <= 950);
     };
+
     handleResize();
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, []);
+
+  const apiItemsPerColumn = Number((subject as any)?.itemsPerColumn || (subject as any)?.questionPerColumn || 0);
+  const mobileItemsPerColumn = apiItemsPerColumn > 0
+    ? Math.min(apiItemsPerColumn, MAX_ITEMS_PER_COLUMN)
+    : MAX_ITEMS_PER_COLUMN;
+  const itemsPerColumn = isMobileExamLayout ? mobileItemsPerColumn : 10;
+
+  const questionColumns = useMemo(() => {
+    const columns: Array<{ start: number; items: any[] }> = [];
+    for (let start = 0; start < arrQuestion.length; start += itemsPerColumn) {
+      columns.push({
+        start,
+        items: arrQuestion.slice(start, start + itemsPerColumn),
+      });
+    }
+    return columns;
+  }, [arrQuestion, itemsPerColumn]);
 
   const [showMobileList, setShowMobileList] = useState<boolean>(false);
   // Khởi tạo bài thi ban đầu
@@ -385,17 +404,23 @@ const FinalExamForm: React.FC = () => {
       </div>
       
       <div className={`exam-container`}>
-        <VirtualDPad 
-          currentQuestion={currentQuestion} 
-          itemsPerColumn={itemsPerColumn} 
-          totalQuestions={arrQuestion.length} 
-          onQuestionChange={handleQuestionChange} 
-        />
-        <VirtualNumpad 
-          currentQuestion={currentQuestion} 
-          selectedOptions={selectedOptions} 
-          toggleOption={toggleOption} 
-        />
+        <div className="virtual-controls">
+          <div className="virtual-controls__dpad">
+            <VirtualDPad
+              currentQuestion={currentQuestion}
+              itemsPerColumn={itemsPerColumn}
+              totalQuestions={arrQuestion.length}
+              onQuestionChange={handleQuestionChange}
+            />
+          </div>
+          <div className="virtual-controls__numpad">
+            <VirtualNumpad
+              currentQuestion={currentQuestion}
+              selectedOptions={selectedOptions}
+              toggleOption={toggleOption}
+            />
+          </div>
+        </div>
 
         <div className="left-exam">
         <div className="virtual-note">
@@ -447,11 +472,14 @@ const FinalExamForm: React.FC = () => {
                 <span>{formatTime(timeRemaining)}</span>
               )}</span>
             </div>
-            <div className="question-nav-container">
-              {Array.from({ length: Math.ceil(arrQuestion.length / itemsPerColumn) }).map((_, columnIndex) => (
+            <div
+              className="question-nav-container"
+              style={{ ['--question-column-count' as any]: questionColumns.length || 1 }}
+            >
+              {questionColumns.map((column, columnIndex) => (
                 <div className="question-nav" key={columnIndex}>
-                  {arrQuestion.slice(columnIndex * itemsPerColumn, columnIndex * itemsPerColumn + itemsPerColumn).map((_, questionIndex) => {
-                    const globalIndex = columnIndex * itemsPerColumn + questionIndex;
+                  {column.items.map((_, questionIndex) => {
+                    const globalIndex = column.start + questionIndex;
                     return (
                       <div
                         key={globalIndex}
@@ -466,7 +494,7 @@ const FinalExamForm: React.FC = () => {
                               <input
                                 type="checkbox"
                                 checked={selectedOptions[globalIndex]?.includes(optIndex + 1)}
-                                onChange={() => toggleOption(currentQuestion, optIndex + 1)}
+                                onChange={() => toggleOption(globalIndex, optIndex + 1)}
                               />
                             </div>
                           ))}
