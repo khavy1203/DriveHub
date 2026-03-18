@@ -1,51 +1,31 @@
-import React, { useEffect } from 'react';
-import { useForm } from 'react-hook-form';
+import React, { FormEventHandler } from 'react';
+import { FieldErrors, UseFormRegister } from 'react-hook-form';
 
 import { LicenseLookupFormValues } from '../types';
 
 interface LicenseLookupFormProps {
+  register: UseFormRegister<LicenseLookupFormValues>;
+  errors: FieldErrors<LicenseLookupFormValues>;
+  onSubmit: FormEventHandler<HTMLFormElement>;
+  onRefreshCaptcha: () => void;
   captchaImageBase64: string | null;
   captchaLoading: boolean;
   lookupLoading: boolean;
   errorMessage: string | null;
-  prefilledCaptchaCode: string;
-  onRefreshCaptcha: () => void;
-  onSubmitLookup: (values: LicenseLookupFormValues) => void;
 }
 
 const LicenseLookupForm: React.FC<LicenseLookupFormProps> = ({
+  register,
+  errors,
+  onSubmit,
+  onRefreshCaptcha,
   captchaImageBase64,
   captchaLoading,
   lookupLoading,
   errorMessage,
-  prefilledCaptchaCode,
-  onRefreshCaptcha,
-  onSubmitLookup,
 }) => {
-  const {
-    register,
-    handleSubmit,
-    setValue,
-    resetField,
-    formState: { errors },
-  } = useForm<LicenseLookupFormValues>({
-    defaultValues: {
-      identityNumber: '',
-      captchaCode: '',
-    },
-  });
-
-  useEffect(() => {
-    setValue('captchaCode', prefilledCaptchaCode || '');
-  }, [prefilledCaptchaCode, setValue]);
-
-  const handleRefreshCaptcha = () => {
-    resetField('captchaCode');
-    onRefreshCaptcha();
-  };
-
   return (
-    <form onSubmit={handleSubmit(onSubmitLookup)}>
+    <form onSubmit={onSubmit}>
       <div className="tc-field-group">
         <label>Số CMND / CCCD / Hộ chiếu</label>
         <div className="tc-input-wrapper">
@@ -73,13 +53,13 @@ const LicenseLookupForm: React.FC<LicenseLookupFormProps> = ({
             ) : captchaImageBase64 ? (
               <img src={captchaImageBase64} alt="captcha" className="tc-captcha-img" />
             ) : (
-              <div className="tc-captcha-img tc-captcha-empty" onClick={handleRefreshCaptcha}>Nhấn để tải</div>
+              <div className="tc-captcha-img tc-captcha-empty" onClick={onRefreshCaptcha}>Nhấn để tải</div>
             )}
 
             <button
               type="button"
               className="tc-captcha-refresh"
-              onClick={handleRefreshCaptcha}
+              onClick={onRefreshCaptcha}
               disabled={captchaLoading}
               title="Làm mới captcha"
             >
