@@ -142,7 +142,7 @@ jobs:
                   - MEZON_AUTHORIZE_URL=${MEZON_AUTHORIZE_URL}
                   - MEZON_TOKEN_URL=${MEZON_TOKEN_URL}
                   - MEZON_USERINFO_URL=${MEZON_USERINFO_URL}
-                  - REDIRECT_URI=${REDIRECT_URI}
+                  - REACT_APP_MEZON_REDIRECT_URI=${REACT_APP_MEZON_REDIRECT_URI}
                   - CORS_ORIGINS=${CORS_ORIGINS}
                   - DB_HOST=mysql_db
                   - DB_PORT=3306

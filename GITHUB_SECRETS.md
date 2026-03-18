@@ -19,7 +19,7 @@
 | Secret | Giá trị |
 |--------|---------|
 | `REACT_APP_API_URL` | URL backend production, ví dụ: `https://www.driverhub.io.vn` |
-| `REACT_APP_MEZON_REDIRECT_URI` | `https://www.driverhub.io.vn/mezon-callback` |
+| `REACT_APP_MEZON_REDIRECT_URI` | `https://www.driverhub.io.vn/account/login/callback ` |
 | `MEZON_CLIENT_ID` | Client ID từ Mezon Developer Portal |
 | `MEZON_AUTHORIZE_URL` | `https://oauth2.mezon.ai/oauth2/auth` |
 
