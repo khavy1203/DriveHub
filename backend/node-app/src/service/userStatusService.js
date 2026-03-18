@@ -881,6 +881,16 @@ const resetall = async () => {
     }
 };
 
+const resetStudentExams = async (IDThiSinh) => {
+    try {
+        await db.exam.destroy({ where: { IDThisinh: IDThiSinh } });
+        await db.thisinh.update({ IDprocesstest: 1 }, { where: { IDThiSinh } });
+        return { EM: 'Reset thí sinh thành công', EC: 0, DT: [] };
+    } catch (error) {
+        return { EM: 'Lỗi server', EC: -1, DT: [] };
+    }
+};
+
 export default {
     getInfoStudents,
     createStatus,
@@ -899,5 +909,6 @@ export default {
     getTokenNLTB_LOCAL,
     updateProcesstest,
     resetall,
-    deleteKhoaHoc
+    deleteKhoaHoc,
+    resetStudentExams
 };

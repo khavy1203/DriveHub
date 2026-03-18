@@ -74,6 +74,7 @@ const initWebRoutes = (app) => {
     routes.post("/students/status/bulk", userStatusController.bulkUpdateStudentStatus);
     routes.post("/students/update-processtest", userStatusController.updateProcesstest);
     routes.post("/students/resetall", userStatusController.resetall);
+    routes.delete("/students/:id/exams", userStatusController.resetStudentExams);
     routes.post("/students/update-print-status", studentController.updatePrintStatus);
 
 
