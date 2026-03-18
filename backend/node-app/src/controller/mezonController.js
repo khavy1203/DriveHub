@@ -97,13 +97,14 @@ const createDefaultProfileIfNeeded = async ({ mezonId, email, username }) => {
 
 const exchangeCode = async (req, res) => {
     try {
-        const { code, state, redirect_uri } = req.body || {};
+        const { code, state } = req.body || {};
+        const redirect_uri = requireEnv('REDIRECT_URI'); // Luôn dùng URI cứng từ server
 
-        if (!code || !state || !redirect_uri) {
+        if (!code || !state) {
             return res.status(400).json({
                 error: 'invalid_request',
                 details: {
-                    message: 'Missing required fields: code, state, redirect_uri',
+                    message: 'Missing required fields: code, state',
                 },
             });
         }
@@ -113,15 +114,6 @@ const exchangeCode = async (req, res) => {
                 error: 'invalid_state',
                 details: {
                     message: 'state must be exactly 11 alphanumeric characters',
-                },
-            });
-        }
-
-        if (process.env.REDIRECT_URI && redirect_uri !== process.env.REDIRECT_URI) {
-            return res.status(400).json({
-                error: 'invalid_redirect_uri',
-                details: {
-                    message: 'redirect_uri does not match server configuration',
                 },
             });
         }
