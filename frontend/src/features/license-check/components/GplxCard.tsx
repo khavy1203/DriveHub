@@ -1,4 +1,4 @@
-﻿import React from 'react';
+import React from 'react';
 import { GplxCardProps } from '../types';
 
 const GplxCard: React.FC<GplxCardProps> = ({ record, index }) => {
