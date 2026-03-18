@@ -53,6 +53,30 @@ const FinalExamForm: React.FC = () => {
     return columns;
   }, [arrQuestion, itemsPerColumn]);
 
+  const desktopExamLayoutStyle = useMemo(() => {
+    const isDesktopLayout = itemsPerColumn === 10;
+    const viewportWidth = typeof window !== 'undefined' ? window.innerWidth : 1024;
+    const desktopExtraColumns = Math.max(0, questionColumns.length - 3);
+    const desktopRightExamWidth = isDesktopLayout ? Math.min(42, 25 + desktopExtraColumns * 6) : 25;
+    const desktopRightExamMinWidth = isDesktopLayout ? 400 + desktopExtraColumns * 90 : 400;
+
+    const mobileExtraColumns = Math.max(0, questionColumns.length - 2);
+    const isNarrowMobileLandscape = !isDesktopLayout && viewportWidth <= 740;
+    const mobileRightExamWidth = isNarrowMobileLandscape
+      ? (questionColumns.length <= 3 ? 30 : questionColumns.length === 4 ? 34 : 36)
+      : Math.min(34, 20 + mobileExtraColumns * 6);
+    const mobileRightExamMinWidth = isNarrowMobileLandscape
+      ? Math.min(260, questionColumns.length * 58 + Math.max(0, questionColumns.length - 1) * 4 + 12)
+      : Math.min(220, 145 + mobileExtraColumns * 30);
+
+    return {
+      ['--right-exam-width' as any]: `${desktopRightExamWidth}%`,
+      ['--right-exam-min-width' as any]: `${desktopRightExamMinWidth}px`,
+      ['--mobile-right-exam-width' as any]: `${mobileRightExamWidth}%`,
+      ['--mobile-right-exam-min-width' as any]: `${mobileRightExamMinWidth}px`,
+    };
+  }, [itemsPerColumn, questionColumns.length]);
+
   const [showMobileList, setShowMobileList] = useState<boolean>(false);
   // Khởi tạo bài thi ban đầu
   useEffect(() => {
@@ -396,7 +420,7 @@ const FinalExamForm: React.FC = () => {
         </div>
       </div>
       
-      <div className={`exam-container`}>
+      <div className={`exam-container`} style={desktopExamLayoutStyle}>
         <div className="virtual-controls">
           <div className="virtual-controls__dpad">
             <VirtualDPad
