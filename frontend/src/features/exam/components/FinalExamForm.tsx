@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useMemo, useState, useEffect, useRef, CSSProperties } from 'react';
 import { useNavigate, useLocation } from "react-router-dom";
 import { ThiSinh, Test, ApiResponse, Subject, Question, Student } from "../../../interfaces";
 import useApiService from "../../../services/useApiService";
@@ -7,6 +7,44 @@ import { toast } from 'react-toastify';
 import './FinalExamForm.scss';
 import { VirtualDPad } from './VirtualDPad';
 import { VirtualNumpad } from './VirtualNumpad';
+
+const DESKTOP_ITEMS_PER_COLUMN = 10;
+const MOBILE_NARROW_LANDSCAPE_WIDTH = 740;
+
+const getDesktopRightPanelLayout = (columnCount: number) => {
+  const extraColumns = Math.max(0, columnCount - 3);
+  return {
+    widthPercent: Math.min(42, 25 + extraColumns * 6),
+    minWidthPx: 400 + extraColumns * 90,
+  };
+};
+
+const getMobileRightPanelLayout = (columnCount: number, viewportWidth: number) => {
+  const isNarrowMobileLandscape = viewportWidth <= MOBILE_NARROW_LANDSCAPE_WIDTH;
+
+  if (isNarrowMobileLandscape) {
+    return {
+      widthPercent: columnCount <= 3 ? 30 : columnCount === 4 ? 34 : 36,
+      minWidthPx: Math.min(260, columnCount * 58 + Math.max(0, columnCount - 1) * 4 + 12),
+    };
+  }
+
+  const extraColumns = Math.max(0, columnCount - 2);
+  return {
+    widthPercent: Math.min(34, 20 + extraColumns * 6),
+    minWidthPx: Math.min(220, 145 + extraColumns * 30),
+  };
+};
+
+const buildExamLayoutStyleVars = (
+  desktopLayout: { widthPercent: number; minWidthPx: number },
+  mobileLayout: { widthPercent: number; minWidthPx: number }
+): CSSProperties => ({
+  ['--right-exam-width' as any]: `${desktopLayout.widthPercent}%`,
+  ['--right-exam-min-width' as any]: `${desktopLayout.minWidthPx}px`,
+  ['--mobile-right-exam-width' as any]: `${mobileLayout.widthPercent}%`,
+  ['--mobile-right-exam-min-width' as any]: `${mobileLayout.minWidthPx}px`,
+});
 
 const FinalExamForm: React.FC = () => {
   const { get, post, put, del } = useApiService();
@@ -36,10 +74,38 @@ const FinalExamForm: React.FC = () => {
     const handleResize = () => {
       setItemsPerColumn(window.innerWidth <= 950 ? 15 : 10);
     };
+
     handleResize();
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, []);
+
+  const questionColumns = useMemo(() => {
+    const columns: Array<{ start: number; items: any[] }> = [];
+    for (let start = 0; start < arrQuestion.length; start += itemsPerColumn) {
+      columns.push({
+        start,
+        items: arrQuestion.slice(start, start + itemsPerColumn),
+      });
+    }
+    return columns;
+  }, [arrQuestion, itemsPerColumn]);
+
+  const desktopExamLayoutStyle = useMemo(() => {
+    const isDesktopLayout = itemsPerColumn === DESKTOP_ITEMS_PER_COLUMN;
+    const viewportWidth = typeof window !== 'undefined' ? window.innerWidth : 1024;
+    const columnCount = questionColumns.length;
+
+    const desktopLayout = isDesktopLayout
+      ? getDesktopRightPanelLayout(columnCount)
+      : { widthPercent: 25, minWidthPx: 400 };
+
+    const mobileLayout = isDesktopLayout
+      ? { widthPercent: 20, minWidthPx: 145 }
+      : getMobileRightPanelLayout(columnCount, viewportWidth);
+
+    return buildExamLayoutStyleVars(desktopLayout, mobileLayout);
+  }, [itemsPerColumn, questionColumns.length]);
 
   const [showMobileList, setShowMobileList] = useState<boolean>(false);
   // Khởi tạo bài thi ban đầu
@@ -384,18 +450,24 @@ const FinalExamForm: React.FC = () => {
         </div>
       </div>
       
-      <div className={`exam-container`}>
-        <VirtualDPad 
-          currentQuestion={currentQuestion} 
-          itemsPerColumn={itemsPerColumn} 
-          totalQuestions={arrQuestion.length} 
-          onQuestionChange={handleQuestionChange} 
-        />
-        <VirtualNumpad 
-          currentQuestion={currentQuestion} 
-          selectedOptions={selectedOptions} 
-          toggleOption={toggleOption} 
-        />
+      <div className={`exam-container`} style={desktopExamLayoutStyle}>
+        <div className="virtual-controls">
+          <div className="virtual-controls__dpad">
+            <VirtualDPad
+              currentQuestion={currentQuestion}
+              itemsPerColumn={itemsPerColumn}
+              totalQuestions={arrQuestion.length}
+              onQuestionChange={handleQuestionChange}
+            />
+          </div>
+          <div className="virtual-controls__numpad">
+            <VirtualNumpad
+              currentQuestion={currentQuestion}
+              selectedOptions={selectedOptions}
+              toggleOption={toggleOption}
+            />
+          </div>
+        </div>
 
         <div className="left-exam">
         <div className="virtual-note">
@@ -447,11 +519,14 @@ const FinalExamForm: React.FC = () => {
                 <span>{formatTime(timeRemaining)}</span>
               )}</span>
             </div>
-            <div className="question-nav-container">
-              {Array.from({ length: Math.ceil(arrQuestion.length / itemsPerColumn) }).map((_, columnIndex) => (
+            <div
+              className="question-nav-container"
+              style={{ ['--question-column-count' as any]: questionColumns.length || 1 }}
+            >
+              {questionColumns.map((column, columnIndex) => (
                 <div className="question-nav" key={columnIndex}>
-                  {arrQuestion.slice(columnIndex * itemsPerColumn, columnIndex * itemsPerColumn + itemsPerColumn).map((_, questionIndex) => {
-                    const globalIndex = columnIndex * itemsPerColumn + questionIndex;
+                  {column.items.map((_, questionIndex) => {
+                    const globalIndex = column.start + questionIndex;
                     return (
                       <div
                         key={globalIndex}
@@ -466,7 +541,7 @@ const FinalExamForm: React.FC = () => {
                               <input
                                 type="checkbox"
                                 checked={selectedOptions[globalIndex]?.includes(optIndex + 1)}
-                                onChange={() => toggleOption(currentQuestion, optIndex + 1)}
+                                onChange={() => toggleOption(globalIndex, optIndex + 1)}
                               />
                             </div>
                           ))}

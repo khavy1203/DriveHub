@@ -47,7 +47,7 @@ const MezonSection: React.FC = () => {
                 <i className="material-icons">quiz</i>
                 Thi thử ngay
               </a>
-              <a href="/#/traffic-check" className="hp-btn hp-btn--white">
+              <a href="/#/license-check" className="hp-btn hp-btn--white">
                 <i className="material-icons">search</i>
                 Tra cứu GPLX
               </a>
