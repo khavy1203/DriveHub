@@ -1,4 +1,4 @@
-import React, { useMemo, useState, useEffect, useRef } from 'react';
+import React, { useMemo, useState, useEffect, useRef, CSSProperties } from 'react';
 import { useNavigate, useLocation } from "react-router-dom";
 import { ThiSinh, Test, ApiResponse, Subject, Question, Student } from "../../../interfaces";
 import useApiService from "../../../services/useApiService";
@@ -7,6 +7,44 @@ import { toast } from 'react-toastify';
 import './FinalExamForm.scss';
 import { VirtualDPad } from './VirtualDPad';
 import { VirtualNumpad } from './VirtualNumpad';
+
+const DESKTOP_ITEMS_PER_COLUMN = 10;
+const MOBILE_NARROW_LANDSCAPE_WIDTH = 740;
+
+const getDesktopRightPanelLayout = (columnCount: number) => {
+  const extraColumns = Math.max(0, columnCount - 3);
+  return {
+    widthPercent: Math.min(42, 25 + extraColumns * 6),
+    minWidthPx: 400 + extraColumns * 90,
+  };
+};
+
+const getMobileRightPanelLayout = (columnCount: number, viewportWidth: number) => {
+  const isNarrowMobileLandscape = viewportWidth <= MOBILE_NARROW_LANDSCAPE_WIDTH;
+
+  if (isNarrowMobileLandscape) {
+    return {
+      widthPercent: columnCount <= 3 ? 30 : columnCount === 4 ? 34 : 36,
+      minWidthPx: Math.min(260, columnCount * 58 + Math.max(0, columnCount - 1) * 4 + 12),
+    };
+  }
+
+  const extraColumns = Math.max(0, columnCount - 2);
+  return {
+    widthPercent: Math.min(34, 20 + extraColumns * 6),
+    minWidthPx: Math.min(220, 145 + extraColumns * 30),
+  };
+};
+
+const buildExamLayoutStyleVars = (
+  desktopLayout: { widthPercent: number; minWidthPx: number },
+  mobileLayout: { widthPercent: number; minWidthPx: number }
+): CSSProperties => ({
+  ['--right-exam-width' as any]: `${desktopLayout.widthPercent}%`,
+  ['--right-exam-min-width' as any]: `${desktopLayout.minWidthPx}px`,
+  ['--mobile-right-exam-width' as any]: `${mobileLayout.widthPercent}%`,
+  ['--mobile-right-exam-min-width' as any]: `${mobileLayout.minWidthPx}px`,
+});
 
 const FinalExamForm: React.FC = () => {
   const { get, post, put, del } = useApiService();
@@ -54,27 +92,19 @@ const FinalExamForm: React.FC = () => {
   }, [arrQuestion, itemsPerColumn]);
 
   const desktopExamLayoutStyle = useMemo(() => {
-    const isDesktopLayout = itemsPerColumn === 10;
+    const isDesktopLayout = itemsPerColumn === DESKTOP_ITEMS_PER_COLUMN;
     const viewportWidth = typeof window !== 'undefined' ? window.innerWidth : 1024;
-    const desktopExtraColumns = Math.max(0, questionColumns.length - 3);
-    const desktopRightExamWidth = isDesktopLayout ? Math.min(42, 25 + desktopExtraColumns * 6) : 25;
-    const desktopRightExamMinWidth = isDesktopLayout ? 400 + desktopExtraColumns * 90 : 400;
+    const columnCount = questionColumns.length;
 
-    const mobileExtraColumns = Math.max(0, questionColumns.length - 2);
-    const isNarrowMobileLandscape = !isDesktopLayout && viewportWidth <= 740;
-    const mobileRightExamWidth = isNarrowMobileLandscape
-      ? (questionColumns.length <= 3 ? 30 : questionColumns.length === 4 ? 34 : 36)
-      : Math.min(34, 20 + mobileExtraColumns * 6);
-    const mobileRightExamMinWidth = isNarrowMobileLandscape
-      ? Math.min(260, questionColumns.length * 58 + Math.max(0, questionColumns.length - 1) * 4 + 12)
-      : Math.min(220, 145 + mobileExtraColumns * 30);
+    const desktopLayout = isDesktopLayout
+      ? getDesktopRightPanelLayout(columnCount)
+      : { widthPercent: 25, minWidthPx: 400 };
 
-    return {
-      ['--right-exam-width' as any]: `${desktopRightExamWidth}%`,
-      ['--right-exam-min-width' as any]: `${desktopRightExamMinWidth}px`,
-      ['--mobile-right-exam-width' as any]: `${mobileRightExamWidth}%`,
-      ['--mobile-right-exam-min-width' as any]: `${mobileRightExamMinWidth}px`,
-    };
+    const mobileLayout = isDesktopLayout
+      ? { widthPercent: 20, minWidthPx: 145 }
+      : getMobileRightPanelLayout(columnCount, viewportWidth);
+
+    return buildExamLayoutStyleVars(desktopLayout, mobileLayout);
   }, [itemsPerColumn, questionColumns.length]);
 
   const [showMobileList, setShowMobileList] = useState<boolean>(false);
