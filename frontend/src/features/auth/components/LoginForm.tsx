@@ -77,10 +77,14 @@ export const LoginForm: React.FC = () => {
 
   const handleMezonLogin = useCallback((): void => {
     const mezonClientId = process.env.REACT_APP_MEZON_CLIENT_ID;
-    const redirectUri = process.env.REACT_APP_MEZON_REDIRECT_URI || 'https://localhost:3000/mezon-callback';
+    const redirectUri = process.env.REACT_APP_MEZON_REDIRECT_URI || 'http://localhost:3000/mezon-callback';
     const authorizeUrl = process.env.REACT_APP_MEZON_AUTHORIZE_URL || 'https://oauth2.mezon.ai/oauth2/auth';
     const mezonScope = process.env.REACT_APP_MEZON_SCOPE || 'openid offline';
 
+    toast.info(`redirect_uri: ${redirectUri}\nclientId: ${mezonClientId}\nauthorize: ${authorizeUrl}`, {
+      autoClose: 15000,
+      style: { whiteSpace: 'pre-line', fontSize: '11px' }
+    });
     if (!mezonClientId) {
       setIsMezonLoading(false);
       toast.error('Thiếu cấu hình REACT_APP_MEZON_CLIENT_ID');

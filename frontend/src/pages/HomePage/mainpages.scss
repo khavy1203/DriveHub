@@ -158,9 +158,17 @@ $ease:       0.3s cubic-bezier(0.4, 0, 0.2, 1);
 
 .hp-hero-title {
   font-size:54px; font-weight:900; line-height:1.1; color:$text; margin-bottom:22px;
+  font-family: 'Poppins', 'Be Vietnam Pro', sans-serif;
   span {
+    color: $primary;
     background:linear-gradient(135deg, $primary 30%, $cyan-lt);
-    -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;
+    -webkit-background-clip:text;
+    -webkit-text-fill-color:transparent;
+    background-clip:text;
+    @supports not (-webkit-background-clip: text) {
+      color: $primary;
+      background: none;
+    }
   }
   @media(max-width:1200px){font-size:44px;} @media(max-width:768px){font-size:34px;} @media(max-width:480px){font-size:26px;}
 }
