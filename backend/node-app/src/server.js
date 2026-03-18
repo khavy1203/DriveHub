@@ -15,8 +15,10 @@ app.use((req, res, next) => {
     res.on('finish', () => {
         const ms = Date.now() - start;
         const level = res.statusCode >= 500 ? 'ERROR' : res.statusCode >= 400 ? 'WARN' : 'INFO';
-        const origin = req.headers.origin || req.headers.referer || '-';
-        console.log(`[${level}] ${new Date().toISOString()} ${req.method} ${req.originalUrl} ${res.statusCode} ${ms}ms | origin: ${origin}`);
+        const origin = req.headers.origin || '-';
+        const referer = req.headers.referer || '-';
+        const ua = (req.headers['user-agent'] || '-').slice(0, 80);
+        console.log(`[${level}] ${req.method} ${req.originalUrl} ${res.statusCode} ${ms}ms | origin=${origin} referer=${referer} ua=${ua}`);
     });
     next();
 });

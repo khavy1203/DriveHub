@@ -38,15 +38,16 @@ instance.interceptors.response.use(
         console.error("Server error - Có lỗi xảy ra từ phía máy chủ");
       }
     } else {
-      console.error("Network error - Kiểm tra kết nối mạng");
-      toast.error("Network error - Kiểm tra kết nối mạng", {
+      const baseUrl = getBaseUrl();
+      const requestUrl = error?.config?.url || '';
+      const method = (error?.config?.method || 'GET').toUpperCase();
+      const fullApiUrl = `${error?.config?.baseURL || baseUrl}${requestUrl}`;
+      const debugMsg = `Lỗi mạng - Không thể kết nối\n${method} ${fullApiUrl}`;
+      console.error(debugMsg);
+      toast.error(debugMsg, {
         position: "top-right",
-        autoClose: 5000,
-        hideProgressBar: false,
-        closeOnClick: true,
-        pauseOnHover: true,
-        draggable: true,
-        progress: undefined,
+        autoClose: 10000,
+        style: { whiteSpace: 'pre-line', fontSize: '12px' },
       });
     }
     return Promise.reject(error);
