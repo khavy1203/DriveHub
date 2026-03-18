@@ -30,24 +30,17 @@ const FinalExamForm: React.FC = () => {
   const [nextSubjectName, setNextSubjectName] = useState<string | null>(null);
   const [untestedSubjects, setUntestedSubjects] = useState<Subject[]>([]); // Lưu danh sách môn chưa thi
   
-  const [isMobileExamLayout, setIsMobileExamLayout] = useState(false);
-  const MAX_ITEMS_PER_COLUMN = 15;
+  const [itemsPerColumn, setItemsPerColumn] = useState(10);
 
   useEffect(() => {
     const handleResize = () => {
-      setIsMobileExamLayout(window.innerWidth <= 950);
+      setItemsPerColumn(window.innerWidth <= 950 ? 15 : 10);
     };
 
     handleResize();
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, []);
-
-  const apiItemsPerColumn = Number((subject as any)?.itemsPerColumn || (subject as any)?.questionPerColumn || 0);
-  const mobileItemsPerColumn = apiItemsPerColumn > 0
-    ? Math.min(apiItemsPerColumn, MAX_ITEMS_PER_COLUMN)
-    : MAX_ITEMS_PER_COLUMN;
-  const itemsPerColumn = isMobileExamLayout ? mobileItemsPerColumn : 10;
 
   const questionColumns = useMemo(() => {
     const columns: Array<{ start: number; items: any[] }> = [];
