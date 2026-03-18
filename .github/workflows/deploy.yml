@@ -194,7 +194,7 @@ jobs:
             MEZON_AUTHORIZE_URL=${{ secrets.MEZON_AUTHORIZE_URL }}
             MEZON_TOKEN_URL=${{ secrets.MEZON_TOKEN_URL }}
             MEZON_USERINFO_URL=${{ secrets.MEZON_USERINFO_URL }}
-            REDIRECT_URI=${{ secrets.REACT_APP_MEZON_REDIRECT_URI }}
+            REACT_APP_MEZON_REDIRECT_URI=${{ secrets.REACT_APP_MEZON_REDIRECT_URI }}
             CORS_ORIGINS=${{ secrets.CORS_ORIGINS }}
             DB_NAME=${{ secrets.DB_NAME }}
             DB_USER=${{ secrets.DB_USER }}
