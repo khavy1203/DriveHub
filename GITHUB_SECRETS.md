@@ -20,7 +20,7 @@
 |--------|---------|
 | `REACT_APP_API_URL` | URL backend production, ví dụ: `https://www.driverhub.io.vn` |
 | `REACT_APP_MEZON_REDIRECT_URI` | `https://www.driverhub.io.vn/mezon-callback` |
-| `MEZON_CLIENT_ID` | Client ID từ Mezon Developer Portal |
+| `REACT_APP_MEZON_CLIENT_ID` | Client ID từ Mezon Developer Portal |
 
 ---
 
@@ -29,7 +29,7 @@
 | Secret | Giá trị |
 |--------|---------|
 | `JWT_SECRET` | Chuỗi bất kỳ, dùng để ký JWT, ví dụ: `Khavy` |
-| `MEZON_CLIENT_ID` | Client ID từ Mezon Developer Portal |
+| `REACT_APP_MEZON_CLIENT_ID` | Client ID từ Mezon Developer Portal |
 | `MEZON_CLIENT_SECRET` | Client Secret từ Mezon Developer Portal |
 | `MEZON_AUTHORIZE_URL` | `https://oauth2.mezon.ai/oauth2/auth` |
 | `MEZON_TOKEN_URL` | `https://oauth2.mezon.ai/oauth2/token` |
@@ -52,6 +52,6 @@
 ## Lưu ý
 
 - `REACT_APP_MEZON_REDIRECT_URI` dùng cho **cả frontend lẫn backend** (`REACT_APP_MEZON_REDIRECT_URI` trong docker-compose)
-- `MEZON_CLIENT_ID` và `MEZON_AUTHORIZE_URL` dùng cho **cả frontend lẫn backend**
+- `REACT_APP_MEZON_CLIENT_ID` và `MEZON_AUTHORIZE_URL` dùng cho **cả frontend lẫn backend**
 - Sau khi sửa secret liên quan đến frontend → phải **push code mới** để rebuild Docker image
 - Sau khi sửa secret liên quan đến backend/DB → chỉ cần **re-run pipeline** là đủ

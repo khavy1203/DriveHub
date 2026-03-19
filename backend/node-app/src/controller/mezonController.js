@@ -118,7 +118,7 @@ const exchangeCode = async (req, res) => {
             });
         }
 
-        const clientId = requireEnv('MEZON_CLIENT_ID');
+        const clientId = requireEnv('REACT_APP_MEZON_CLIENT_ID');
         const clientSecret = requireEnv('MEZON_CLIENT_SECRET');
 
         const tokenUrl = requireEnv('MEZON_TOKEN_URL');

@@ -49,7 +49,7 @@ jobs:
           build-args: |
             REACT_APP_API_URL=${{ secrets.REACT_APP_API_URL }}
             REACT_APP_MEZON_REDIRECT_URI=${{ secrets.REACT_APP_MEZON_REDIRECT_URI }}
-            REACT_APP_MEZON_CLIENT_ID=${{ secrets.MEZON_CLIENT_ID }}
+            REACT_APP_MEZON_CLIENT_ID=${{ secrets.REACT_APP_MEZON_CLIENT_ID }}
             REACT_APP_MEZON_AUTHORIZE_URL=${{ secrets.REACT_APP_MEZON_AUTHORIZE_URL }}
             REACT_APP_MEZON_SCOPE=openid offline
             REACT_APP_BUILD=production
@@ -137,7 +137,7 @@ jobs:
                   - NODE_ENV=production
                   - PORT=8080
                   - JWT_SECRET=${JWT_SECRET}
-                  - MEZON_CLIENT_ID=${MEZON_CLIENT_ID}
+                  - REACT_APP_MEZON_CLIENT_ID=${REACT_APP_MEZON_CLIENT_ID}
                   - MEZON_CLIENT_SECRET=${MEZON_CLIENT_SECRET}
                   - MEZON_TOKEN_URL=${MEZON_TOKEN_URL}
                   - MEZON_USERINFO_URL=${MEZON_USERINFO_URL}
@@ -189,12 +189,15 @@ jobs:
             # Write production .env
             cat > .env << 'ENVEOF'
             JWT_SECRET=${{ secrets.JWT_SECRET }}
-            MEZON_CLIENT_ID=${{ secrets.MEZON_CLIENT_ID }}
+            MEZON_CLIENT_ID=${{ secrets.REACT_APP_MEZON_CLIENT_ID }}
             MEZON_CLIENT_SECRET=${{ secrets.MEZON_CLIENT_SECRET }}
             MEZON_TOKEN_URL=${{ secrets.MEZON_TOKEN_URL }}
             MEZON_USERINFO_URL=${{ secrets.MEZON_USERINFO_URL }}
-            REACT_APP_MEZON_REDIRECT_URI=${{ secrets.REACT_APP_MEZON_REDIRECT_URI }}
+            MEZON_TIMEOUT_MS=${{ secrets.MEZON_TIMEOUT_MS }}
+            REDIRECT_URI=${{ secrets.REACT_APP_MEZON_REDIRECT_URI }}
             CORS_ORIGINS=${{ secrets.CORS_ORIGINS }}
+            COOKIE_SECURE=${{ secrets.COOKIE_SECURE }}
+            SESSION_TTL_MS=${{ secrets.SESSION_TTL_MS }}
             DB_NAME=${{ secrets.DB_NAME }}
             DB_USER=${{ secrets.DB_USER }}
             DB_PASS=${{ secrets.DB_PASS }}
