@@ -33,6 +33,11 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.INTEGER,
       allowNull: true,
     },
+    totalOptions: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+      defaultValue: 4,
+    },
   }, {
     sequelize,
     modelName: 'question',

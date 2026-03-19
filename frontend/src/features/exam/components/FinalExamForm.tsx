@@ -8,6 +8,11 @@ import './FinalExamForm.scss';
 import { VirtualDPad } from './VirtualDPad';
 import { VirtualNumpad } from './VirtualNumpad';
 
+// Câu điểm liệt theo hạng — sai 1 câu bất kỳ → TRƯỢT dù đủ điểm
+// Tên hạng lấy đúng từ bảng rank trong DB: 'A', 'A1m', 'Am'
+const DIEM_LIET_NUMS = [19, 20, 21, 22, 24, 26, 27, 28, 30, 47, 48, 52, 53, 63, 64, 65, 68, 70, 71, 72];
+const DIEM_LIET_RANKS = new Set(['A', 'A1m', 'Am']);
+
 const DESKTOP_ITEMS_PER_COLUMN = 10;
 const MOBILE_NARROW_LANDSCAPE_WIDTH = 740;
 
@@ -69,6 +74,7 @@ const FinalExamForm: React.FC = () => {
   const [testCode, setTestCode] = useState<string | null>(null);
   const [nextSubjectName, setNextSubjectName] = useState<string | null>(null);
   const [untestedSubjects, setUntestedSubjects] = useState<Subject[]>([]); // Lưu danh sách môn chưa thi
+  const [criticalNote, setCriticalNote] = useState<string | null>(null);
   
   const [itemsPerColumn, setItemsPerColumn] = useState(10);
   const [isMobileLandscape, setIsMobileLandscape] = useState(false);
@@ -214,7 +220,7 @@ const FinalExamForm: React.FC = () => {
 
       const questionsTest = varArrQuestion.map((e: Question) => ({
         ...e,
-        options: ["", "", "", ""], // Đảm bảo options luôn có giá trị mặc định
+        options: Array((e as any).totalOptions || 4).fill(""),
       }));
 
       // Thiết lập tất cả state cùng lúc
@@ -346,19 +352,30 @@ const FinalExamForm: React.FC = () => {
       let calculatedScore = 0;
       const stringAnswerlist: string[] = [];
 
+      const rank = studentNow?.loaibangthi || '';
+      const hasDiemLiet = DIEM_LIET_RANKS.has(rank);
+      // { examPos: vị trí trong đề (1-based), bankNum: số trong ngân hàng }
+      const failedCritical: { examPos: number; bankNum: number }[] = [];
+
       arrQuestion.forEach((question, index) => {
-        if (arraysAreEqual(selectedOptions[index], convertStringsToNumbers(question?.answer?.toString()?.split(',')))) {
+        const isCorrect = arraysAreEqual(selectedOptions[index], convertStringsToNumbers(question?.answer?.toString()?.split(',')));
+        if (isCorrect) {
           calculatedScore++;
+        } else if (hasDiemLiet && DIEM_LIET_NUMS.includes(question.number)) {
+          failedCritical.push({ examPos: index + 1, bankNum: question.number });
         }
         stringAnswerlist.push(selectedOptions[index].join('-'));
       });
+
+      const isFailedCritical = failedCritical.length > 0;
+      const finalResult = (calculatedScore < subject.threshold || isFailedCritical) ? "TRƯỢT" : "ĐẠT";
 
       const resCreateExam = await post<ApiResponse>("/api/exam/create-exam", {
         IDThisinh: IDThiSinh,
         IDTest: testRandom,
         answerlist: stringAnswerlist.join(','),
         point: calculatedScore,
-        result: calculatedScore < subject.threshold ? "TRƯỢT" : "ĐẠT",
+        result: finalResult,
         IDSubject: subject?.id,
       });
 
@@ -389,6 +406,9 @@ const FinalExamForm: React.FC = () => {
       setNextSubjectName(updatedUntestedSubjects.length > 0 ? updatedUntestedSubjects[0].name : null);
 
       setScore(calculatedScore);
+      setCriticalNote(isFailedCritical
+        ? `Sai câu điểm liệt: ${failedCritical.map(f => `câu số ${f.examPos}`).join(', ')}`
+        : null);
       setShowResult(true);
     } catch (error) {
       console.error("Lỗi khi ghi nhận kết quả:", error);
@@ -592,7 +612,8 @@ const FinalExamForm: React.FC = () => {
           totalQuestions={arrQuestion.length}
           correctAnswers={score}
           incorrectAnswers={arrQuestion.length - score}
-          resultStatus={score < subject!.threshold ? "TRƯỢT" : "ĐẠT"}
+          resultStatus={(score < subject!.threshold || criticalNote) ? "TRƯỢT" : "ĐẠT"}
+          criticalNote={criticalNote}
           studentInfo={{
             studentID: studentNow?.khoahoc_thisinh?.SoBaoDanh || 0,
             fullName: studentNow?.HoTen || '',

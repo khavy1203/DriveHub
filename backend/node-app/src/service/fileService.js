@@ -17,40 +17,41 @@ const createOrUpdateQuestion = async (file) => {
         const sheetName = workbook.SheetNames[0]; // Lấy sheet đầu tiên
         const sheet = workbook.Sheets[sheetName];
 
-        // Chuyển dữ liệu trong sheet thành mảng JSON
-        const data = XLSX.utils.sheet_to_json(sheet);
-        // Lấy dữ liệu hiện tại từ cơ sở dữ liệu
-        const existing600question = await db.question.findAll({
-            raw: true
-        });
+        // Chuyển dữ liệu dạng mảng các mảng (header: false) để đọc theo vị trí cột
+        const data = XLSX.utils.sheet_to_json(sheet, { header: 1 });
 
+        // Lấy dữ liệu hiện tại từ cơ sở dữ liệu
+        const existing600question = await db.question.findAll({ raw: true });
         const existing600questionMap = new Map(
             existing600question.map((t) => [t.number, t])
         );
-        // Duyệt qua từng dòng trong dữ liệu
-        for (let row of data) {
-            let name = row['Câu']; // Tên câu hỏi
-            let answerText = row['Đ.án']; // Đáp án
-            if (!!name && !!answerText) {
 
-                let numberName = parseInt(name)
-                let numberAnswer = parseInt(answerText);
+        // Bỏ qua dòng header (dòng đầu tiên)
+        const rows = data.slice(1);
 
-                if (existing600questionMap.has(numberName)) {
-                    // Nếu câu hỏi đã tồn tại, cập nhật đáp án
-                    await db.question.update(
-                        { answer: numberAnswer }, // Dữ liệu cần cập nhật
-                        { where: { number: numberName } } // Điều kiện `where`
-                    );
-                    console.log(`Cập nhật đáp án cho câu hỏi: ${numberName}`);
-                } else {
-                    // Nếu câu hỏi chưa tồn tại, tạo mới câu hỏi và đáp án
-                    await db.question.create({
-                        number: numberName,
-                        answer: numberAnswer,
-                    });
-                    console.log(`Tạo mới câu hỏi: ${name}`);
-                }
+        for (let row of rows) {
+            // Cột 1: số câu, Cột 2: đáp án đúng, Cột 3: số lượng đáp án
+            const name        = row[0]; // cột 1
+            const answerText  = row[1]; // cột 2
+            const optionCount = row[2]; // cột 3
+
+            if (!name || !answerText) continue;
+
+            const numberName    = parseInt(name);
+            const numberAnswer  = parseInt(answerText);
+            const totalOptions  = optionCount ? parseInt(optionCount) : 4;
+
+            if (existing600questionMap.has(numberName)) {
+                await db.question.update(
+                    { answer: numberAnswer, totalOptions },
+                    { where: { number: numberName } }
+                );
+            } else {
+                await db.question.create({
+                    number: numberName,
+                    answer: numberAnswer,
+                    totalOptions,
+                });
             }
         }
 

@@ -27,8 +27,9 @@ interface ResultModalProps {
     answer: string;
   }[];
   selectedOptions: number[][];
-  onNextExam: () => void; // Callback cho bài thi kế tiếp
-  nextSubjectName: string | null; // Thêm prop mới
+  onNextExam: () => void;
+  nextSubjectName: string | null;
+  criticalNote?: string | null;
 }
 
 const ResultModal: React.FC<ResultModalProps> = ({
@@ -43,7 +44,8 @@ const ResultModal: React.FC<ResultModalProps> = ({
   arrQuestion,
   selectedOptions,
   onNextExam,
-  nextSubjectName
+  nextSubjectName,
+  criticalNote,
 }) => {
   console.log('ANTIGRAVITY_RESULT_MODAL_FIX_V2');
   const navigate = useNavigate();
@@ -68,6 +70,11 @@ const ResultModal: React.FC<ResultModalProps> = ({
                 <p>
                   <strong>Bài thi trước: <span className={`result-status-pill ${resultStatus === "TRƯỢT" ? "failed" : "passed"}`}>{resultStatus} {`(${score}/${totalQuestions})`}</span></strong>
                 </p>
+                {criticalNote && (
+                  <p style={{ fontSize: '0.78rem', color: '#dc2626', marginTop: 4 }}>
+                    ⚠ {criticalNote}
+                  </p>
+                )}
                 {nextSubjectName && (
                   <p>
                     <strong>Bài thi kế tiếp: <span className="next-subject-name-text">{nextSubjectName}</span></strong>
