@@ -9,6 +9,7 @@ interface VirtualDPadProps {
   itemsPerColumn: number;
   totalQuestions: number;
   onQuestionChange: (newQuestion: number) => void;
+  disableHorizontal?: boolean;
 }
 
 export const VirtualDPad: React.FC<VirtualDPadProps> = ({
@@ -16,12 +17,25 @@ export const VirtualDPad: React.FC<VirtualDPadProps> = ({
   itemsPerColumn,
   totalQuestions,
   onQuestionChange,
+  disableHorizontal = false,
 }) => {
   const dpadConfig = [
     { id: 'up', img: topImg, action: Math.max(0, currentQuestion - 1), disabled: currentQuestion === 0, className: 'dpad-btn up' },
-    { id: 'left', img: leftImg, action: Math.max(0, currentQuestion - itemsPerColumn), disabled: currentQuestion < itemsPerColumn, className: 'dpad-btn left' },
+    {
+      id: 'left',
+      img: leftImg,
+      action: Math.max(0, currentQuestion - itemsPerColumn),
+      disabled: disableHorizontal || currentQuestion < itemsPerColumn,
+      className: 'dpad-btn left'
+    },
     { id: 'down', img: botImg, action: Math.min(totalQuestions - 1, currentQuestion + 1), disabled: currentQuestion === totalQuestions - 1, className: 'dpad-btn down' },
-    { id: 'right', img: rightImg, action: Math.min(totalQuestions - 1, currentQuestion + itemsPerColumn), disabled: currentQuestion + itemsPerColumn >= totalQuestions, className: 'dpad-btn right' },
+    {
+      id: 'right',
+      img: rightImg,
+      action: Math.min(totalQuestions - 1, currentQuestion + itemsPerColumn),
+      disabled: disableHorizontal || currentQuestion + itemsPerColumn >= totalQuestions,
+      className: 'dpad-btn right'
+    },
   ];
 
   return (

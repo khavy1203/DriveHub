@@ -69,15 +69,22 @@ const FinalExamForm: React.FC = () => {
   const [untestedSubjects, setUntestedSubjects] = useState<Subject[]>([]); // Lưu danh sách môn chưa thi
   
   const [itemsPerColumn, setItemsPerColumn] = useState(10);
+  const [isMobileLandscape, setIsMobileLandscape] = useState(false);
 
   useEffect(() => {
-    const handleResize = () => {
+    const updateExamLayout = () => {
       setItemsPerColumn(window.innerWidth <= 950 ? 15 : 10);
+      const isLandscape = window.matchMedia('(orientation: landscape)').matches;
+      setIsMobileLandscape(window.innerWidth <= 950 && isLandscape);
     };
 
-    handleResize();
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
+    updateExamLayout();
+    window.addEventListener('resize', updateExamLayout);
+    window.addEventListener('orientationchange', updateExamLayout);
+    return () => {
+      window.removeEventListener('resize', updateExamLayout);
+      window.removeEventListener('orientationchange', updateExamLayout);
+    };
   }, []);
 
   const questionColumns = useMemo(() => {
@@ -458,6 +465,7 @@ const FinalExamForm: React.FC = () => {
               itemsPerColumn={itemsPerColumn}
               totalQuestions={arrQuestion.length}
               onQuestionChange={handleQuestionChange}
+              disableHorizontal={isMobileLandscape}
             />
           </div>
           <div className="virtual-controls__numpad">
