@@ -257,7 +257,8 @@ const LoginTestStudent: React.FC = () => {
         setSbd(null);
         setIsStartEnabled(false);
         localStorage.removeItem("sbd");
-        setSelectedKhoaHoc(null);
+        const lastCourse = khoaHocList[khoaHocList.length - 1];
+        setSelectedKhoaHoc(lastCourse?.IDKhoaHoc ?? null);
     };
 
     return (

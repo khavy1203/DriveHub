@@ -20,7 +20,7 @@ export const VirtualDPad: React.FC<VirtualDPadProps> = ({
   disableHorizontal = false,
 }) => {
   const dpadConfig = [
-    { id: 'up', img: topImg, action: Math.max(0, currentQuestion - 1), disabled: currentQuestion === 0, className: 'dpad-btn up' },
+    { id: 'up', img: topImg, action: currentQuestion === 0 ? totalQuestions - 1 : currentQuestion - 1, disabled: false, className: 'dpad-btn up' },
     {
       id: 'left',
       img: leftImg,
@@ -28,7 +28,7 @@ export const VirtualDPad: React.FC<VirtualDPadProps> = ({
       disabled: disableHorizontal || currentQuestion < itemsPerColumn,
       className: 'dpad-btn left'
     },
-    { id: 'down', img: botImg, action: Math.min(totalQuestions - 1, currentQuestion + 1), disabled: currentQuestion === totalQuestions - 1, className: 'dpad-btn down' },
+    { id: 'down', img: botImg, action: currentQuestion === totalQuestions - 1 ? 0 : currentQuestion + 1, disabled: false, className: 'dpad-btn down' },
     {
       id: 'right',
       img: rightImg,
