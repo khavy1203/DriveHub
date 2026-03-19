@@ -8,11 +8,6 @@ import './FinalExamForm.scss';
 import { VirtualDPad } from './VirtualDPad';
 import { VirtualNumpad } from './VirtualNumpad';
 
-// Câu điểm liệt theo hạng — sai 1 câu bất kỳ → TRƯỢT dù đủ điểm
-// Tên hạng lấy đúng từ bảng rank trong DB: 'A', 'A1m', 'Am'
-const DIEM_LIET_NUMS = [19, 20, 21, 22, 24, 26, 27, 28, 30, 47, 48, 52, 53, 63, 64, 65, 68, 70, 71, 72];
-const DIEM_LIET_RANKS = new Set(['A', 'A1m', 'Am']);
-
 const DESKTOP_ITEMS_PER_COLUMN = 10;
 const MOBILE_NARROW_LANDSCAPE_WIDTH = 740;
 
@@ -74,17 +69,15 @@ const FinalExamForm: React.FC = () => {
   const [testCode, setTestCode] = useState<string | null>(null);
   const [nextSubjectName, setNextSubjectName] = useState<string | null>(null);
   const [untestedSubjects, setUntestedSubjects] = useState<Subject[]>([]); // Lưu danh sách môn chưa thi
-  const [criticalNote, setCriticalNote] = useState<string | null>(null);
   
   const [itemsPerColumn, setItemsPerColumn] = useState(10);
   const [isMobileLandscape, setIsMobileLandscape] = useState(false);
 
   useEffect(() => {
     const updateExamLayout = () => {
-      const isMobile = window.innerWidth <= 950 || window.innerHeight <= 950;
-      setItemsPerColumn(isMobile ? 15 : 10);
-      // Coi cả portrait lẫn landscape mobile đều là "landscape mode" vì UI tự xoay
-      setIsMobileLandscape(isMobile);
+      setItemsPerColumn(window.innerWidth <= 950 ? 15 : 10);
+      const isLandscape = window.matchMedia('(orientation: landscape)').matches;
+      setIsMobileLandscape(window.innerWidth <= 950 && isLandscape);
     };
 
     updateExamLayout();
@@ -221,7 +214,7 @@ const FinalExamForm: React.FC = () => {
 
       const questionsTest = varArrQuestion.map((e: Question) => ({
         ...e,
-        options: Array((e as any).totalOptions || 4).fill(""),
+        options: ["", "", "", ""], // Đảm bảo options luôn có giá trị mặc định
       }));
 
       // Thiết lập tất cả state cùng lúc
@@ -353,30 +346,19 @@ const FinalExamForm: React.FC = () => {
       let calculatedScore = 0;
       const stringAnswerlist: string[] = [];
 
-      const rank = studentNow?.loaibangthi || '';
-      const hasDiemLiet = DIEM_LIET_RANKS.has(rank);
-      // { examPos: vị trí trong đề (1-based), bankNum: số trong ngân hàng }
-      const failedCritical: { examPos: number; bankNum: number }[] = [];
-
       arrQuestion.forEach((question, index) => {
-        const isCorrect = arraysAreEqual(selectedOptions[index], convertStringsToNumbers(question?.answer?.toString()?.split(',')));
-        if (isCorrect) {
+        if (arraysAreEqual(selectedOptions[index], convertStringsToNumbers(question?.answer?.toString()?.split(',')))) {
           calculatedScore++;
-        } else if (hasDiemLiet && DIEM_LIET_NUMS.includes(question.number)) {
-          failedCritical.push({ examPos: index + 1, bankNum: question.number });
         }
         stringAnswerlist.push(selectedOptions[index].join('-'));
       });
-
-      const isFailedCritical = failedCritical.length > 0;
-      const finalResult = (calculatedScore < subject.threshold || isFailedCritical) ? "TRƯỢT" : "ĐẠT";
 
       const resCreateExam = await post<ApiResponse>("/api/exam/create-exam", {
         IDThisinh: IDThiSinh,
         IDTest: testRandom,
         answerlist: stringAnswerlist.join(','),
         point: calculatedScore,
-        result: finalResult,
+        result: calculatedScore < subject.threshold ? "TRƯỢT" : "ĐẠT",
         IDSubject: subject?.id,
       });
 
@@ -407,9 +389,6 @@ const FinalExamForm: React.FC = () => {
       setNextSubjectName(updatedUntestedSubjects.length > 0 ? updatedUntestedSubjects[0].name : null);
 
       setScore(calculatedScore);
-      setCriticalNote(isFailedCritical
-        ? `Sai câu điểm liệt: ${failedCritical.map(f => `câu số ${f.examPos}`).join(', ')}`
-        : null);
       setShowResult(true);
     } catch (error) {
       console.error("Lỗi khi ghi nhận kết quả:", error);
@@ -490,7 +469,13 @@ const FinalExamForm: React.FC = () => {
 
   return (
     <>
-      <div className="exam-rotate-wrapper">
+      <div className="portrait-lock-screen">
+        <div className="lock-content">
+          <h2>Vui lòng xoay ngang thiết bị</h2>
+          <p>Bài thi yêu cầu thiết bị ở chế độ ngang (Landscape) để hiển thị đầy đủ thông tin.</p>
+        </div>
+      </div>
+      
       <div className={`exam-container`} style={desktopExamLayoutStyle}>
         <div className="virtual-controls">
           <div className="virtual-controls__dpad">
@@ -600,7 +585,6 @@ const FinalExamForm: React.FC = () => {
         </div>
       </div>
     </div>
-    </div>{/* exam-rotate-wrapper */}
 
       {showResult && (
         <ResultModal
@@ -608,8 +592,7 @@ const FinalExamForm: React.FC = () => {
           totalQuestions={arrQuestion.length}
           correctAnswers={score}
           incorrectAnswers={arrQuestion.length - score}
-          resultStatus={(score < subject!.threshold || criticalNote) ? "TRƯỢT" : "ĐẠT"}
-          criticalNote={criticalNote}
+          resultStatus={score < subject!.threshold ? "TRƯỢT" : "ĐẠT"}
           studentInfo={{
             studentID: studentNow?.khoahoc_thisinh?.SoBaoDanh || 0,
             fullName: studentNow?.HoTen || '',
