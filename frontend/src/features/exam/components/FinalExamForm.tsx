@@ -38,12 +38,14 @@ const getMobileRightPanelLayout = (columnCount: number, viewportWidth: number) =
 
 const buildExamLayoutStyleVars = (
   desktopLayout: { widthPercent: number; minWidthPx: number },
-  mobileLayout: { widthPercent: number; minWidthPx: number }
+  mobileLayout: { widthPercent: number; minWidthPx: number },
+  questionColumnCount: number
 ): CSSProperties => ({
   ['--right-exam-width' as any]: `${desktopLayout.widthPercent}%`,
   ['--right-exam-min-width' as any]: `${desktopLayout.minWidthPx}px`,
   ['--mobile-right-exam-width' as any]: `${mobileLayout.widthPercent}%`,
   ['--mobile-right-exam-min-width' as any]: `${mobileLayout.minWidthPx}px`,
+  ['--question-column-count' as any]: `${Math.max(1, questionColumnCount)}`,
 });
 
 const FinalExamForm: React.FC = () => {
@@ -69,15 +71,22 @@ const FinalExamForm: React.FC = () => {
   const [untestedSubjects, setUntestedSubjects] = useState<Subject[]>([]); // Lưu danh sách môn chưa thi
   
   const [itemsPerColumn, setItemsPerColumn] = useState(10);
+  const [isMobileLandscape, setIsMobileLandscape] = useState(false);
 
   useEffect(() => {
-    const handleResize = () => {
+    const updateExamLayout = () => {
       setItemsPerColumn(window.innerWidth <= 950 ? 15 : 10);
+      const isLandscape = window.matchMedia('(orientation: landscape)').matches;
+      setIsMobileLandscape(window.innerWidth <= 950 && isLandscape);
     };
 
-    handleResize();
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
+    updateExamLayout();
+    window.addEventListener('resize', updateExamLayout);
+    window.addEventListener('orientationchange', updateExamLayout);
+    return () => {
+      window.removeEventListener('resize', updateExamLayout);
+      window.removeEventListener('orientationchange', updateExamLayout);
+    };
   }, []);
 
   const questionColumns = useMemo(() => {
@@ -104,10 +113,27 @@ const FinalExamForm: React.FC = () => {
       ? { widthPercent: 20, minWidthPx: 145 }
       : getMobileRightPanelLayout(columnCount, viewportWidth);
 
-    return buildExamLayoutStyleVars(desktopLayout, mobileLayout);
+    return buildExamLayoutStyleVars(desktopLayout, mobileLayout, columnCount);
   }, [itemsPerColumn, questionColumns.length]);
 
   const [showMobileList, setShowMobileList] = useState<boolean>(false);
+  const questionNavContainerRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    if (!isMobileLandscape) return;
+
+    const navContainer = questionNavContainerRef.current;
+    if (!navContainer) return;
+
+    const currentQuestionElement = navContainer.querySelector('.question-btn.current') as HTMLElement | null;
+    if (!currentQuestionElement) return;
+
+    currentQuestionElement.scrollIntoView({
+      behavior: 'smooth',
+      block: 'nearest',
+      inline: 'nearest',
+    });
+  }, [currentQuestion, isMobileLandscape]);
   // Khởi tạo bài thi ban đầu
   useEffect(() => {
     const initializeExam = async () => {
@@ -458,6 +484,7 @@ const FinalExamForm: React.FC = () => {
               itemsPerColumn={itemsPerColumn}
               totalQuestions={arrQuestion.length}
               onQuestionChange={handleQuestionChange}
+              disableHorizontal={isMobileLandscape}
             />
           </div>
           <div className="virtual-controls__numpad">
@@ -521,6 +548,7 @@ const FinalExamForm: React.FC = () => {
             </div>
             <div
               className="question-nav-container"
+              ref={questionNavContainerRef}
               style={{ ['--question-column-count' as any]: questionColumns.length || 1 }}
             >
               {questionColumns.map((column, columnIndex) => (

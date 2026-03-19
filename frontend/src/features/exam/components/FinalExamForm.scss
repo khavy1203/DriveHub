@@ -113,7 +113,7 @@
     flex-direction: column;
     justify-content: flex-start;
     height: 100%;
-    gap: 0px;
+    gap: 5px;
     margin: 3%;
 }
 
@@ -664,6 +664,11 @@ button:hover {
 
 @media screen and (max-width: 950px) and (orientation: landscape) {
     .exam-container {
+        --virtual-controls-bottom: 18px;
+        --virtual-controls-height: 114px;
+    }
+
+    .exam-container {
         position: relative;
         flex-direction: row !important;
     }
@@ -679,9 +684,14 @@ button:hover {
     }
 
     .right-exam {
-        width: var(--mobile-right-exam-width);
+        width: clamp(
+            var(--mobile-right-exam-min-width),
+            calc(var(--question-column-count, 1) * 60px + 6px),
+            48vw
+        );
+        flex: 0 0 auto;
         min-width: var(--mobile-right-exam-min-width);
-        max-width: none;
+        max-width: 48vw;
         padding: 0;
         background-color: #f8f9fa;
         display: block !important;
@@ -715,13 +725,15 @@ button:hover {
         flex-direction: column;
         justify-content: space-between;
         overflow: hidden;
+        position: relative;
     }
 
     .sidebar-section .top {
-        flex: 0 0 93%;
-        overflow: hidden;
+        flex: 0 0 90%;
+        max-height: 90%;
         min-height: 0;
-        padding-bottom: 0;
+        overflow: hidden;
+        padding-bottom: 4px;
     }
 
     .time-remaining {
@@ -741,15 +753,16 @@ button:hover {
 
     .question-nav-container {
         display: grid;
-        grid-template-columns: repeat(var(--question-column-count, 1), minmax(56px, 1fr));
+        grid-template-columns: repeat(var(--question-column-count, 1), max-content);
         column-gap: 4px;
         row-gap: 2px;
         margin: 0 1px;
-        padding-bottom: 0;
+        padding-bottom: 8px;
         flex: 1;
         min-height: 0;
         overflow-y: auto;
         overflow-x: auto;
+        justify-content: flex-start;
         scrollbar-width: none;
         -ms-overflow-style: none;
     }
@@ -798,21 +811,40 @@ button:hover {
         width: 8px;
         height: 8px;
         margin: 0;
+        -webkit-appearance: none;
+        appearance: none;
+        border: 1px solid #8a8a8a;
+        border-radius: 1px;
+        background: #fff;
+        box-sizing: border-box;
+        display: inline-block;
+        vertical-align: middle;
+    }
+
+    .option-cell input[type="checkbox"]:checked {
+        background: #a85bd7;
+        border-color: #8b47b4;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='M2 6.3l2.2 2.2L10 2.7' fill='none' stroke='white' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: center;
+        background-size: 85% 85%;
     }
 
     .end-exam-btn {
-        position: static;
-        z-index: auto;
+        position: sticky;
+        bottom: 0;
+        z-index: 5;
         width: 100%;
         min-width: 0;
         max-width: none;
-        flex: 0 0 7%;
-        min-height: 26px;
-        height: auto;
-        margin: 0;
+        flex: 0 0 10%;
+        min-height: 0;
+        height: 10%;
+        margin: auto 0 0 0;
         border-radius: 0;
         padding: 4px 6px;
         font-size: 11px;
+        box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.18);
     }
 
     .mobile-current-question-info {
@@ -828,16 +860,16 @@ button:hover {
     .virtual-note {
         display: block;
         position: fixed;
-        bottom: 0;
+        bottom: calc(var(--virtual-controls-bottom) + var(--virtual-controls-height) - 20px);
         left: 12px;
         right: calc(var(--mobile-right-exam-width) + 8px);
         transform: none;
         z-index: 50;
-        background: rgba(255, 255, 255, 0.88);
+        background: transparent;
         font-size: 9px;
         color: #555;
         text-align: center;
-        padding: 2px 8px;
+        padding: 0 8px;
         white-space: nowrap;
         pointer-events: none;
     }
@@ -851,7 +883,7 @@ button:hover {
         position: fixed;
         left: 12px;
         right: calc(var(--mobile-right-exam-width) + 8px);
-        bottom: 18px;
+        bottom: var(--virtual-controls-bottom);
         z-index: 100;
         justify-content: space-around;
         align-items: flex-end;
@@ -927,19 +959,41 @@ button:hover {
 
     @media (max-width: 740px) {
         .question-nav-container {
-            grid-template-columns: repeat(var(--question-column-count, 1), minmax(58px, 1fr));
+            grid-template-columns: repeat(var(--question-column-count, 1), max-content);
             column-gap: 4px;
         }
 
         .question-nav {
             min-width: 58px;
         }
+
+        .answer-options {
+            gap: 2px;
+        }
+
+        .option-cell {
+            min-width: 9px;
+            align-items: center;
+        }
+
+        .option-cell input[type="checkbox"] {
+            margin: 0 1px;
+        }
     }
 
     @media (max-height: 380px) {
+        .exam-container {
+            --virtual-controls-bottom: 8px;
+            --virtual-controls-height: 86px;
+        }
+
         .left-exam { width: 81%; }
         .right-exam {
-            width: var(--mobile-right-exam-width);
+            width: clamp(
+                108px,
+                calc(var(--question-column-count, 1) * 54px + 12px),
+                44vw
+            );
             min-width: 108px;
         }
 
@@ -968,12 +1022,13 @@ button:hover {
             padding-bottom: 1px;
         }
         .question-nav {
-            min-width: 50px;
+            min-width: 53px;
         }
         .question-btn {
             height: 14px;
             margin-bottom: 0;
             border-width: 1px;
+            padding-right: 2px;
         }
         .question-number {
             font-size: 7px;
@@ -989,15 +1044,30 @@ button:hover {
         .option-cell input[type="checkbox"] {
             width: 7px;
             height: 7px;
+            -webkit-appearance: none;
+            appearance: none;
+            border: 1px solid #8a8a8a;
+            border-radius: 1px;
+            background: #fff;
+            box-sizing: border-box;
+        }
+
+        .option-cell input[type="checkbox"]:checked {
+            background: #a85bd7;
+            border-color: #8b47b4;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='M2 6.3l2.2 2.2L10 2.7' fill='none' stroke='white' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: center;
+            background-size: 85% 85%;
         }
 
         .end-exam-btn {
             width: 100%;
             min-width: 0;
             max-width: none;
-            flex: 0 0 7%;
-            min-height: 18px;
-            height: auto;
+            flex: 0 0 10%;
+            min-height: 0;
+            height: 10%;
             font-size: 8px;
             padding: 1px 2px;
         }
