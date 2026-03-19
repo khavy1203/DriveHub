@@ -267,7 +267,7 @@ const handleImportXMLStudent = async (file) => {
                         NgaySinh: ngaySinh,
                         SoCMT: soCMT,
                         loaibangthi: hangGPLX,
-                        Anh: `/asset/ImageStudent/${maDangKy}.jpg`
+                        Anh: anh || null
                     });
                     thiSinhId = newThiSinh.IDThiSinh;
 

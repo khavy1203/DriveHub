@@ -81,10 +81,6 @@ export const LoginForm: React.FC = () => {
     const authorizeUrl = process.env.REACT_APP_MEZON_AUTHORIZE_URL || 'https://oauth2.mezon.ai/oauth2/auth';
     const mezonScope = process.env.REACT_APP_MEZON_SCOPE || 'openid offline';
 
-    toast.info(`redirect_uri: ${redirectUri}\nclientId: ${mezonClientId}\nauthorize: ${authorizeUrl}`, {
-      autoClose: 15000,
-      style: { whiteSpace: 'pre-line', fontSize: '11px' }
-    });
     if (!mezonClientId) {
       setIsMezonLoading(false);
       toast.error('Thiếu cấu hình REACT_APP_MEZON_CLIENT_ID');
@@ -110,11 +106,6 @@ export const LoginForm: React.FC = () => {
     });
 
     const oauthUrl = `${authorizeUrl}?${params.toString()}`;
-
-    // DEBUG: hiển thị full URL để kiểm tra redirect_uri
-    const debugMsg = `=== DEBUG MEZON OAUTH ===\nredirect_uri: ${redirectUri}\nclient_id: ${mezonClientId}\nfull URL:\n${decodeURIComponent(oauthUrl)}`;
-    console.log(debugMsg);
-    alert(debugMsg);
 
     const isCompactViewport = window.innerWidth < 768;
     if (isCompactViewport) {
