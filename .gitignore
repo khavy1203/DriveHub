@@ -10,3 +10,4 @@ dist*
 !.env.example
 !**/.env.example
 .claude
+GITHUB_SECRETS.md
