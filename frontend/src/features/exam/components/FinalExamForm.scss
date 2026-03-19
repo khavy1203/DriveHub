@@ -800,6 +800,19 @@ button:hover {
         width: 8px;
         height: 8px;
         margin: 0;
+        -webkit-appearance: none;
+        appearance: none;
+        border: 1px solid #8a8a8a;
+        border-radius: 1px;
+        background: #fff;
+        box-sizing: border-box;
+        display: inline-block;
+        vertical-align: middle;
+    }
+
+    .option-cell input[type="checkbox"]:checked {
+        background: #a85bd7;
+        border-color: #8b47b4;
     }
 
     .end-exam-btn {
@@ -938,6 +951,19 @@ button:hover {
         .question-nav {
             min-width: 58px;
         }
+
+        .answer-options {
+            gap: 2px;
+        }
+
+        .option-cell {
+            min-width: 9px;
+            align-items: center;
+        }
+
+        .option-cell input[type="checkbox"] {
+            margin: 0 1px;
+        }
     }
 
     @media (max-height: 380px) {
@@ -993,6 +1019,17 @@ button:hover {
         .option-cell input[type="checkbox"] {
             width: 7px;
             height: 7px;
+            -webkit-appearance: none;
+            appearance: none;
+            border: 1px solid #8a8a8a;
+            border-radius: 1px;
+            background: #fff;
+            box-sizing: border-box;
+        }
+
+        .option-cell input[type="checkbox"]:checked {
+            background: #a85bd7;
+            border-color: #8b47b4;
         }
 
         .end-exam-btn {
