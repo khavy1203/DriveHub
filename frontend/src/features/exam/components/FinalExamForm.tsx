@@ -38,12 +38,14 @@ const getMobileRightPanelLayout = (columnCount: number, viewportWidth: number) =
 
 const buildExamLayoutStyleVars = (
   desktopLayout: { widthPercent: number; minWidthPx: number },
-  mobileLayout: { widthPercent: number; minWidthPx: number }
+  mobileLayout: { widthPercent: number; minWidthPx: number },
+  questionColumnCount: number
 ): CSSProperties => ({
   ['--right-exam-width' as any]: `${desktopLayout.widthPercent}%`,
   ['--right-exam-min-width' as any]: `${desktopLayout.minWidthPx}px`,
   ['--mobile-right-exam-width' as any]: `${mobileLayout.widthPercent}%`,
   ['--mobile-right-exam-min-width' as any]: `${mobileLayout.minWidthPx}px`,
+  ['--question-column-count' as any]: `${Math.max(1, questionColumnCount)}`,
 });
 
 const FinalExamForm: React.FC = () => {
@@ -111,7 +113,7 @@ const FinalExamForm: React.FC = () => {
       ? { widthPercent: 20, minWidthPx: 145 }
       : getMobileRightPanelLayout(columnCount, viewportWidth);
 
-    return buildExamLayoutStyleVars(desktopLayout, mobileLayout);
+    return buildExamLayoutStyleVars(desktopLayout, mobileLayout, columnCount);
   }, [itemsPerColumn, questionColumns.length]);
 
   const [showMobileList, setShowMobileList] = useState<boolean>(false);

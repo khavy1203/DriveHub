@@ -664,6 +664,11 @@ button:hover {
 
 @media screen and (max-width: 950px) and (orientation: landscape) {
     .exam-container {
+        --virtual-controls-bottom: 18px;
+        --virtual-controls-height: 114px;
+    }
+
+    .exam-container {
         position: relative;
         flex-direction: row !important;
     }
@@ -679,9 +684,14 @@ button:hover {
     }
 
     .right-exam {
-        width: var(--mobile-right-exam-width);
+        width: clamp(
+            var(--mobile-right-exam-min-width),
+            calc(var(--question-column-count, 1) * 60px + 6px),
+            48vw
+        );
+        flex: 0 0 auto;
         min-width: var(--mobile-right-exam-min-width);
-        max-width: none;
+        max-width: 48vw;
         padding: 0;
         background-color: #f8f9fa;
         display: block !important;
@@ -743,7 +753,7 @@ button:hover {
 
     .question-nav-container {
         display: grid;
-        grid-template-columns: repeat(var(--question-column-count, 1), minmax(56px, 1fr));
+        grid-template-columns: repeat(var(--question-column-count, 1), max-content);
         column-gap: 4px;
         row-gap: 2px;
         margin: 0 1px;
@@ -752,6 +762,7 @@ button:hover {
         min-height: 0;
         overflow-y: auto;
         overflow-x: auto;
+        justify-content: flex-start;
         scrollbar-width: none;
         -ms-overflow-style: none;
     }
@@ -849,16 +860,16 @@ button:hover {
     .virtual-note {
         display: block;
         position: fixed;
-        bottom: 0;
+        bottom: calc(var(--virtual-controls-bottom) + var(--virtual-controls-height) - 20px);
         left: 12px;
         right: calc(var(--mobile-right-exam-width) + 8px);
         transform: none;
         z-index: 50;
-        background: rgba(255, 255, 255, 0.88);
+        background: transparent;
         font-size: 9px;
         color: #555;
         text-align: center;
-        padding: 2px 8px;
+        padding: 0 8px;
         white-space: nowrap;
         pointer-events: none;
     }
@@ -872,7 +883,7 @@ button:hover {
         position: fixed;
         left: 12px;
         right: calc(var(--mobile-right-exam-width) + 8px);
-        bottom: 18px;
+        bottom: var(--virtual-controls-bottom);
         z-index: 100;
         justify-content: space-around;
         align-items: flex-end;
@@ -948,7 +959,7 @@ button:hover {
 
     @media (max-width: 740px) {
         .question-nav-container {
-            grid-template-columns: repeat(var(--question-column-count, 1), minmax(58px, 1fr));
+            grid-template-columns: repeat(var(--question-column-count, 1), max-content);
             column-gap: 4px;
         }
 
@@ -971,9 +982,18 @@ button:hover {
     }
 
     @media (max-height: 380px) {
+        .exam-container {
+            --virtual-controls-bottom: 8px;
+            --virtual-controls-height: 86px;
+        }
+
         .left-exam { width: 81%; }
         .right-exam {
-            width: var(--mobile-right-exam-width);
+            width: clamp(
+                108px,
+                calc(var(--question-column-count, 1) * 54px + 12px),
+                44vw
+            );
             min-width: 108px;
         }
 
@@ -1002,12 +1022,13 @@ button:hover {
             padding-bottom: 1px;
         }
         .question-nav {
-            min-width: 50px;
+            min-width: 53px;
         }
         .question-btn {
             height: 14px;
             margin-bottom: 0;
             border-width: 1px;
+            padding-right: 2px;
         }
         .question-number {
             font-size: 7px;
