@@ -626,27 +626,40 @@ button:hover {
     box-shadow: 0 4px 8px rgba(0, 123, 255, 0.3);
 }
 
-.portrait-lock-screen {
-    display: none;
-    position: fixed;
-    top: 0; left: 0; width: 100vw; height: 100vh;
-    background-color: #f8f9fa;
-    z-index: 9999;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    text-align: center;
-    padding: 20px;
-}
-.portrait-lock-screen .lock-content h2 { margin-bottom: 10px; color: #333; font-size: 20px; }
-.portrait-lock-screen .lock-content p { color: #666; font-size: 14px; padding: 0 10px; }
+.portrait-lock-screen { display: none !important; }
 
+/* Auto-rotate UI khi máy cầm dọc (portrait) trên mobile */
 @media screen and (max-width: 950px) and (orientation: portrait) {
-    .portrait-lock-screen {
-        display: flex;
+    .exam-rotate-wrapper {
+        position: fixed;
+        top: 0;
+        left: 100vw;
+        width: 100vh;
+        height: 100vw;
+        transform-origin: top left;
+        transform: rotate(90deg);
+        overflow: hidden;
     }
+
     .exam-container {
-        display: none !important;
+        display: flex !important;
+        width: 100vh !important;
+        height: 100vw !important;
+        --virtual-controls-bottom: 18px;
+        --virtual-controls-height: 114px;
+        position: relative;
+        flex-direction: row !important;
+    }
+
+    /* ResultModal cũng xoay theo */
+    .premium-result-overlay {
+        position: fixed !important;
+        top: 0 !important;
+        left: 100vw !important;
+        width: 100vh !important;
+        height: 100vw !important;
+        transform-origin: top left !important;
+        transform: rotate(90deg) !important;
     }
 }
 

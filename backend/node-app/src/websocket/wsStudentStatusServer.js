@@ -92,6 +92,14 @@ export async function sendStatusUpdate(updatedStudent) {
     sendAllClients(message);
 }
 
+export async function sendImportStatus(result) {
+    const message = JSON.stringify({
+        type: 'IMPORT_XML_STATUS',
+        payload: result
+    });
+    sendAllClients(message);
+}
+
 export async function sendStudentDashBoardUpdate(updatedStudent) {
     // {
     //     "type": "NEW_EXAM_RESULT",

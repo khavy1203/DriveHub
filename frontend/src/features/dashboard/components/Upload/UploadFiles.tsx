@@ -2,6 +2,8 @@ import React, { useState, useEffect, useRef } from "react";
 import { useApi } from "../../../../shared/hooks";
 import { ApiResponse } from "../../../../core/types";
 import { Rank, Course } from "../../../../features/student/types";
+import { ENVIRONMENT_CONFIGS, getCurrentEnvironment } from "../../../../core/config/environment";
+import { toast } from "react-toastify";
 import "./UploadFiles.scss";
 
 // ─── Toast notification ───────────────────────────────────────────────────────
@@ -115,6 +117,27 @@ const UploadCard: React.FC<UploadCardProps> = ({
 // ─── Main component ───────────────────────────────────────────────────────────
 const UploadFiles: React.FC = () => {
   const { get, post } = useApi();
+
+  // Lắng nghe kết quả import XML qua WebSocket
+  useEffect(() => {
+    const wsUrl = ENVIRONMENT_CONFIGS[getCurrentEnvironment()]?.WS_BASE_URL;
+    if (!wsUrl) return;
+    const ws = new WebSocket(wsUrl);
+    ws.onmessage = (event) => {
+      try {
+        const data = JSON.parse(event.data);
+        if (data.type === 'IMPORT_XML_STATUS') {
+          const { EC, EM, DT } = data.payload;
+          if (EC === 0) {
+            toast.success(`✅ Import hoàn tất! ${DT?.successful ?? ''} thí sinh thành công${DT?.failed ? `, ${DT.failed} lỗi` : ''}.`);
+          } else {
+            toast.error(`❌ Import thất bại: ${EM}`);
+          }
+        }
+      } catch { /* ignore */ }
+    };
+    return () => { ws.close(); };
+  }, []);
 
   // files
   const [fileStudent,    setFileStudent]    = useState<File | null>(null);

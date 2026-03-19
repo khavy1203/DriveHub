@@ -1,4 +1,5 @@
 import userStatusService from "../service/userStatusService";
+import { sendImportStatus } from '../websocket/wsStudentStatusServer.js';
 const getCourse = async (req, res) => {
     try {
         // Truy vấn thông tin từ bảng thisinh, khoahoc_thisinh, và status
@@ -99,11 +100,26 @@ const deleteStatus = async (req, res) => {
 
 const handleImportXMLStudent = async (req, res) => {
     try {
-        const data = await userStatusService.handleImportXMLStudent(req.file);
-        return res.status(200).json({
-            EM: data.EM,//error message
-            EC: data.EC,//error code
-            DT: data.DT
+        if (!req.file) {
+            return res.status(400).json({ EM: 'No file provided', EC: 2, DT: [] });
+        }
+
+        // Trả về ngay, xử lý import ở background
+        res.status(200).json({
+            EM: 'Đang xử lý import, vui lòng chờ thông báo hoàn thành...',
+            EC: 0,
+            DT: []
+        });
+
+        // Chạy import sau khi đã trả response
+        setImmediate(async () => {
+            try {
+                const data = await userStatusService.handleImportXMLStudent(req.file);
+                await sendImportStatus({ EC: data.EC, EM: data.EM, DT: data.DT });
+            } catch (err) {
+                console.error('Background import error:', err);
+                await sendImportStatus({ EC: -1, EM: 'Import thất bại: ' + err.message, DT: [] });
+            }
         });
     }
     catch (error) {

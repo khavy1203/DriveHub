@@ -81,9 +81,10 @@ const FinalExamForm: React.FC = () => {
 
   useEffect(() => {
     const updateExamLayout = () => {
-      setItemsPerColumn(window.innerWidth <= 950 ? 15 : 10);
-      const isLandscape = window.matchMedia('(orientation: landscape)').matches;
-      setIsMobileLandscape(window.innerWidth <= 950 && isLandscape);
+      const isMobile = window.innerWidth <= 950 || window.innerHeight <= 950;
+      setItemsPerColumn(isMobile ? 15 : 10);
+      // Coi cả portrait lẫn landscape mobile đều là "landscape mode" vì UI tự xoay
+      setIsMobileLandscape(isMobile);
     };
 
     updateExamLayout();
@@ -489,13 +490,7 @@ const FinalExamForm: React.FC = () => {
 
   return (
     <>
-      <div className="portrait-lock-screen">
-        <div className="lock-content">
-          <h2>Vui lòng xoay ngang thiết bị</h2>
-          <p>Bài thi yêu cầu thiết bị ở chế độ ngang (Landscape) để hiển thị đầy đủ thông tin.</p>
-        </div>
-      </div>
-      
+      <div className="exam-rotate-wrapper">
       <div className={`exam-container`} style={desktopExamLayoutStyle}>
         <div className="virtual-controls">
           <div className="virtual-controls__dpad">
@@ -605,6 +600,7 @@ const FinalExamForm: React.FC = () => {
         </div>
       </div>
     </div>
+    </div>{/* exam-rotate-wrapper */}
 
       {showResult && (
         <ResultModal
