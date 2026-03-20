@@ -233,3 +233,13 @@
     .nav-btn { padding: 6px; font-size: 11px; }
   }
 }
+
+.exam-rotate-wrapper.fake-landscape .premium-result-overlay {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  width: 100vh !important;
+  height: 100vw !important;
+  transform-origin: top left;
+  transform: rotate(90deg) translateY(-100%);
+}

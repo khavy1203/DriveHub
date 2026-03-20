@@ -8,12 +8,22 @@ import XLSX from 'xlsx';
 import file from "../utils/file.js"
 const fs = require('fs');
 const path = require('path');
-const { JpxImage } = require('jpeg2000');
 const sharp = require('sharp');
+
+let JpxImage = null;
+try {
+    ({ JpxImage } = require('jpeg2000'));
+} catch (error) {
+    console.warn('[userStatusService] Optional dependency "jpeg2000" not found. JP2 decoding will be skipped.');
+}
 
 const convertImageToJpeg = async (base64Str) => {
     try {
         const inputBuffer = Buffer.from(base64Str, 'base64');
+
+        if (!JpxImage) {
+            return inputBuffer;
+        }
 
         // Decode JP2/J2K using jpeg2000 library
         const jpx = new JpxImage();

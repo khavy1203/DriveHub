@@ -9,6 +9,75 @@
   --lt-btn-blue-border: #1a4e8c;
 }
 
+html,
+body {
+  touch-action: manipulation;
+  overflow-x: hidden;
+}
+
+body.test-student-page.force-landscape-lock {
+  overflow: hidden;
+}
+
+body.test-student-page.force-landscape-lock .header-area,
+body.test-student-page.force-landscape-lock footer {
+  display: none !important;
+}
+
+.lt-mobile-shell-pass {
+  width: 100%;
+}
+
+.lt-mobile-portrait-shell {
+  position: fixed;
+  inset: 0;
+  z-index: 1200;
+  background: #1a3a5c;
+  overflow: hidden;
+}
+
+.lt-mobile-portrait-rotated {
+  position: absolute;
+  top: 0;
+  left: var(--lt-screen-w, 100vw);
+  width: var(--lt-screen-h, 100vh);
+  height: var(--lt-screen-w, 100vw);
+  transform-origin: top left;
+  transform: rotate(90deg);
+  overflow: hidden;
+}
+
+.lt-landscape-tip {
+  position: absolute;
+  top: 8px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1210;
+  background: rgba(8, 24, 42, 0.72);
+  color: #eaf3ff;
+  border: 1px solid rgba(180, 210, 240, 0.6);
+  border-radius: 999px;
+  padding: 4px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.lt-rotate-icon {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 1px solid rgba(220, 235, 255, 0.8);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 700;
+}
+
 /* ===================== CONTAINER ===================== */
 .app-teststudent {
   font-family: 'Segoe UI', Arial, Helvetica, sans-serif;
@@ -24,6 +93,17 @@
   display: flex;
   flex-direction: column;
   overflow: hidden;
+}
+
+.app-teststudent.force-landscape {
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  margin: 0;
+  border-radius: 0;
+  border: none;
+  box-shadow: none;
+  overflow-y: auto;
 }
 
 /* Hide old banner & sub-header */

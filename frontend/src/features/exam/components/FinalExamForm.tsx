@@ -78,15 +78,30 @@ const FinalExamForm: React.FC = () => {
   
   const [itemsPerColumn, setItemsPerColumn] = useState(10);
   const [isMobileLandscape, setIsMobileLandscape] = useState(false);
+  const [isFakeLandscape, setIsFakeLandscape] = useState(false);
 
   useEffect(() => {
     const updateExamLayout = () => {
       // Dùng pointer: coarse để detect thiết bị cảm ứng (phone, tablet, iPad, NestHub)
       const isTouchDevice = window.matchMedia('(pointer: coarse)').matches;
-      const isSmallScreen = window.innerWidth <= 1366 || window.innerHeight <= 950;
-      const isMobile = isTouchDevice || isSmallScreen;
-      setItemsPerColumn(isMobile ? 15 : 10);
-      setIsMobileLandscape(isMobile);
+      
+      // Detect nếu cần fake landscape (mobile portrait)
+      const width = window.innerWidth;
+      const height = window.innerHeight;
+      const isPortrait = height > width;
+      const needsFakeLandscape = width <= 768 && isPortrait;
+      
+      // Detect màn hình nhỏ landscape (tablet landscape hoặc desktop resize nhỏ)
+      const isLandscape = width > height;
+      const isSmallLandscape = isLandscape && width <= 950;
+      
+      // itemsPerColumn: 15 cho touch device HOẶC màn hình nhỏ landscape, 10 cho desktop lớn
+      const shouldUseMobileLayout = isTouchDevice || isSmallLandscape;
+      setItemsPerColumn(shouldUseMobileLayout ? 15 : 10);
+      
+      // isMobileLandscape: dùng cho layout landscape (real hoặc fake)
+      setIsMobileLandscape(shouldUseMobileLayout || needsFakeLandscape);
+      setIsFakeLandscape(needsFakeLandscape);
     };
 
     updateExamLayout();
@@ -492,14 +507,7 @@ const FinalExamForm: React.FC = () => {
 
   return (
     <>
-      <div className="portrait-lock-screen">
-        <div className="lock-content">
-          <h2>Vui lòng xoay ngang thiết bị</h2>
-          <p>Bài thi yêu cầu thiết bị ở chế độ ngang (Landscape) để hiển thị đầy đủ thông tin.</p>
-        </div>
-      </div>
-
-      <div className="exam-rotate-wrapper">
+      <div className={`exam-rotate-wrapper ${isFakeLandscape ? 'fake-landscape' : ''}`}>
       <div className={`exam-container`} style={desktopExamLayoutStyle}>
         <div className="virtual-controls">
           <div className="virtual-controls__dpad">
