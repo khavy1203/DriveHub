@@ -564,7 +564,7 @@ const FinalExamForm: React.FC = () => {
         <div className="sidebar-section">
           <div className="top">
             <div className="time-remaining">
-              Thời gian còn lại:<span>  {timeRemaining === 0 ? (
+              Time:<span>  {timeRemaining === 0 ? (
                 <span>Hết thời gian</span>
               ) : (
                 <span>{formatTime(timeRemaining)}</span>
