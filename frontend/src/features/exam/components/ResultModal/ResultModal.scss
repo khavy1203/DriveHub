@@ -234,12 +234,82 @@
   }
 }
 
-.exam-rotate-wrapper.fake-landscape .premium-result-overlay {
-  position: fixed !important;
-  top: 0 !important;
-  left: 0 !important;
+// Portrait layout (tablet + phone)
+@media (orientation: portrait) {
+  .premium-result-overlay {
+    flex-direction: column !important;
+    padding: 12px;
+    gap: 10px;
+    overflow-y: auto;
+  }
+
+  .result-sidebar-container {
+    flex: 0 0 auto !important;
+    max-width: 100% !important;
+    width: 100%;
+    height: auto !important;
+    padding: 16px 14px;
+
+    h4.next-exam-title {
+      font-size: 18px;
+      margin-bottom: 14px;
+      padding-bottom: 10px;
+    }
+
+    .result-summary-text-box {
+      margin-bottom: 14px;
+      p { font-size: 13px; margin: 6px 0; }
+      .result-status-pill { font-size: 16px; padding: 6px 12px; }
+    }
+
+    .nav-btn {
+      padding: 12px;
+      font-size: 15px;
+    }
+  }
+
+  .result-detail-table-container {
+    flex: 1 1 auto;
+    width: 100%;
+    max-width: 100%;
+    height: auto;
+    min-height: 200px;
+    max-height: calc(100dvh - 280px);
+  }
+}
+
+// Fake landscape — phải đặt SAU portrait media query để override !important
+.premium-result-overlay.fake-landscape {
   width: 100vh !important;
   height: 100vw !important;
+  top: 0 !important;
+  left: 0 !important;
   transform-origin: top left;
-  transform: rotate(90deg) translateY(-100%);
+  transform: rotate(90deg) translateY(-100%) !important;
+  flex-direction: row !important;
+  overflow: hidden !important;
+  overflow-y: unset !important;
+  padding: 10px !important;
+  gap: 10px !important;
+
+  .result-sidebar-container {
+    flex: 0 0 200px !important;
+    max-width: 200px !important;
+    width: 200px !important;
+    height: 95vw !important;
+    padding: 15px 10px !important;
+
+    h4.next-exam-title { font-size: 16px !important; margin-bottom: 10px !important; padding-bottom: 8px !important; }
+    .result-summary-text-box { margin-bottom: 12px !important; p { font-size: 12px !important; margin: 5px 0 !important; } }
+    .result-status-pill { font-size: 14px !important; padding: 4px 8px !important; }
+    .nav-btn { padding: 10px !important; font-size: 13px !important; }
+  }
+
+  .result-detail-table-container {
+    flex: 1 1 auto !important;
+    width: auto !important;
+    max-width: none !important;
+    height: 95vw !important;
+    max-height: none !important;
+  }
 }

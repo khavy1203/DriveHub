@@ -1,4 +1,5 @@
 import React, { useMemo, useState, useEffect, useRef, CSSProperties } from 'react';
+import ReactDOM from 'react-dom';
 import { useNavigate, useLocation } from "react-router-dom";
 import { ThiSinh, Test, ApiResponse, Subject, Question, Student } from "../../../interfaces";
 import useApiService from "../../../services/useApiService";
@@ -80,6 +81,7 @@ const FinalExamForm: React.FC = () => {
   const [itemsPerColumn, setItemsPerColumn] = useState(10);
   const [isMobileLandscape, setIsMobileLandscape] = useState(false);
   const [isFakeLandscape, setIsFakeLandscape] = useState(false);
+  const [showConfirmEnd, setShowConfirmEnd] = useState(false);
 
   // WebSocket: gửi JOIN_EXAM để server đếm người đang thi
   useEffect(() => {
@@ -95,11 +97,11 @@ const FinalExamForm: React.FC = () => {
       // Dùng pointer: coarse để detect thiết bị cảm ứng (phone, tablet, iPad, NestHub)
       const isTouchDevice = window.matchMedia('(pointer: coarse)').matches;
       
-      // Detect nếu cần fake landscape (mobile portrait)
+      // Detect nếu cần fake landscape — mọi touch device (phone/tablet/fold) ở portrait
       const width = window.innerWidth;
       const height = window.innerHeight;
       const isPortrait = height > width;
-      const needsFakeLandscape = width <= 768 && isPortrait;
+      const needsFakeLandscape = isTouchDevice && isPortrait && width <= 1024;
       
       // Detect màn hình nhỏ landscape (tablet landscape hoặc desktop resize nhỏ)
       const isLandscape = width > height;
@@ -294,16 +296,17 @@ const FinalExamForm: React.FC = () => {
   }, [timeOut]);
 
 
-  const handleEndExam = async () => {
-    if (!window.confirm("Bạn có chắc chắn muốn nộp bài và kết thúc thi không?")) {
-      return;
-    }
+  const handleEndExam = () => {
+    setShowConfirmEnd(true);
+  };
 
+  const handleConfirmEnd = async () => {
+    setShowConfirmEnd(false);
     if (!isExamFinished) {
-      setIsExamFinished(true); // Đánh dấu bài thi đã kết thúc
-      setTimeRemaining(0); // Dừng bộ đếm
+      setIsExamFinished(true);
+      setTimeRemaining(0);
       try {
-        await handleFinishExam(); // Gọi và đợi hàm ghi nhận kết quả
+        await handleFinishExam();
       } catch (error) {
         console.error("Lỗi khi kết thúc bài thi:", error);
         toast.error("Có lỗi xảy ra khi kết thúc bài thi.");
@@ -629,6 +632,20 @@ const FinalExamForm: React.FC = () => {
     </div>
     </div>{/* exam-rotate-wrapper */}
 
+      {showConfirmEnd && ReactDOM.createPortal(
+        <div className={`confirm-end-overlay${isFakeLandscape ? ' fake-landscape' : ''}`}>
+          <div className="confirm-end-box">
+            <h3 className="confirm-end-title">Nộp bài</h3>
+            <p className="confirm-end-msg">Bạn có chắc chắn muốn nộp bài và kết thúc thi không?</p>
+            <div className="confirm-end-btns">
+              <button className="confirm-end-btn confirm-end-btn--ok" onClick={handleConfirmEnd}>Có</button>
+              <button className="confirm-end-btn confirm-end-btn--cancel" autoFocus onClick={() => setShowConfirmEnd(false)}>Không</button>
+            </div>
+          </div>
+        </div>,
+        document.body
+      )}
+
       {showResult && (
         <ResultModal
           score={score}
@@ -652,6 +669,7 @@ const FinalExamForm: React.FC = () => {
           selectedOptions={selectedOptions}
           onNextExam={handleNextExam}
           nextSubjectName={nextSubjectName}
+          isFakeLandscape={isFakeLandscape}
         />
       )}
     </>

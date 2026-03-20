@@ -30,6 +30,7 @@ interface ResultModalProps {
   onNextExam: () => void;
   nextSubjectName: string | null;
   criticalNote?: string | null;
+  isFakeLandscape?: boolean;
 }
 
 const ResultModal: React.FC<ResultModalProps> = ({
@@ -46,6 +47,7 @@ const ResultModal: React.FC<ResultModalProps> = ({
   onNextExam,
   nextSubjectName,
   criticalNote,
+  isFakeLandscape = false,
 }) => {
   console.log('ANTIGRAVITY_RESULT_MODAL_FIX_V2');
   const navigate = useNavigate();
@@ -57,7 +59,7 @@ const ResultModal: React.FC<ResultModalProps> = ({
   };
 
   return ReactDOM.createPortal(
-    <div className="premium-result-overlay" data-antigravity="fix">
+    <div className={`premium-result-overlay${isFakeLandscape ? ' fake-landscape' : ''}`} data-antigravity="fix">
       <div className="result-sidebar-container">
         <h4 className="next-exam-title">
           KẾT QUẢ BÀI THI
