@@ -1,5 +1,12 @@
 require('dotenv').config();
 
+const poolConfig = {
+    max: 50,      // tối đa 50 connections đồng thời
+    min: 5,       // giữ sẵn 5 connections
+    acquire: 30000, // chờ tối đa 30s để lấy connection
+    idle: 10000,    // đóng connection không dùng sau 10s
+};
+
 module.exports = {
     development: {
         username: 'root',
@@ -10,6 +17,7 @@ module.exports = {
         timezone: '+07:00',
         logging: false,
         define: { freezeTableName: true },
+        pool: poolConfig,
     },
     test: {
         username: 'root',
@@ -20,6 +28,7 @@ module.exports = {
         timezone: '+07:00',
         logging: false,
         define: { freezeTableName: true },
+        pool: poolConfig,
     },
     docker_production: {
         username: process.env.DB_USERNAME || 'root',
@@ -30,6 +39,7 @@ module.exports = {
         timezone: '+07:00',
         logging: false,
         define: { freezeTableName: true },
+        pool: poolConfig,
     },
     production: {
         username: 'ud3v7y6suym75ol8',
@@ -41,6 +51,7 @@ module.exports = {
         logging: false,
         define: { freezeTableName: true },
         port: 21053,
+        pool: { ...poolConfig, max: 20 }, // Clever Cloud giới hạn connections
     },
     buildlocal: {
         username: 'root',
@@ -51,5 +62,6 @@ module.exports = {
         timezone: '+07:00',
         logging: false,
         define: { freezeTableName: true },
+        pool: poolConfig,
     },
 };

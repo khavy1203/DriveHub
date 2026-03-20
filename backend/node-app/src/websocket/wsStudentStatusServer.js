@@ -12,21 +12,30 @@ async function getStats() {
     return row;
 }
 
+// Throttle broadcast: tối đa 1 lần/2s dù có bao nhiêu trigger
+let broadcastTimer = null;
 async function broadcastVisitorStats() {
-    const stats = await getStats();
-    const examCount = examClients.size;
-    const message = JSON.stringify({
-        type: 'VISITOR_STATS',
-        payload: {
-            total_visits: Number(stats.total_visits),
-            current_online: stats.current_online,
-            peak_online: stats.peak_online,
-            peak_online_at: stats.peak_online_at,
-            last_visit_at: stats.last_visit_at,
-            exam_count: examCount,
+    if (broadcastTimer) return; // đang chờ, bỏ qua
+    broadcastTimer = setTimeout(async () => {
+        broadcastTimer = null;
+        try {
+            const stats = await getStats();
+            const message = JSON.stringify({
+                type: 'VISITOR_STATS',
+                payload: {
+                    total_visits: Number(stats.total_visits),
+                    current_online: stats.current_online,
+                    peak_online: stats.peak_online,
+                    peak_online_at: stats.peak_online_at,
+                    last_visit_at: stats.last_visit_at,
+                    exam_count: examClients.size,
+                }
+            });
+            sendAllClients(message);
+        } catch (e) {
+            console.error('broadcastVisitorStats error:', e.message);
         }
-    });
-    sendAllClients(message);
+    }, 2000);
 }
 
 // Set up WebSocket server
