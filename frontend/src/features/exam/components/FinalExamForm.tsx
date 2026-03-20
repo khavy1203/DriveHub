@@ -92,26 +92,15 @@ const FinalExamForm: React.FC = () => {
 
   useEffect(() => {
     const updateExamLayout = () => {
-      // Dùng pointer: coarse để detect thiết bị cảm ứng (phone, tablet, iPad, NestHub)
       const isTouchDevice = window.matchMedia('(pointer: coarse)').matches;
-      
-      // Detect nếu cần fake landscape (mobile portrait)
       const width = window.innerWidth;
       const height = window.innerHeight;
-      const isPortrait = height > width;
-      const needsFakeLandscape = width <= 768 && isPortrait;
-      
-      // Detect màn hình nhỏ landscape (tablet landscape hoặc desktop resize nhỏ)
       const isLandscape = width > height;
       const isSmallLandscape = isLandscape && width <= 950;
-      
-      // itemsPerColumn: 15 cho touch device HOẶC màn hình nhỏ landscape, 10 cho desktop lớn
       const shouldUseMobileLayout = isTouchDevice || isSmallLandscape;
       setItemsPerColumn(shouldUseMobileLayout ? 15 : 10);
-      
-      // isMobileLandscape: dùng cho layout landscape (real hoặc fake)
-      setIsMobileLandscape(shouldUseMobileLayout || needsFakeLandscape);
-      setIsFakeLandscape(needsFakeLandscape);
+      setIsMobileLandscape(shouldUseMobileLayout);
+      setIsFakeLandscape(false); // không dùng rotation nữa
     };
 
     updateExamLayout();

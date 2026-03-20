@@ -380,6 +380,158 @@ button:hover {
     }
 }
 
+// Portrait layout — tablet (≥600px) và phone (<600px)
+@media (orientation: portrait) {
+    .exam-container {
+        flex-direction: column !important;
+        height: 100dvh;
+        overflow: hidden;
+    }
+
+    .left-exam {
+        flex: 1 1 auto;
+        min-height: 0;
+        overflow-y: auto;
+        padding: 6px 8px;
+        width: 100%;
+        height: auto;
+    }
+
+    // Image vừa khít nội dung, không letterbox
+    .question-section {
+        flex: 0 0 auto;
+        height: auto;
+        min-height: 0;
+        border-radius: 8px;
+        overflow: hidden;
+    }
+
+    .question-section img {
+        width: 100%;
+        height: auto !important;
+        max-height: 52vh;
+        object-fit: contain;
+    }
+
+    .footer {
+        flex-shrink: 0;
+        min-height: 80px;
+        max-height: 18vh;
+        margin: 4px 0 0;
+        padding: 0 8px;
+        border-radius: 8px;
+        font-size: 12px;
+    }
+
+    .footer h5 {
+        font-size: 11px !important;
+        margin: 1px 0;
+    }
+
+    .image-hv {
+        max-height: 70px !important;
+        width: auto !important;
+    }
+
+    // Right panel trở thành bottom bar
+    .right-exam {
+        width: 100% !important;
+        min-width: unset !important;
+        height: auto;
+        flex: 0 0 auto;
+        padding: 0 4px 4px;
+        background-color: rgba(66, 90, 115, 255);
+    }
+
+    .sidebar-section {
+        flex-direction: row;
+        align-items: center;
+        height: auto;
+        padding: 4px;
+        border-radius: 8px;
+        gap: 4px;
+    }
+
+    .sidebar-section .top {
+        flex: 1 1 auto;
+        min-width: 0;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .time-remaining {
+        font-size: 11px;
+        padding: 2px 0;
+        white-space: nowrap;
+    }
+
+    .time-remaining span {
+        font-size: 14px !important;
+    }
+
+    .question-nav-container {
+        overflow-x: auto;
+        overflow-y: hidden;
+        display: flex;
+        flex-direction: row;
+        padding: 2px 0;
+    }
+
+    .question-nav {
+        flex-direction: row !important;
+        height: auto !important;
+        gap: 2px;
+    }
+
+    .question-btn {
+        flex-direction: column;
+        padding: 1px;
+        min-width: 28px;
+        margin-bottom: 0;
+    }
+
+    .question-number {
+        font-size: 10px;
+        margin: 0;
+    }
+
+    .answer-options {
+        flex-direction: row;
+        flex: unset;
+    }
+
+    .option-cell span {
+        font-size: 8px !important;
+    }
+
+    .option-cell input[type="checkbox"] {
+        width: 10px !important;
+        height: 10px !important;
+        pointer-events: none;
+    }
+
+    .end-exam-btn {
+        flex: 0 0 auto;
+        margin: 0;
+        padding: 8px 12px;
+        font-size: 13px;
+        border-radius: 6px;
+        white-space: nowrap;
+        align-self: stretch;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    // Ẩn virtual controls và note trên portrait
+    .virtual-controls,
+    .virtual-note,
+    .mobile-current-question-info {
+        display: none !important;
+    }
+}
+
 @media (max-width: 769px) {
 
     .modal-overlay {
