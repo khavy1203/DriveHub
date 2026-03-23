@@ -12,6 +12,8 @@ interface LicenseLookupFormProps {
   captchaLoading: boolean;
   lookupLoading: boolean;
   errorMessage: string | null;
+  loaiXe: 'moto' | 'oto';
+  onLoaiXeChange: (val: 'moto' | 'oto') => void;
 }
 
 const LicenseLookupForm: React.FC<LicenseLookupFormProps> = ({
@@ -23,6 +25,8 @@ const LicenseLookupForm: React.FC<LicenseLookupFormProps> = ({
   captchaLoading,
   lookupLoading,
   errorMessage,
+  loaiXe,
+  onLoaiXeChange,
 }) => {
   return (
     <form onSubmit={onSubmit}>
@@ -39,6 +43,26 @@ const LicenseLookupForm: React.FC<LicenseLookupFormProps> = ({
               required: 'Vui lòng nhập số CMND/CCCD.',
             })}
           />
+          <div className="tc-vehicle-toggle">
+            <button
+              type="button"
+              className={`tc-vt-btn${loaiXe === 'moto' ? ' active' : ''}`}
+              onClick={() => onLoaiXeChange('moto')}
+              title="Tra cứu xe máy / mô tô"
+            >
+              <i className="material-icons">two_wheeler</i>
+              Xe máy
+            </button>
+            <button
+              type="button"
+              className={`tc-vt-btn${loaiXe === 'oto' ? ' active' : ''}`}
+              onClick={() => onLoaiXeChange('oto')}
+              title="Tra cứu ô tô"
+            >
+              <i className="material-icons">directions_car</i>
+              Ô tô
+            </button>
+          </div>
         </div>
       </div>
 

@@ -54,10 +54,12 @@ const Setting: React.FC = () => {
       }
     };
     fetchStatuses();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
     fetchSubjects();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedRank]);
 
   const fetchSubjects = async () => {

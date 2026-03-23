@@ -6,6 +6,7 @@ export interface ApiResponseEnvelope<T> {
 
 export interface LicenseLiveInfoApi {
   so_gplx?: string;
+  so_phoi?: string;
   ho_va_ten?: string;
   ngay_sinh?: string;
   noi_cap?: string;
@@ -27,11 +28,13 @@ export interface LicenseRecordApi {
   ket_qua_xac_thuc: string;
   ly_do_tu_choi: string;
   live?: LicenseLiveInfoApi | null;
+  loaiXe?: string;
   liveError?: string;
 }
 
 export interface LicenseLiveInfo {
   licenseNumber?: string;
+  foilNumber?: string;
   fullName?: string;
   dateOfBirth?: string;
   issuedBy?: string;
@@ -53,6 +56,7 @@ export interface LicenseRecord {
   verificationResult: string;
   rejectionReason: string;
   liveInfo?: LicenseLiveInfo | null;
+  loaiXe?: string;
   liveError?: string;
 }
 
@@ -60,6 +64,7 @@ export interface CaptchaSessionData {
   sessionId: string;
   captchaBase64?: string | null;
   autoSolvedCode?: string;
+  sessionId2?: string;
 }
 
 export type CaptchaSessionResponse = ApiResponseEnvelope<CaptchaSessionData>;
@@ -93,6 +98,7 @@ export const mapLicenseLiveInfo = (api?: LicenseLiveInfoApi | null): LicenseLive
 
   return {
     licenseNumber: api.so_gplx,
+    foilNumber: api.so_phoi,
     fullName: api.ho_va_ten,
     dateOfBirth: api.ngay_sinh,
     issuedBy: api.noi_cap,
@@ -115,5 +121,6 @@ export const mapLicenseRecord = (api: LicenseRecordApi): LicenseRecord => ({
   verificationResult: api.ket_qua_xac_thuc,
   rejectionReason: api.ly_do_tu_choi,
   liveInfo: mapLicenseLiveInfo(api.live),
+  loaiXe: api.loaiXe,
   liveError: api.liveError,
 });

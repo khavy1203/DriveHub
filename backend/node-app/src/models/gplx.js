@@ -14,6 +14,9 @@ module.exports = (sequelize, DataTypes) => {
     hang: { type: DataTypes.STRING(10), allowNull: true },
     ket_qua_xac_thuc: { type: DataTypes.STRING(50), allowNull: true },
     ly_do_tu_choi: { type: DataTypes.TEXT, allowNull: true },
+    live_moto: { type: DataTypes.TEXT, allowNull: true },
+    live_oto: { type: DataTypes.TEXT, allowNull: true },
+    live_cached_at: { type: DataTypes.DATE, allowNull: true },
   }, {
     sequelize,
     modelName: 'Gplx',

@@ -100,28 +100,18 @@ const solveCaptchaWith2captcha = async (imageBuffer) => {
 };
 
 // ------- GPLX session: home + captcha -------
-const createGplxSession = async () => {
-    // 1. GET home page → session cookies + securityToken
+// Hàm nội bộ: tạo session thô, trả về đầy đủ cookie + token + captcha buffer
+const buildRawSession = async () => {
     const homeRes = await axios.get(`${GPLX_SITE}/`, {
-        headers: {
-            'User-Agent': UA,
-            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-            'Accept-Language': 'vi,en;q=0.9',
-        },
+        headers: { 'User-Agent': UA, 'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8', 'Accept-Language': 'vi,en;q=0.9' },
         timeout: 15000,
     });
 
     const rawCookies = homeRes.headers['set-cookie'] || [];
     const cookieHeader = rawCookies.map(c => c.split(';')[0]).join('; ');
-
     const $ = cheerio.load(homeRes.data);
 
-    // Thử nhiều cách extract securityToken
-    let securityToken = $('input[name="securityToken"]').val()
-        || $('[name="securityToken"]').val()
-        || '';
-
-    // Fallback: tìm trong script tags bằng regex
+    let securityToken = $('input[name="securityToken"]').val() || $('[name="securityToken"]').val() || '';
     if (!securityToken) {
         const html = homeRes.data;
         const match = html.match(/securityToken["'\s]*[:=]["'\s]*([a-f0-9]{32,128})/i)
@@ -131,69 +121,55 @@ const createGplxSession = async () => {
         if (match) securityToken = match[1];
     }
 
-    console.log('[createGplxSession] securityToken:', securityToken ? securityToken.slice(0, 20) + '...' : '(NOT FOUND)');
-    console.log('[createGplxSession] cookies:', cookieHeader.slice(0, 80));
-    console.log('[createGplxSession] html length:', homeRes.data?.length);
-
-    // Debug: in ra các input hidden để kiểm tra
-    const hiddenInputs = [];
-    $('input[type="hidden"]').each((_, el) => {
-        hiddenInputs.push({ name: $(el).attr('name'), value: String($(el).val()).slice(0, 30) });
-    });
-    console.log('[createGplxSession] hidden inputs:', JSON.stringify(hiddenInputs));
-
-    // 2. GET captcha image — server có thể set thêm cookie captcha session
     const captchaRes = await axios.get(
-        `${GPLX_SITE}/api/Common/Captcha/getCaptcha?returnType=image&site=${SITE_ID}&width=150&height=50&t=${Date.now()}`,
+        `${GPLX_SITE}/api/Common/Captcha/getCaptcha?returnType=image&site=${SITE_ID}&width=150&height=50&codeLength=4&t=${Date.now()}`,
         {
             responseType: 'arraybuffer',
-            headers: {
-                'Cookie': cookieHeader,
-                'Referer': `${GPLX_SITE}/`,
-                'Accept': 'image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8',
-                'Accept-Language': 'vi,en;q=0.9',
-                'User-Agent': UA,
-            },
+            headers: { 'Cookie': cookieHeader, 'Referer': `${GPLX_SITE}/`, 'Accept': 'image/*,*/*;q=0.8', 'User-Agent': UA, 'Accept-Language': 'vi,en;q=0.9' },
             timeout: 10000,
         }
     );
 
-    // Merge thêm cookie từ captcha response vào session (BotDetect set captcha cookie ở đây)
     const captchaCookies = (captchaRes.headers['set-cookie'] || []).map(c => c.split(';')[0]);
-    const allCookies = cookieHeader.split('; ').concat(captchaCookies).filter(Boolean);
-    // Loại trùng: giữ cookie sau (override)
     const cookieMap = new Map();
-    for (const c of allCookies) {
+    for (const c of cookieHeader.split('; ').concat(captchaCookies).filter(Boolean)) {
         const [k] = c.split('=');
         if (k) cookieMap.set(k.trim(), c);
     }
     const finalCookieHeader = Array.from(cookieMap.values()).join('; ');
-
-    console.log('[createGplxSession] captcha cookies:', captchaCookies.join(' | ') || '(none)');
-
-    const contentType = captchaRes.headers['content-type'] || 'image/jpeg';
-    const captchaBase64 = `data:${contentType};base64,${Buffer.from(captchaRes.data).toString('base64')}`;
-
-    // Thử tự giải captcha bằng 2captcha nếu có API key
     const autoSolvedCode = await solveCaptchaWith2captcha(captchaRes.data).catch(() => null);
-    if (autoSolvedCode) console.log('[createGplxSession] 2captcha auto-solved:', autoSolvedCode);
 
-    const sessionId = randomUUID();
-    sessionStore.set(sessionId, {
+    return {
         cookieHeader: finalCookieHeader,
         securityToken,
+        captchaImageBuffer: captchaRes.data,
+        contentType: captchaRes.headers['content-type'] || 'image/jpeg',
+        autoSolvedCode,
+    };
+};
+
+// Hàm public: tạo 1 session cho FE
+const createGplxSession = async () => {
+    const raw = await buildRawSession();
+    if (raw.autoSolvedCode) console.log('[createGplxSession] auto-solved:', raw.autoSolvedCode);
+
+    const captchaBase64 = `data:${raw.contentType};base64,${Buffer.from(raw.captchaImageBuffer).toString('base64')}`;
+    const sessionId = randomUUID();
+    sessionStore.set(sessionId, {
+        cookieHeader: raw.cookieHeader,
+        securityToken: raw.securityToken,
         expiresAt: Date.now() + 5 * 60 * 1000,
     });
-
-    return { sessionId, captchaBase64, autoSolvedCode };
+    return { sessionId, captchaBase64, autoSolvedCode: raw.autoSolvedCode };
 };
 
 // ------- submit lookup -------
-const submitGplxLookup = async (soGplx, ngaySinh, captchaCode, cookieHeader, securityToken) => {
+// loaiXe: '1' = mô tô (không thời hạn), '2' = ô tô (có thời hạn)
+const submitGplxLookup = async (soGplx, ngaySinh, captchaCode, cookieHeader, securityToken, loaiXe = '1') => {
     const body = new URLSearchParams({
         type: '',
         'fields[formTypeId]': FORM_TYPE,
-        'fields[chooseGPLX]': '1',
+        'fields[chooseGPLX]': loaiXe,
         'fields[codeGPLX]': soGplx,
         'fields[birthDate]': toDMY(ngaySinh),
         'fields[birthDateType2]': '',
@@ -232,7 +208,6 @@ const submitGplxLookup = async (soGplx, ngaySinh, captchaCode, cookieHeader, sec
 // ------- controllers -------
 
 // GET /api/gplx/captcha-session
-// Trả về { sessionId, captchaBase64 } để FE hiển thị ảnh captcha dạng data URL
 export const getCaptchaSession = async (_req, res) => {
     try {
         const { sessionId, captchaBase64, autoSolvedCode } = await createGplxSession();
@@ -273,10 +248,18 @@ export const getCaptchaImage = async (req, res) => {
     }
 };
 
-// POST /api/gplx/lookup  { cccd, ngaySinh, captchaCode, sessionId }
+// Hạng A (mô tô) → chooseGPLX = '2' (không thời hạn)
+// Còn lại (ô tô) → chooseGPLX = '1' (có thời hạn)
+const getChooseGPLX = (hang) => {
+    if (!hang) return '1';
+    return /^A/i.test(String(hang).trim()) ? '2' : '1';
+};
+
+// POST /api/gplx/lookup  { cccd, ngaySinh, captchaCode, sessionId, loaiXe }
+// loaiXe: 'moto' → chooseGPLX='2', 'oto' → chooseGPLX='1'
 export const lookupGPLX = async (req, res) => {
     try {
-        const { cccd, ngaySinh, captchaCode, sessionId } = req.body;
+        const { cccd, ngaySinh, captchaCode, sessionId, loaiXe } = req.body;
         if (!cccd?.trim())        return res.status(400).json({ EC: -1, EM: 'Vui lòng nhập số CMND/CCCD' });
         if (!captchaCode?.trim()) return res.status(400).json({ EC: -1, EM: 'Vui lòng nhập mã captcha' });
         if (!sessionId)           return res.status(400).json({ EC: -1, EM: 'Session captcha không hợp lệ' });
@@ -286,6 +269,8 @@ export const lookupGPLX = async (req, res) => {
 
         const { cookieHeader, securityToken } = session;
         sessionStore.delete(sessionId);
+
+        const chooseGPLX = loaiXe === 'oto' ? '1' : '2'; // moto=2, oto=1
 
         const records = await Gplx.findAll({
             where: { so_cmnd_cccd: cccd.trim() },
@@ -301,8 +286,15 @@ export const lookupGPLX = async (req, res) => {
             const birthDate = ngaySinh?.trim() || base.ngay_sinh;
             if (!birthDate) return { ...base, live: null, liveError: 'Thiếu ngày sinh để tra cứu' };
             try {
-                const live = await submitGplxLookup(base.so_gplx, birthDate, captchaCode.trim(), cookieHeader, securityToken);
-                return { ...base, live };
+                const live = await submitGplxLookup(base.so_gplx, birthDate, captchaCode.trim(), cookieHeader, securityToken, chooseGPLX);
+
+                // Cache vào cột tương ứng
+                const updateData = { live_cached_at: new Date() };
+                if (loaiXe === 'oto') updateData.live_oto = JSON.stringify(live);
+                else updateData.live_moto = JSON.stringify(live);
+                await r.update(updateData);
+
+                return { ...base, live, loaiXe };
             } catch (e) {
                 if (e.message === 'CAPTCHA_WRONG') captchaFailed = true;
                 const errMsg = e.message === 'CAPTCHA_WRONG' ? 'Mã captcha sai, vui lòng thử lại' : e.message;

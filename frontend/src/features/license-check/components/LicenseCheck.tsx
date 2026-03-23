@@ -11,6 +11,8 @@ const LicenseCheck: React.FC = () => {
     errors,
     submitLookup,
     refreshCaptcha,
+    loaiXe,
+    setLoaiXe,
     captchaImageBase64,
     captchaLoading,
     lookupLoading,
@@ -49,21 +51,16 @@ const LicenseCheck: React.FC = () => {
               captchaLoading={captchaLoading}
               lookupLoading={lookupLoading}
               errorMessage={lookupError}
+              loaiXe={loaiXe}
+              onLoaiXeChange={setLoaiXe}
             />
           </div>
         </div>
 
         <div className="tc-footer-note">
           <i className="material-icons">info</i>
-          Dữ liệu được cập nhật từ hệ thống Cục CSGT - Bộ Công An
+          Dữ liệu được cập nhật từ hệ thống Cục CSGT - Bộ Công An - Chỉ áp dụng Tra Cứu cho thí sinh nộp hồ sơ tại trường Cao Đẳng Cơ Điện Xây Dựng và Nông Lâm Trung Bộ
         </div>
-
-        {lookupLoading && (
-          <div className="tc-gplx-loading">
-            <div className="tc-spinner-large" />
-            <p>Đang tra cứu dữ liệu từ hệ thống Cục CSGT...</p>
-          </div>
-        )}
 
         {hasSearched && !lookupLoading && (
           <div className="tc-results">

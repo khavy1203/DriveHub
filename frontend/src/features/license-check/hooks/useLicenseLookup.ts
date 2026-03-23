@@ -30,6 +30,7 @@ const useLicenseLookup = () => {
     },
   });
 
+  const [loaiXe, setLoaiXe] = useState<'moto' | 'oto'>('moto');
   const [prefilledCaptchaCode, setPrefilledCaptchaCode] = useState('');
 
   const [captchaState, setCaptchaState] = useState<CaptchaUiState>({
@@ -83,6 +84,16 @@ const useLicenseLookup = () => {
     loadCaptcha();
   }, [loadCaptcha]);
 
+  // Auto-refresh captcha trước khi session hết hạn (server timeout 5 phút → làm mới lúc 4.5 phút)
+  useEffect(() => {
+    if (!captchaState.sessionId) return;
+    const timer = setTimeout(() => {
+      resetField('captchaCode');
+      loadCaptcha();
+    }, 4.5 * 60 * 1000);
+    return () => clearTimeout(timer);
+  }, [captchaState.sessionId, loadCaptcha, resetField]);
+
   useEffect(() => {
     setValue('captchaCode', prefilledCaptchaCode || '');
   }, [prefilledCaptchaCode, setValue]);
@@ -120,6 +131,7 @@ const useLicenseLookup = () => {
         cccd: identityNumber,
         captchaCode,
         sessionId: captchaState.sessionId,
+        loaiXe,
       });
 
       if (result?.EC === 0) {
@@ -137,6 +149,7 @@ const useLicenseLookup = () => {
         }));
 
         if (result?.EM?.toLowerCase().includes('captcha')) {
+          resetField('captchaCode');
           loadCaptcha();
         }
       }
@@ -157,6 +170,8 @@ const useLicenseLookup = () => {
     errors,
     submitLookup,
     refreshCaptcha,
+    loaiXe,
+    setLoaiXe,
     captchaImageBase64: captchaState.base64,
     captchaLoading: captchaState.loading,
     lookupLoading: lookupState.loading,
