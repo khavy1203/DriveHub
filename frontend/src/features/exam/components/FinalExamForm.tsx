@@ -522,6 +522,24 @@ const FinalExamForm: React.FC = () => {
     <>
       <div className={`exam-rotate-wrapper ${isFakeLandscape ? 'fake-landscape' : ''}`}>
       <div className={`exam-container`} style={desktopExamLayoutStyle}>
+        <div className="left-exam">        
+        <div className="question-section">
+          <div className="mobile-current-question-info">
+            {currentQuestion + 1}/{arrQuestion.length}
+          </div>
+          {(() => {
+            const imageSrc = getQuestionImage(arrQuestion[currentQuestion]?.number);
+            return imageSrc ? (
+              <img
+                src={imageSrc}
+                alt={`Câu hỏi ${arrQuestion[currentQuestion]?.number}`}
+              />
+            ) : (
+              <div>Không tìm thấy ảnh câu hỏi {arrQuestion[currentQuestion]?.number}</div>
+            );
+          })()}
+        </div>
+        
         <div className="virtual-controls">
           <div className="virtual-controls__dpad">
             <VirtualDPad
@@ -540,27 +558,7 @@ const FinalExamForm: React.FC = () => {
             />
           </div>
         </div>
-
-        <div className="left-exam">
-        <div className="virtual-note">
-          Tay trái: nhấn nút để điều hướng &nbsp;|&nbsp; Tay phải: chọn đáp án
-        </div>
-        <div className="question-section">
-          <div className="mobile-current-question-info">
-            Câu {currentQuestion + 1} / {arrQuestion.length}
-          </div>
-          {(() => {
-            const imageSrc = getQuestionImage(arrQuestion[currentQuestion]?.number);
-            return imageSrc ? (
-              <img
-                src={imageSrc}
-                alt={`Câu hỏi ${arrQuestion[currentQuestion]?.number}`}
-              />
-            ) : (
-              <div>Không tìm thấy ảnh câu hỏi {arrQuestion[currentQuestion]?.number}</div>
-            );
-          })()}
-        </div>
+        
         <div className="footer">
           <div className="left">
             <img src={'data:image/jpeg;base64,' + studentNow?.Anh} className='image-hv' alt="" />
