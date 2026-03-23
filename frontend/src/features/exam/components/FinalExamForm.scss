@@ -447,11 +447,10 @@ button:hover {
     .mobile-current-question-info {
         display: block !important;
         font-weight: bold;
-        font-size: 16px;
+        font-size: 10px;
         color: #007BFF;
         margin-bottom: 15px;
-        padding-bottom: 10px;
-        border-bottom: 1px dashed #ddd;
+        padding-bottom: 10px;   
     }
 
     .exam-container {
@@ -650,6 +649,7 @@ button:hover {
 }
 
 .exam-rotate-wrapper.fake-landscape {
+    --fake-landscape-scale: 1;
     position: fixed;
     top: 0;
     left: 0;
@@ -664,28 +664,58 @@ button:hover {
 .exam-rotate-wrapper.fake-landscape .exam-container {
     --virtual-controls-bottom: 18px;
     --virtual-controls-height: 114px;
+    --fake-right-exam-width: clamp(
+        var(--mobile-right-exam-min-width),
+        calc(var(--question-column-count, 1) * 60px + 6px),
+        48vw
+    );
+    --fake-landscape-inline-gap: clamp(6px, 1.6vw, 14px);
+    --fake-left-controls-width: calc(100vw - var(--fake-right-exam-width) - (var(--fake-landscape-inline-gap) * 2));
+    --fake-key-size: clamp(42px, calc(var(--fake-left-controls-width) / 7.4), 66px);
+    --fake-key-gap: clamp(3px, 1.2vw, 8px);
     position: relative;
     flex-direction: row !important;
     width: 100%;
     height: 100%;
+    zoom: var(--fake-landscape-scale);
+}
+
+/* Phone portrait dài (iPhone 12/XR...) khi dùng fake-landscape */
+@media screen and (max-width: 440px) and (min-height: 780px) and (orientation: portrait) {
+    .exam-rotate-wrapper.fake-landscape {
+        --fake-landscape-scale: 0.75;
+    }
+
+    .exam-rotate-wrapper.fake-landscape .exam-container {
+        zoom: 0.75 !important;
+        --fake-key-size: clamp(52px, calc(var(--fake-left-controls-width) / 6.8), 78px);
+        --fake-key-gap: clamp(4px, 1.4vw, 10px);
+    }
+
+    .exam-rotate-wrapper.fake-landscape .question-section {
+        padding: 24px 8px 10px 8px;
+    }
+
+    .exam-rotate-wrapper.fake-landscape .left-exam .question-section img {
+        margin: -20px auto auto auto;
+        max-width: 62% !important;
+    }
 }
 
 .exam-rotate-wrapper.fake-landscape .left-exam {
-    width: 80%;
+    width: calc(100% - var(--fake-right-exam-width));
+    flex: 1 1 auto;
     padding: 0;
     background-color: white;
     height: 100vh;
     display: flex;
     flex-direction: column;
     border-radius: 0;
+    overflow: hidden;
 }
 
 .exam-rotate-wrapper.fake-landscape .right-exam {
-    width: clamp(
-        var(--mobile-right-exam-min-width),
-        calc(var(--question-column-count, 1) * 60px + 6px),
-        48vw
-    );
+    width: var(--fake-right-exam-width);
     flex: 0 0 auto;
     min-width: var(--mobile-right-exam-min-width);
     max-width: 48vw;
@@ -703,22 +733,22 @@ button:hover {
 }
 
 .exam-rotate-wrapper.fake-landscape .question-section {
-    flex: 1;
+    flex: 1 1 auto;
+    min-height: 0;
     border-width: 0;
     border-radius: 0;
-    padding: 26px 10px 142px 10px;
+    padding: 26px 10px 10px 10px;
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
-    scroll-padding-bottom: 142px;
 }
 
 .exam-rotate-wrapper.fake-landscape .question-section img {
     display: block;
-    margin: -15px auto auto auto;
+    margin: -3.5% auto auto auto;
     max-height: none !important;
     height: auto !important;
     width: auto !important;
-    max-width: 70% !important;
+    max-width: 75% !important;
     object-fit: contain;
 }
 
@@ -846,7 +876,7 @@ button:hover {
 }
 
 .exam-rotate-wrapper.fake-landscape .question-number {
-    font-size: 8px;
+    font-size: 6px;
     margin: 0 1px;
     min-width: 12px;
     font-weight: bold;
@@ -892,7 +922,7 @@ button:hover {
     bottom: 0;
     right: 0;
     z-index: 999;
-    width: var(--mobile-right-exam-min-width, 145px);
+    width: var(--fake-right-exam-width);
     min-width: 0;
     max-width: none;
     height: 40px;
@@ -920,15 +950,18 @@ button:hover {
     position: fixed;
     top: 0;
     left: 0;
-    width: 100px;
+    width: 64px;
     z-index: 51;
-    font-size: 12px;
+    font-size: 8px;
     font-weight: bold;
     color: #007BFF;
-    padding: 3px 10px;
-    border-bottom: 1px dashed #ddd;
-    background: #fff;
+    padding: 1px 4px;
+    margin-left: 0.5%;
+    line-height: 1;
+    border: none;
     white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .exam-rotate-wrapper.fake-landscape .virtual-note {
@@ -936,7 +969,7 @@ button:hover {
     position: fixed;
     top: 0;
     left: 100px;
-    right: calc(var(--mobile-right-exam-min-width) + 8px);
+    right: calc(var(--fake-right-exam-width) + var(--fake-landscape-inline-gap));
     z-index: 50;
     background: #fff;
     font-size: 10px;
@@ -954,21 +987,27 @@ button:hover {
 }
 
 .exam-rotate-wrapper.fake-landscape .virtual-controls {
-    display: flex;
+    display: flex !important;
     position: fixed;
-    left: 12px;
-    right: calc(var(--mobile-right-exam-width) + 8px);
-    bottom: var(--virtual-controls-bottom);
-    z-index: 100;
+    left: var(--fake-landscape-inline-gap);
+    bottom: clamp(6px, 1.8vw, 14px);
+    right: calc(var(--fake-right-exam-width) + var(--fake-landscape-inline-gap));
+    width: auto;
+    max-width: none;
+    flex: 0 0 auto;
+    z-index: 1000;
     justify-content: space-between;
     align-items: flex-end;
     pointer-events: none;
-    padding: 0 20px;
+    padding: 0;
+    gap: 0;
+    overflow: hidden;
 }
 
 .exam-rotate-wrapper.fake-landscape .virtual-controls__dpad,
 .exam-rotate-wrapper.fake-landscape .virtual-controls__numpad {
     pointer-events: auto;
+    flex: 0 0 auto;
 }
 
 .exam-rotate-wrapper.fake-landscape .virtual-dpad {
@@ -977,15 +1016,15 @@ button:hover {
     align-items: center;
     position: static;
     z-index: 100;
-    transform: scale(0.55);
+    transform: none;
     transform-origin: bottom left;
-    gap: 5px;
+    gap: var(--fake-key-gap);
     opacity: 0.92;
 }
 
 .exam-rotate-wrapper.fake-landscape .dpad-row {
     display: flex;
-    gap: 5px;
+    gap: var(--fake-key-gap);
 }
 
 .exam-rotate-wrapper.fake-landscape .dpad-bottom {
@@ -995,20 +1034,20 @@ button:hover {
 .exam-rotate-wrapper.fake-landscape .virtual-numpad {
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: var(--fake-key-gap);
     position: static;
     z-index: 100;
-    transform: scale(0.55);
+    transform: none;
     transform-origin: bottom right;
     opacity: 0.95;
-    transform: scale(0.65);
-    transform-origin: bottom right;
 }
 
 .exam-rotate-wrapper.fake-landscape .dpad-btn,
 .exam-rotate-wrapper.fake-landscape .numpad-btn {
-    width: 64px;
-    height: 64px;
+    width: var(--fake-key-size) !important;
+    height: var(--fake-key-size) !important;
+    min-width: var(--fake-key-size) !important;
+    max-width: var(--fake-key-size) !important;
     background: transparent;
     border: none;
     box-shadow: none;
@@ -1031,7 +1070,7 @@ button:hover {
 
 .exam-rotate-wrapper.fake-landscape .numpad-row {
     display: flex;
-    gap: 10px;
+    gap: var(--fake-key-gap);
 }
 
 /* Disabled state cho virtual buttons */
@@ -1084,6 +1123,15 @@ button:hover {
     .exam-container {
         --virtual-controls-bottom: 18px;
         --virtual-controls-height: 114px;
+        --real-right-exam-width: clamp(
+            var(--mobile-right-exam-min-width),
+            calc(var(--question-column-count, 1) * 60px + 6px),
+            48vw
+        );
+        --real-inline-gap: clamp(6px, 1.6vw, 14px);
+        --real-left-controls-width: calc(100vw - var(--real-right-exam-width) - (var(--real-inline-gap) * 2));
+        --real-key-size: clamp(30px, min(calc(var(--real-left-controls-width) / 10.5), 12vh), 50px);
+        --real-key-gap: clamp(3px, 1.2vw, 8px);
     }
 
     .exam-container {
@@ -1092,7 +1140,8 @@ button:hover {
     }
 
     .left-exam {
-        width: 80%;
+        width: calc(100% - var(--real-right-exam-width));
+        flex: 1 1 auto;
         padding: 0;
         background-color: white;
         height: 100vh;
@@ -1102,11 +1151,7 @@ button:hover {
     }
 
     .right-exam {
-        width: clamp(
-            var(--mobile-right-exam-min-width),
-            calc(var(--question-column-count, 1) * 60px + 6px),
-            48vw
-        );
+        width: var(--real-right-exam-width);
         flex: 0 0 auto;
         min-width: var(--mobile-right-exam-min-width);
         max-width: 48vw;
@@ -1211,7 +1256,7 @@ button:hover {
     }
 
     .question-number {
-        font-size: 8px;
+        font-size: 6px;
         margin: 0 1px;
         min-width: 12px;
         font-weight: bold;
@@ -1273,15 +1318,17 @@ button:hover {
         position: fixed;
         top: 0;
         left: 0;
-        width: 100px;
+        width: 64px;
         z-index: 51;
-        font-size: 12px;
+        font-size: 8px;
         font-weight: bold;
         color: #007BFF;
-        padding: 3px 10px;
+        padding: 1px 4px;
+        line-height: 1;
         border-bottom: 1px dashed #ddd;
-        background: #fff;
         white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
     }
 
     .virtual-note {
@@ -1289,7 +1336,7 @@ button:hover {
         position: fixed;
         top: 0;
         left: 100px;
-        right: calc(var(--mobile-right-exam-min-width) + 8px);
+        right: calc(var(--real-right-exam-width) + var(--real-inline-gap));
         z-index: 50;
         background: #fff;
         font-size: 10px;
@@ -1309,18 +1356,20 @@ button:hover {
     .virtual-controls {
         display: flex;
         position: fixed;
-        left: 12px;
-        right: calc(var(--mobile-right-exam-width) + 8px);
+        left: var(--real-inline-gap);
+        right: calc(var(--real-right-exam-width) + var(--real-inline-gap));
         bottom: var(--virtual-controls-bottom);
         z-index: 100;
-        justify-content: space-around;
+        justify-content: space-between;
         align-items: flex-end;
         pointer-events: none;
-        padding: 0 20px;
+        padding: 0;
+        gap: 0;
     }
     .virtual-controls__dpad,
     .virtual-controls__numpad {
         pointer-events: auto;
+        flex: 0 0 auto;
     }
     .virtual-dpad {
         display: flex;
@@ -1328,21 +1377,24 @@ button:hover {
         align-items: center;
         position: static;
         z-index: 100;
-        transform: scale(0.72);
+        transform: none;
         transform-origin: bottom left;
-        gap: 5px;
+        gap: var(--real-key-gap);
         opacity: 0.92;
     }
     .dpad-row {
         display: flex;
-        gap: 5px;
+        gap: var(--real-key-gap);
     }
     .dpad-bottom {
         justify-content: center;
     }
-    .dpad-btn, .numpad-btn {
-        width: 64px;
-        height: 64px;
+    .virtual-controls .dpad-btn,
+    .virtual-controls .numpad-btn {
+        width: var(--real-key-size) !important;
+        height: var(--real-key-size) !important;
+        min-width: var(--real-key-size) !important;
+        max-width: var(--real-key-size) !important;
         background: transparent;
         border: none;
         box-shadow: none;
@@ -1374,16 +1426,16 @@ button:hover {
     .virtual-numpad {
         display: flex;
         flex-direction: column;
-        gap: 8px;
+        gap: var(--real-key-gap);
         position: static;
         z-index: 100;
         opacity: 0.95;
-        transform: scale(0.72);
+        transform: none;
         transform-origin: bottom right;
     }
     .numpad-row {
         display: flex;
-        gap: 10px;
+        gap: var(--real-key-gap);
     }
 
     @media (max-width: 740px) {
@@ -1414,15 +1466,19 @@ button:hover {
         .exam-container {
             --virtual-controls-bottom: 8px;
             --virtual-controls-height: 86px;
-        }
-
-        .left-exam { width: 81%; }
-        .right-exam {
-            width: clamp(
+            --real-right-exam-width: clamp(
                 108px,
                 calc(var(--question-column-count, 1) * 54px + 12px),
                 44vw
             );
+            --real-inline-gap: 8px;
+            --real-key-size: clamp(28px, min(calc(var(--real-left-controls-width) / 11.5), 11vh), 42px);
+            --real-key-gap: clamp(2px, 0.9vw, 6px);
+        }
+
+        .left-exam { width: calc(100% - var(--real-right-exam-width)); }
+        .right-exam {
+            width: var(--real-right-exam-width);
             min-width: 108px;
         }
 
@@ -1507,19 +1563,22 @@ button:hover {
         }
 
         .virtual-controls {
-            left: 8px;
-            right: calc(var(--mobile-right-exam-width) + 6px);
+            left: var(--real-inline-gap);
+            right: calc(var(--real-right-exam-width) + var(--real-inline-gap));
             bottom: 8px;
         }
-        .virtual-dpad {
-            transform: scale(0.62) !important;
-            transform-origin: bottom left;
-            gap: 3px;
-        }
-        .virtual-numpad {
-            transform: scale(0.62) !important;
-            transform-origin: bottom right;
-            gap: 5px;
+    }
+    
+    /* iPhone 12/XR landscape: nhích ảnh lên và giữ kích thước 75% */
+    @media (min-width: 800px) and (max-height: 450px) {
+        .question-section img {
+            margin: -3% auto 0 auto;
+            width: auto !important;
+            max-width: 95% !important;
+            max-height: calc(100vh - 40px) !important;
+            height: auto !important;
+            transform: scale(0.75);
+            transform-origin: center top;
         }
     }
     
@@ -1656,4 +1715,21 @@ button:hover {
 
 .dpad-btn.down:active .keycap-img {
     transform: translateY(3px) scale(1.05);
+}
+
+/* Fine-tune badge size for long-screen phones (iPhone 12/XR class) */
+@media screen and (max-width: 440px) and (min-height: 780px) and (orientation: portrait) {
+    .exam-rotate-wrapper.fake-landscape .mobile-current-question-info {
+        font-size: 20px !important;
+        width: 68px;
+        padding: 1px 3px 1px 4px;
+    }
+}
+
+@media screen and (max-width: 950px) and (orientation: landscape) and (min-width: 800px) and (max-height: 450px) {
+    .exam-container .mobile-current-question-info {
+        font-size: 20px !important;
+        width: 68px;
+        padding: 1px 3px 1px 4px;
+    }
 }
