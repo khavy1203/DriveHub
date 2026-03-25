@@ -129,7 +129,7 @@ const deleteExam = async (id) => {
             });
         } else {
             console.log('check exam', exam)
-            const updateTs = await db.thisinh.update({ IDprocesstest: 1, print: 1 }, {
+            const updateTs = await db.thisinh.update({ IDprocesstest: 1 }, {
                 where: { IDThiSinh: exam?.IDThisinh }
             });
             console.log('check updateTs', updateTs)

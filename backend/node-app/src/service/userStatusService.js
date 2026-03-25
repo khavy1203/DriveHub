@@ -865,11 +865,7 @@ const updateProcesstest = async (IDThiSinh, processtest) => {
                 DT: []
             });
         }
-        if (processtest != 3) {
-            await thisinh.update({ IDprocesstest: processtest, print: 1 });
-        } else {
-            await thisinh.update({ IDprocesstest: processtest });
-        }
+        const updateUser = await thisinh.update({ IDprocesstest: processtest });
         const res = await userServices.getInfoStudentServices(null, null, IDThiSinh)
         const studentInfo = res.DT[0];
         await sendStudentDashBoardUpdate(studentInfo);
