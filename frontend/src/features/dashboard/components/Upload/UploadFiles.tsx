@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useApi } from "../../../../shared/hooks";
+import httpClient from "../../../../shared/services/httpClient";
 import { ApiResponse } from "../../../../core/types";
 import { Rank, Course } from "../../../../features/student/types";
 import { ENVIRONMENT_CONFIGS, getCurrentEnvironment } from "../../../../core/config/environment";
@@ -196,7 +197,9 @@ const UploadFiles: React.FC = () => {
     fd.append('file', file);
     Object.entries(extra).forEach(([k, v]) => fd.append(k, v));
     try {
-      const res: any = await post(endpoint, fd);
+      // Dùng httpClient trực tiếp để không kích hoạt GlobalSpinner (đã có spinner trong button)
+      const response = await httpClient.post(endpoint, fd);
+      const res: any = response.data;
       if (res?.EC === 0) {
         setMsg({ type: 'success', text: res.EM || 'Thành công!' });
         setFile(null);
