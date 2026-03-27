@@ -4,12 +4,17 @@ const { Model } = require('sequelize');
 module.exports = (sequelize, DataTypes) => {
   class question extends Model {
     static associate(models) {
-      // Quan hệ nhiều-nhiều với test qua bảng trung gian test_question
       question.belongsToMany(models.test, {
         through: 'test_question',
         foreignKey: 'IDQuestion',
         otherKey: 'IDTest',
         as: 'tests',
+      });
+      question.belongsToMany(models.reviewSet, {
+        through: 'review_set_question',
+        foreignKey: 'IDQuestion',
+        otherKey: 'IDReviewSet',
+        as: 'reviewSets',
       });
     }
   }
@@ -37,6 +42,14 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.INTEGER,
       allowNull: true,
       defaultValue: 4,
+    },
+    tip: {
+      type: DataTypes.TEXT,
+      allowNull: true,
+    },
+    reason: {
+      type: DataTypes.TEXT,
+      allowNull: true,
     },
   }, {
     sequelize,

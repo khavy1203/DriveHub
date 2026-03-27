@@ -73,8 +73,34 @@ const deleteRank = async (id) => {
         const rank = await db.rank.findByPk(id);
         if (!rank) return ({ EM: 'Cant find by ID', EC: 1, DT: [] });
 
+        // 1. Delete review sets for this rank (review_set_question cascades via FK)
+        await db.reviewSet.destroy({ where: { IDRank: id } });
+
+        // 2. Find all subjects for this rank
+        const subjects = await db.subject.findAll({ where: { IDrank: id }, attributes: ['id'] });
+        const subjectIds = subjects.map((s) => s.id);
+
+        if (subjectIds.length > 0) {
+            // 3. Find all tests under those subjects
+            const tests = await db.test.findAll({ where: { IDSubject: subjectIds }, attributes: ['id'] });
+            const testIds = tests.map((t) => t.id);
+
+            if (testIds.length > 0) {
+                // 4. Delete exams and test_questions linked to those tests
+                await db.exam.destroy({ where: { IDTest: testIds } });
+                await db.test_question.destroy({ where: { IDTest: testIds } });
+                await db.test.destroy({ where: { id: testIds } });
+            }
+
+            // 5. Delete subjects
+            await db.subject.destroy({ where: { IDrank: id } });
+        }
+
+        // 6. Delete the rank itself
         await rank.destroy();
+
         cache.invalidate('ranks_all');
+        cache.invalidatePrefix(`review_sets_rank_${id}`);
         return ({ EM: 'delete success', EC: 0, DT: [] });
     } catch (error) {
         console.log('deleteRank error', error);

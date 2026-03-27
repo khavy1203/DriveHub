@@ -104,6 +104,11 @@ export const Header: React.FC = () => {
                   </NavLink>
                 </li>
                 <li>
+                  <NavLink to="/review" className={({ isActive }) => (isActive ? 'active' : '')}>
+                    Ôn tập
+                  </NavLink>
+                </li>
+                <li>
                   <NavLink to="/license-check" className={({ isActive }) => (isActive ? 'active' : '')}>
                     GPLX
                   </NavLink>

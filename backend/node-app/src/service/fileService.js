@@ -30,27 +30,42 @@ const createOrUpdateQuestion = async (file) => {
         const rows = data.slice(1);
 
         for (let row of rows) {
-            // Cột 1: số câu, Cột 2: đáp án đúng, Cột 3: số lượng đáp án
-            const name        = row[0]; // cột 1
-            const answerText  = row[1]; // cột 2
-            const optionCount = row[2]; // cột 3
+            // Cột 0: Câu          → number
+            // Cột 1: Đ.án         → answer
+            // Cột 2: SL Câu hỏi  → totalOptions
+            // Cột 3: Mẹo nhớ nhanh → tip
+            // Cột 4: Lý do / Luật  → reason
+            const numberRaw      = row[0];
+            const answerRaw      = row[1];
+            const optionCountRaw = row[2];
+            const tipText        = row[3] != null && String(row[3]).trim() !== '' ? String(row[3]).trim() : null;
+            const reasonText     = row[4] != null && String(row[4]).trim() !== '' ? String(row[4]).trim() : null;
 
-            if (!name || !answerText) continue;
+            if (!numberRaw || !answerRaw) continue;
 
-            const numberName    = parseInt(name);
-            const numberAnswer  = parseInt(answerText);
-            const totalOptions  = optionCount ? parseInt(optionCount) : 4;
+            const numberName   = parseInt(numberRaw);
+            const numberAnswer = parseInt(answerRaw);
+            const totalOptions = optionCountRaw ? parseInt(optionCountRaw) : 4;
+
+            if (isNaN(numberName) || isNaN(numberAnswer)) continue;
 
             if (existing600questionMap.has(numberName)) {
                 await db.question.update(
-                    { answer: numberAnswer, totalOptions },
+                    {
+                        answer: numberAnswer,
+                        totalOptions,
+                        tip:    tipText,
+                        reason: reasonText,
+                    },
                     { where: { number: numberName } }
                 );
             } else {
                 await db.question.create({
-                    number: numberName,
-                    answer: numberAnswer,
-                    totalOptions,
+                    number:       numberName,
+                    answer:       numberAnswer,
+                    totalOptions: totalOptions,
+                    tip:          tipText    ?? null,
+                    reason:       reasonText ?? null,
                 });
             }
         }

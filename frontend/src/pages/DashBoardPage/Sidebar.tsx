@@ -20,6 +20,8 @@ const NAV_ITEMS: NavItem[] = [
       { label: 'Thiết lập chung', icon: 'tune',          to: '/dashboard/setting' },
       { label: 'Upload File',     icon: 'upload_file',    to: '/dashboard/upload' },
       { label: 'Máy in',          icon: 'print',          to: '/dashboard/printer' },
+      { label: 'Bộ đề ôn tập',   icon: 'menu_book',      to: '/dashboard/review-sets' },
+      { label: 'Import bộ ôn tập', icon: 'file_upload',  to: '/dashboard/exam-sets-import' },
     ],
   },
 ];

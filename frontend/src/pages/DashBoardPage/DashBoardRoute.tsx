@@ -10,6 +10,8 @@ import DashboardWidgets from './DashboardWidgets';
 import Setting from '../../features/dashboard/components/Setting/SettingForm';
 import UploadFiles from '../../features/dashboard/components/Upload/UploadFiles';
 import Printer from '../../features/dashboard/components/Printer/Printer';
+import ReviewSetManager from '../../features/dashboard/components/ReviewSetManager/ReviewSetManager';
+import ExamSetImporter from '../../features/dashboard/components/ExamSetImporter/ExamSetImporter';
 // import Detect from '../../components/DashBoard/upload/Detect';
 
 const DashBoardRoute: React.FC = () => {
@@ -25,7 +27,9 @@ const DashBoardRoute: React.FC = () => {
         <Route path="/dashboard-widgets" element={<DashboardWidgets />} />
         <Route path="/setting" element={<Setting />} />
         <Route path="/upload" element={<UploadFiles />} />
-        <Route path="/printer" element={<Printer />} /> {/* Thêm route cho Printer */}
+        <Route path="/printer" element={<Printer />} />
+        <Route path="/review-sets" element={<ReviewSetManager />} />
+        <Route path="/exam-sets-import" element={<ExamSetImporter />} /> {/* Thêm route cho Printer */}
         {/* <Route path="/detect" element={<Detect />} /> */}
         <Route path="*" element={<div>404 - Page Not Found</div>} />
       </Routes>

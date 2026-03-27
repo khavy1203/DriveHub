@@ -29,6 +29,7 @@ import { FinalExamForm } from './features/exam';
 import QrScannerPage from './pages/HomePage/QRScanner/QrScanner';
 import TrafficCheck from './features/traffic-check/components/TrafficCheck';
 import LicenseCheck from './features/license-check/components/LicenseCheck';
+import { ReviewPage, ReviewChillPage } from './features/review';
 
 import './App.scss';
 
@@ -100,6 +101,8 @@ const App: React.FC = () => {
                 />
                 <Route path="teststudent" element={<LoginTestStudent />} />
                 <Route path="license-check" element={<LicenseCheck />} />
+                <Route path="review" element={<ReviewPage />} />
+                <Route path="review/chill/:setId" element={<ReviewChillPage />} />
                 <Route path="traffic-check" element={<TrafficCheck />} />
                 <Route path="students" element={<StudentsList />} />
                 <Route path="login" element={<LoginForm />} />

@@ -11,3 +11,4 @@ dist*
 !**/.env.example
 .claude
 GITHUB_SECRETS.md
+/UI-TEST/*

@@ -1,0 +1,235 @@
+.esi {
+  padding: 28px;
+  max-width: 900px;
+
+  &__header { margin-bottom: 24px; }
+
+  &__title {
+    font-size: 22px;
+    font-weight: 700;
+    margin: 0 0 6px;
+    color: #1a1c1c;
+  }
+
+  &__subtitle {
+    font-size: 14px;
+    color: #3d4946;
+    margin: 0;
+  }
+
+  // ── Drop zone ──────────────────────────────────────────────────────
+  &__dropzone {
+    border: 2px dashed #bdc9c5;
+    border-radius: 12px;
+    padding: 40px 24px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    cursor: pointer;
+    background: #f8fafa;
+    transition: border-color 0.15s, background 0.15s;
+    margin-bottom: 16px;
+    min-height: 160px;
+
+    &:hover, &--over {
+      border-color: #00685d;
+      background: #eef7f5;
+    }
+
+    &--has-file {
+      border-style: solid;
+      border-color: #00685d;
+      background: #f0faf8;
+    }
+  }
+
+  &__file-input { display: none; }
+
+  &__upload-icon {
+    font-size: 40px;
+    color: #bdc9c5;
+  }
+
+  &__upload-text {
+    font-size: 15px;
+    font-weight: 600;
+    color: #3d4946;
+    margin: 0;
+  }
+
+  &__upload-hint {
+    font-size: 12px;
+    color: #8a9e9a;
+    margin: 0;
+  }
+
+  &__file-info {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+
+  &__file-icon {
+    font-size: 36px;
+    color: #00685d;
+  }
+
+  &__file-name {
+    font-size: 15px;
+    font-weight: 600;
+    color: #1a1c1c;
+    margin: 0 0 4px;
+    word-break: break-all;
+  }
+
+  &__file-size {
+    font-size: 12px;
+    color: #8a9e9a;
+    margin: 0;
+  }
+
+  // ── Actions ────────────────────────────────────────────────────────
+  &__actions {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+  }
+
+  &__btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 22px;
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: opacity 0.15s;
+
+    .material-icons { font-size: 18px; }
+
+    &--import {
+      background: #00685d;
+      color: #fff;
+
+      &:hover:not(:disabled) { opacity: 0.88; }
+      &:disabled { opacity: 0.45; cursor: default; }
+    }
+
+    &--reset {
+      background: #f2f4f4;
+      color: #3d4946;
+
+      &:hover:not(:disabled) { background: #e6e8e8; }
+      &:disabled { opacity: 0.45; cursor: default; }
+    }
+  }
+
+  &__spin { animation: esi-spin 0.8s linear infinite; }
+
+  // ── Result ─────────────────────────────────────────────────────────
+  &__result { margin-bottom: 28px; }
+
+  &__result-banner {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 16px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 16px;
+
+    .material-icons { font-size: 20px; }
+
+    &--ok  { background: #d4f0ea; color: #005047; }
+    &--err { background: #ffdad6; color: #93000a; }
+  }
+
+  &__result-table-wrap {
+    overflow-x: auto;
+    border-radius: 8px;
+    border: 1px solid #e6e8e8;
+  }
+
+  &__result-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+
+    th {
+      background: #f2f4f4;
+      padding: 10px 14px;
+      text-align: left;
+      font-weight: 700;
+      color: #3d4946;
+      white-space: nowrap;
+      border-bottom: 1px solid #e6e8e8;
+    }
+
+    td {
+      padding: 10px 14px;
+      border-bottom: 1px solid #f2f4f4;
+      color: #1a1c1c;
+    }
+
+    tbody tr:last-child td { border-bottom: none; }
+  }
+
+  &__result-row--skipped td { color: #8a9e9a; }
+
+  &__cell-sheet { font-weight: 700; }
+  &__cell-num   { text-align: center; }
+  &__cell-warn  { color: #ba4e00; font-weight: 700; }
+
+  &__badge {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 600;
+
+    &--success { background: #d4f0ea; color: #005047; }
+    &--skipped { background: #f2f4f4; color: #8a9e9a; }
+  }
+
+  // ── Guide ──────────────────────────────────────────────────────────
+  &__guide {
+    display: flex;
+    gap: 12px;
+    padding: 16px 18px;
+    background: #f0f7ff;
+    border: 1px solid #b8d0f0;
+    border-radius: 10px;
+    font-size: 13px;
+    color: #1a3a6a;
+
+    .material-icons { font-size: 20px; color: #3b6ac0; flex-shrink: 0; margin-top: 1px; }
+  }
+
+  &__guide-title {
+    font-weight: 700;
+    margin: 0 0 8px;
+  }
+
+  &__guide-list {
+    margin: 0;
+    padding-left: 18px;
+    line-height: 1.8;
+
+    code {
+      background: #dce8ff;
+      padding: 1px 5px;
+      border-radius: 4px;
+      font-size: 12px;
+    }
+  }
+}
+
+@keyframes esi-spin {
+  to { transform: rotate(360deg); }
+}

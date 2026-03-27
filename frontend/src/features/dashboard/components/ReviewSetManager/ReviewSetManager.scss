@@ -1,0 +1,134 @@
+.rsm {
+  padding: 28px;
+  max-width: 860px;
+
+  &__header { margin-bottom: 24px; }
+
+  &__title {
+    font-size: 22px;
+    font-weight: 700;
+    margin: 0 0 6px;
+    color: #1a1c1c;
+  }
+
+  &__subtitle {
+    font-size: 14px;
+    color: #3d4946;
+    margin: 0;
+  }
+
+  &__controls {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+  }
+
+  &__select {
+    padding: 9px 14px;
+    border: 1px solid #bdc9c5;
+    border-radius: 8px;
+    font-size: 14px;
+    min-width: 180px;
+    background: #fff;
+    color: #191c1d;
+    cursor: pointer;
+
+    &:focus { outline: 2px solid #00685d; outline-offset: 2px; }
+  }
+
+  &__btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 9px 20px;
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: opacity 0.15s;
+
+    .material-icons { font-size: 18px; }
+
+    &--generate {
+      background: #00685d;
+      color: #fff;
+
+      &:hover:not(:disabled) { opacity: 0.88; }
+      &:disabled { opacity: 0.5; cursor: default; }
+    }
+  }
+
+  &__spin { animation: rsm-spin 0.8s linear infinite; }
+
+  &__message {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 16px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    margin-bottom: 20px;
+
+    .material-icons { font-size: 20px; }
+
+    &--ok  { background: #d4f0ea; color: #005047; }
+    &--err { background: #ffdad6; color: #93000a; }
+  }
+
+  &__sets { margin-bottom: 24px; }
+
+  &__sets-count {
+    font-size: 13px;
+    color: #3d4946;
+    margin: 0 0 12px;
+  }
+
+  &__sets-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
+    gap: 8px;
+  }
+
+  &__set-card {
+    background: #f2f4f4;
+    border-radius: 8px;
+    padding: 10px 8px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+  }
+
+  &__set-index {
+    font-size: 13px;
+    font-weight: 700;
+    color: #00685d;
+  }
+
+  &__set-count {
+    font-size: 11px;
+    color: #3d4946;
+  }
+
+  &__info {
+    display: flex;
+    gap: 10px;
+    padding: 14px 16px;
+    background: #f2f4f4;
+    border-radius: 10px;
+    font-size: 13px;
+    color: #3d4946;
+    line-height: 1.6;
+
+    .material-icons { font-size: 18px; color: #00685d; flex-shrink: 0; margin-top: 1px; }
+    p { margin: 0; }
+  }
+}
+
+@keyframes rsm-spin {
+  to { transform: rotate(360deg); }
+}

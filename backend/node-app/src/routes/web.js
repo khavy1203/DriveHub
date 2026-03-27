@@ -19,6 +19,8 @@ import trafficCheckController from "../controller/trafficCheckController";
 import mezonController from "../controller/mezonController";
 import userController from "../controller/userController";
 import gplxController from "../controller/gplxController";
+import reviewSetController from "../controller/reviewSetController";
+import examSetImportController from "../controller/examSetImportController";
 
 
 const routes = express.Router();
@@ -67,6 +69,12 @@ const initWebRoutes = (app) => {
     routes.delete("/students/:id/exams", userStatusController.resetStudentExams);
     routes.get("/course", userStatusController.getCourse);
     routes.get('/rank/getRank', rankController.getRank);
+
+    // Review sets (bộ đề ôn tập — separate from exam test sets)
+    routes.get('/review/sets/:rankId', reviewSetController.getReviewSetsByRank);
+    routes.get('/review/set/:setId/questions', reviewSetController.getReviewSetQuestions);
+    routes.post('/review/sets/generate/:rankId', reviewSetController.generateReviewSets);
+    routes.post('/review/tips/import', reviewSetController.batchImportTips);
     routes.get('/subject/:rankId/get-subjects', subjectController.getSubject);
     routes.get('/subject/get-test/:IDSubject', subjectController.getTestFromSubject);
     routes.get('/test/get-test/:IDTest', testStudentController.getTest);
@@ -112,6 +120,7 @@ const initWebRoutes = (app) => {
     //test student - subject
     routes.get("/testStudent/subject", testStudentController.getSubject);
     routes.post("/testStudent/processExcelAndInsert", memoryUpload.single('file'), testStudentController.processExcelAndInsert); //upload 600 question and test
+    routes.post("/exam-sets/import", memoryUpload.single('file'), examSetImportController.importReviewSets);
 
     //rank
     routes.post('/rank/create-rank', rankController.createRank)
