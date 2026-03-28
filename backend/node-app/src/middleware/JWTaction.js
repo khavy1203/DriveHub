@@ -49,7 +49,21 @@ const extractToken = (req) => {
 
 const checkUserJwt = async (req, res, next) => {
     try {
-        if (req.method === 'GET' && req.path !== '/account') return next();
+        // Session probe for home / auth hydrate — never 401 when anonymous
+        if (req.method === 'GET' && req.path === '/account') {
+            const cookies = req.cookies || {};
+            const token = cookies.jwt || cookies.auth_token || extractToken(req);
+            if (token) {
+                const decode = verifyToken(token);
+                if (decode) {
+                    req.user = decode;
+                    req.token = token;
+                }
+            }
+            return next();
+        }
+
+        if (req.method === 'GET') return next();
         if (nonSecurePaths.includes(req.path)) return next();
 
         let cookies = req.cookies || {};

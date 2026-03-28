@@ -20,8 +20,9 @@ export const ENVIRONMENT_CONFIGS: Record<BuildEnvironment, EnvironmentConfig> = 
     WS_BASE_URL: 'ws://localhost:8080/ws/student-status',
   },
   production: {
-    API_BASE_URL: process.env.REACT_APP_API_URL || 'https://www.driverhub.io.vn',
-    WS_BASE_URL: `${(process.env.REACT_APP_API_URL || 'https://www.driverhub.io.vn').replace(/^http/, 'ws')}/ws/student-status`,
+    // API often on apex while SPA is on www — CORS allows both if either is in CORS_ORIGINS
+    API_BASE_URL: process.env.REACT_APP_API_URL || 'https://driverhub.io.vn',
+    WS_BASE_URL: `${(process.env.REACT_APP_API_URL || 'https://driverhub.io.vn').replace(/^http/, 'ws')}/ws/student-status`,
   },
   buildlocal: {
     API_BASE_URL: 'http://192.168.1.99:8080',

@@ -116,6 +116,9 @@ const initWebRoutes = (app) => {
     routes.post('/auth/setup-password', setupPasswordController.setupPassword);
     routes.post('/auth/forgot-password', setupPasswordController.forgotPassword);
 
+    // GET /account is registered below after JWT layer; checkUserJwt treats GET /account as
+    // optional auth (200 + null DT when anonymous) for home / useAuth hydrate.
+
     routes.all("*", checkUserJwt, checkUserPermission);
     // CRUD API routes for status
     routes.get("/status", userStatusController.getAllStatus);
@@ -136,6 +139,7 @@ const initWebRoutes = (app) => {
     //login
     routes.post("/user/login", loginRegisterController.handleLogin);
     routes.post("/user/logout", loginRegisterController.handleLogout);
+    /** Public session probe — anonymous returns EC:0, DT.access_token null */
     routes.get("/account", userController.getUserAccount);
     routes.get("/users", userController.readFunc);
     routes.post("/users", userController.createFunc);

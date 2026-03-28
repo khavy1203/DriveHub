@@ -1,26 +1,65 @@
 
 require('dotenv').config();
+
+const LOCAL_OR_IP = (hostname) => {
+  const h = String(hostname).toLowerCase();
+  if (h === 'localhost' || h === '127.0.0.1' || h === '[::1]') return true;
+  if (/^\d{1,3}(\.\d{1,3}){3}$/.test(h)) return true;
+  return false;
+};
+
+/**
+ * Each explicit origin in CORS_ORIGINS also allows its www ↔ apex twin
+ * (e.g. listing https://driverhub.io.vn also allows https://www.driverhub.io.vn).
+ * Skips localhost and numeric IPs.
+ */
+function buildAllowedOriginSet(list) {
+  const set = new Set(list);
+  for (const o of list) {
+    try {
+      const u = new URL(o);
+      if (!/^https?:$/i.test(u.protocol)) continue;
+      const host = u.hostname;
+      if (LOCAL_OR_IP(host)) continue;
+
+      const port = u.port ? `:${u.port}` : '';
+      const proto = u.protocol;
+      if (host.startsWith('www.')) {
+        const apex = host.slice(4);
+        set.add(`${proto}//${apex}${port}`);
+      } else {
+        set.add(`${proto}//www.${host}${port}`);
+      }
+    } catch {
+      // ignore invalid URL
+    }
+  }
+  return set;
+}
+
 const configCors = (app) => {
     const corsOrigins = (process.env.CORS_ORIGINS || '')
         .split(',')
         .map((origin) => origin.trim())
         .filter(Boolean);
-    console.log('corsOrigins', corsOrigins)
     if (corsOrigins.length === 0) {
         throw new Error('Missing required env: CORS_ORIGINS');
     }
 
+    const allowedOrigins = buildAllowedOriginSet(corsOrigins);
+
     app.use(function (req, res, next) {
         const requestOrigin = req.headers.origin;
-        const isAllowedOrigin = !requestOrigin || corsOrigins.includes(requestOrigin);
+        const isAllowedOrigin =
+            !requestOrigin || allowedOrigins.has(requestOrigin);
 
         if (!isAllowedOrigin) {
             return res.status(403).json({
                 error: 'cors_forbidden',
                 details: {
                     message: 'Origin is not allowed by CORS',
-                    origin: requestOrigin
-                }
+                    origin: requestOrigin,
+                },
             });
         }
 
@@ -29,24 +68,16 @@ const configCors = (app) => {
             res.setHeader('Vary', 'Origin');
         }
 
-        // Request methods you wish to allow
         res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, PATCH, DELETE');
-
-        // Request headers you wish to allow, thêm authorization để có thể hiểu có header
         res.setHeader('Access-Control-Allow-Headers', 'X-Requested-With,content-type,Authorization,x-auth-token');
-
-        // Set to true if you need the website to include cookies in the requests sent
-        // to the API (e.g. in case you use sessions)
         res.setHeader('Access-Control-Allow-Credentials', 'true');
 
-        if (req.method == 'OPTIONS') {
+        if (req.method === 'OPTIONS') {
             return res.status(204).end();
         }
-        
-        // Pass to next layer of middleware
+
         next();
     });
-
 };
 
 export default configCors;
