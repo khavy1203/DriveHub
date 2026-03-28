@@ -162,6 +162,11 @@ jobs:
                   - MSSQL_USER=${MSSQL_USER}
                   - MSSQL_PASSWORD=${MSSQL_PASSWORD}
                   - MSSQL_DATABASE=${MSSQL_DATABASE}
+                  - MAIL_HOST=${MAIL_HOST}
+                  - MAIL_PORT=${MAIL_PORT:-587}
+                  - MAIL_SECURE=${MAIL_SECURE:-false}
+                  - MAIL_USER=${MAIL_USER}
+                  - MAIL_PASS=${MAIL_PASS}
                 volumes:
                   - backend_upload:/app/build/upload
                 depends_on:
@@ -225,6 +230,11 @@ jobs:
             MSSQL_USER=${{ secrets.MSSQL_USER }}
             MSSQL_PASSWORD=${{ secrets.MSSQL_PASSWORD }}
             MSSQL_DATABASE=${{ secrets.MSSQL_DATABASE }}
+            MAIL_HOST=${{ secrets.MAIL_HOST }}
+            MAIL_PORT=${{ secrets.MAIL_PORT }}
+            MAIL_SECURE=${{ secrets.MAIL_SECURE }}
+            MAIL_USER=${{ secrets.MAIL_USER }}
+            MAIL_PASS=${{ secrets.MAIL_PASS }}
             ENVEOF
 
             # Stop containers cũ (giải phóng ports trước khi pull)
