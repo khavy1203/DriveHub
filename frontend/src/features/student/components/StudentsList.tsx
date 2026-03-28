@@ -6,7 +6,7 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { useApi } from '../../../shared/hooks/useApi';
 import { useStudentWebSocket } from '../hooks/useStudentWebSocket';
-import { Student, Course, Status } from '../types';
+import { Student, Course } from '../types';
 import { ApiResponse } from '../../../core/types/api.types';
 import { StudentTable } from './StudentTable';
 import './StudentsList.scss';
@@ -17,28 +17,15 @@ export const StudentsList: React.FC = () => {
   const [courses, setCourses] = useState<Course[]>([]);
   const [selectedCourse, setSelectedCourse] = useState<string | null>(null);
   const [filterSoBaoDanh, setFilterSoBaoDanh] = useState<string>('');
-  const [statusList, setStatusList] = useState<Status[]>([]);
-  const [selectedStatusID, setSelectedStatusID] = useState<number | null>(null);
 
   // Fetch initial data
   useEffect(() => {
     const fetchInitialData = async () => {
       try {
-        const [courseResponse, statusResponse] = await Promise.all([
-          get<ApiResponse<Course[]>>('/api/course'),
-          get<ApiResponse<Status[]>>('/api/status'),
-        ]);
-
+        const courseResponse = await get<ApiResponse<Course[]>>('/api/course');
         setCourses(courseResponse.DT);
-        setStatusList(statusResponse.DT);
-
         if (courseResponse.DT.length > 0) {
           setSelectedCourse(courseResponse.DT[courseResponse.DT.length - 1]?.IDKhoaHoc);
-        }
-
-        if (statusResponse.DT.length > 0) {
-          const defaultStatus = statusResponse.DT.find((s) => s.namestatus === 'LT');
-          setSelectedStatusID(defaultStatus?.id || statusResponse.DT[0].id);
         }
       } catch (error) {
         console.error('Error fetching initial data:', error);
@@ -46,7 +33,9 @@ export const StudentsList: React.FC = () => {
     };
 
     fetchInitialData();
-  }, [get]);
+  // get reference changes every render — intentionally omitted from deps
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // WebSocket handlers
   const handleStudentList = useCallback((newStudents: Student[]) => {
@@ -97,11 +86,7 @@ export const StudentsList: React.FC = () => {
   };
 
   const filterByLicense = (licenseType: string): Student[] =>
-    students.filter(
-      (s) =>
-        s.loaibangthi === licenseType &&
-        s.khoahoc_thisinh?.IDstatus === selectedStatusID
-    );
+    students.filter((s) => s.loaibangthi === licenseType);
 
   return (
     <div className="form-list-student">
@@ -118,23 +103,6 @@ export const StudentsList: React.FC = () => {
             {courses.map((course) => (
               <option key={course.IDKhoaHoc} value={course.IDKhoaHoc}>
                 {course.TenKhoaHoc}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        <div className="select-course-child-liststudent">
-          <label>Chọn kiểu hiển thị: </label>
-          <select
-            value={selectedStatusID || ''}
-            onChange={(e) => setSelectedStatusID(Number(e.target.value))}
-          >
-            <option value="" disabled>
-              -- Kiểu dữ liệu hiển thị --
-            </option>
-            {statusList.map((st) => (
-              <option key={st.id} value={st.id}>
-                {st.namestatus}
               </option>
             ))}
           </select>

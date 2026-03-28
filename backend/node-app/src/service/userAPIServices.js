@@ -1,25 +1,22 @@
+import crypto from 'crypto';
 import db from '../models/index.js';//connectdb
 import { checkEmail, checkPhone, hashUserPassword } from './loginRegisterService.js';
+import mailService from './mailService.js';
+
+const SETUP_TOKEN_TTL_MS = 7 * 24 * 60 * 60 * 1000;
+const buildSetupLink = (token) => {
+    const base = process.env.FRONTEND_URL || 'https://localhost:3000';
+    return `${base}/#/setup-password?token=${token}`;
+};
 const getUserWithPagination = async (page, limit) => {
     try {
         let offset = (page - 1) * limit;
-        const { count, rows } = await db.User.findAndCountAll({
+        const { count, rows } = await db.user.findAndCountAll({
             offset: offset,
             limit: limit,
-            attributes: [
-                "id",
-                "userEmail",
-                "userName",
-                "address",
-                "sex",
-                "phone",
-                "groupId"],
+            attributes: ["id", "email", "username", "address", "phone", "groupId"],
             include: {
-                model: db.Group, attributes: [
-                    "id",
-                    "name",
-                    "description",
-                ]
+                model: db.group, attributes: ["id", "name", "description"]
             },
             order: [['id', 'DESC']]
         });
@@ -45,39 +42,32 @@ const getUserWithPagination = async (page, limit) => {
         }
     }
 }
+const TEACHER_GROUP_ID = 3;
+
 const getAllUsers = async () => {
     try {
-
-        let users = await db.User.findAll({
-            attributes: [
-                "id",
-                "userEmail",
-                "userName",
-                "address",
-                "sex",
-                "phone",
-                "groupId"],
-            include: {
-                model: db.Group, attributes: [
-                    "name",
-                    "description",
-                ]
-            },
-            raw: true,//kiểu ob js
-            nest: true //kiểu gộp dữ liệu lại
+        let users = await db.user.findAll({
+            where: { groupId: TEACHER_GROUP_ID },
+            attributes: ['id', 'email', 'username', 'address', 'phone', 'groupId', 'active'],
+            include: [
+                {
+                    model: db.group,
+                    attributes: ['name', 'description'],
+                },
+            ],
+            order: [['id', 'ASC']],
         });
 
         if (users) {
-
             return {
                 EM: 'get data successfully',
-                EC: '0',
-                DT: users
-            }
+                EC: 0,
+                DT: users.map(u => u.get({ plain: true })),
+            };
         }
         return {
             EM: 'get data fail',
-            EC: '-1',
+            EC: -1,
             DT: []
         }
 
@@ -85,31 +75,54 @@ const getAllUsers = async () => {
         console.log("error from service : >>>", e);
         return {
             EM: 'Something wrong ...',
-            EC: '-2',
+            EC: -2,
             DT: ''
         }
     }
 }
 const createUser = async (data) => {
     try {
-        if (await checkEmail(data.userEmail) === true) {
+        if (await checkEmail(data.email) === true) {
             return {
-                EM: 'Email exist',
+                EM: 'Email đã tồn tại',
                 EC: 1,
-                DT: 'userEmail'
+                DT: 'email'
             }
-        } else if (await checkPhone(data.phone) === true) {
+        }
+        if (data.phone && await checkPhone(data.phone) === true) {
             return {
-                EM: 'Phone exist',
+                EM: 'Số điện thoại đã tồn tại',
                 EC: 1,
                 DT: 'phone'
             }
         }
-        let hashPassword = hashUserPassword(data.userPassword);
-        let user = { ...data, userPassword: hashPassword };
-        await db.User.create(user);
+        const setupToken = crypto.randomBytes(32).toString('hex');
+        const setupTokenExpiry = new Date(Date.now() + SETUP_TOKEN_TTL_MS);
+        const tempPassword = data.password
+            ? hashUserPassword(data.password)
+            : hashUserPassword(crypto.randomBytes(16).toString('hex'));
+
+        await db.user.create({
+            email: data.email,
+            username: data.username,
+            password: tempPassword,
+            address: data.address || null,
+            phone: data.phone || null,
+            groupId: TEACHER_GROUP_ID,
+            setupToken,
+            setupTokenExpiry,
+        });
+
+        // Gửi email setup (không block response)
+        mailService.sendSetupEmail({
+            toEmail: data.email,
+            hoTen: data.username,
+            setupLink: buildSetupLink(setupToken),
+            role: 'giáo viên',
+        }).catch(err => console.error('[userAPIServices] Gửi email lỗi:', err.message));
+
         return {
-            EM: 'create user successfully',
+            EM: 'Tạo tài khoản thành công',
             EC: 0,
             DT: ''
         }
@@ -124,25 +137,26 @@ const createUser = async (data) => {
 }
 const updateUser = async (user) => {
     try {
-        let findUser = await db.User.findOne({ where: { id: user.id } });
+        let findUser = await db.user.findOne({ where: { id: user.id } });
         if (findUser) {
             findUser.set({
-                userName: user.userName,
-                address: user.address,
-                sex: user.sex,
-                phone: user.phone,
-                groupId: user.groupId
+                username: user.username,
+                address: user.address || null,
+                phone: user.phone || null,
             });
+            if (user.password) {
+                findUser.set({ password: hashUserPassword(user.password) });
+            }
             await findUser.save();
             return {
-                EM: 'Update success',
-                EC: '0',
+                EM: 'Cập nhật thành công',
+                EC: 0,
                 DT: ''
             }
         }
         return {
-            EM: 'Not find or something error',
-            EC: '1',
+            EM: 'Không tìm thấy tài khoản',
+            EC: 1,
             DT: ''
         }
 
@@ -157,7 +171,7 @@ const updateUser = async (user) => {
 }
 const deleteUser = async (id) => {
     try {
-        const user = await db.User.findOne({ where: { id: id } });
+        const user = await db.user.findOne({ where: { id: id } });
 
         if (user) {
             await user.destroy();

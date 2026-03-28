@@ -3,6 +3,7 @@
  * @module shared/hooks/useApi
  */
 
+import { useCallback } from 'react';
 import httpClient from '../services/httpClient';
 import { useLoading } from './useLoading';
 
@@ -16,7 +17,7 @@ export interface UseApiReturn {
 export const useApi = (): UseApiReturn => {
   const { setLoading } = useLoading();
 
-  const get = async <T>(url: string, options?: { params?: object }): Promise<T> => {
+  const get = useCallback(async <T>(url: string, options?: { params?: object }): Promise<T> => {
     setLoading(true);
     try {
       const response = await httpClient.get<T>(url, { params: options?.params });
@@ -24,9 +25,9 @@ export const useApi = (): UseApiReturn => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [setLoading]);
 
-  const post = async <T>(url: string, data?: object): Promise<T> => {
+  const post = useCallback(async <T>(url: string, data?: object): Promise<T> => {
     setLoading(true);
     try {
       const response = await httpClient.post<T>(url, data);
@@ -34,9 +35,9 @@ export const useApi = (): UseApiReturn => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [setLoading]);
 
-  const put = async <T>(url: string, data?: object): Promise<T> => {
+  const put = useCallback(async <T>(url: string, data?: object): Promise<T> => {
     setLoading(true);
     try {
       const response = await httpClient.put<T>(url, data);
@@ -44,9 +45,9 @@ export const useApi = (): UseApiReturn => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [setLoading]);
 
-  const del = async <T>(url: string): Promise<T> => {
+  const del = useCallback(async <T>(url: string): Promise<T> => {
     setLoading(true);
     try {
       const response = await httpClient.delete<T>(url);
@@ -54,7 +55,7 @@ export const useApi = (): UseApiReturn => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [setLoading]);
 
   return { get, post, put, del };
 };

@@ -32,6 +32,8 @@ module.exports = (sequelize, DataTypes) => {
         foreignKey:'IDKhoaHoc',
         targetKey:'IDKhoaHoc'
       })
+
+      // student_assignment now belongs to hoc_vien, not thisinh
     }
 
     // Hàm trả về Base64 khi truy xuất dữ liệu

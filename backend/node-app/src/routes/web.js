@@ -18,9 +18,17 @@ import QRController from "../controller/QRController";
 import trafficCheckController from "../controller/trafficCheckController";
 import mezonController from "../controller/mezonController";
 import userController from "../controller/userController";
+import teacherCourseController from "../controller/teacherCourseController";
+import teacherPortalController from "../controller/teacherPortalController";
+import studentPortalController from "../controller/studentPortalController";
+import teacherProfileController from "../controller/teacherProfileController";
+import setupPasswordController from "../controller/setupPasswordController";
+import hocvienController from "../controller/hocvienController";
+import studentAssignmentController from "../controller/studentAssignmentController";
 import gplxController from "../controller/gplxController";
 import reviewSetController from "../controller/reviewSetController";
 import examSetImportController from "../controller/examSetImportController";
+import chatController from "../controller/chatController";
 
 
 const routes = express.Router();
@@ -39,7 +47,7 @@ const createDiskStorage = (destinationPath) => {
             const ext = path.extname(file.originalname).toLowerCase(); // Lấy extension hiện tại
 
             // Nếu không có extension, thêm .png
-            let finalExt = ext ? ext : '.png';
+            const finalExt = ext || '.png';
             cb(null, `${file.fieldname}-${uniqueSuffix}${finalExt}`);
         },
     });
@@ -49,6 +57,14 @@ const createDiskStorage = (destinationPath) => {
 const uploadImageText = multer({ storage: createDiskStorage(path.join(__dirname, '../upload/originTextImg')) });
 const uploadStorageQR = multer({ storage: createDiskStorage(path.join(__dirname, '../upload/originQR')) });
 const memoryUpload = multer({ storage: multer.memoryStorage() });
+const uploadTeacherAvatar = multer({
+    storage: createDiskStorage(path.join(__dirname, '../upload/teacher-avatars')),
+    limits: { fileSize: 5 * 1024 * 1024 },
+    fileFilter: (req, file, cb) => {
+        if (/^image\/(jpeg|png|webp|gif)$/.test(file.mimetype)) cb(null, true);
+        else cb(new Error('Chỉ chấp nhận file ảnh (jpg, png, webp, gif)'));
+    },
+});
 
 const initWebRoutes = (app) => {
 
@@ -62,6 +78,7 @@ const initWebRoutes = (app) => {
     routes.get('/gplx/captcha-image/:sessionId', gplxController.getCaptchaImage);
     routes.post('/gplx/lookup', gplxController.lookupGPLX);
     routes.post('/mezon/exchange', mezonController.exchangeCode);
+    routes.get('/public/teachers', teacherProfileController.getPublicTeachers);
 
     // ── Public routes (không cần đăng nhập) — dùng cho thi ──────────────────
     routes.get("/students", userStatusController.getInfoStudents);
@@ -79,6 +96,17 @@ const initWebRoutes = (app) => {
     routes.get('/subject/get-test/:IDSubject', subjectController.getTestFromSubject);
     routes.get('/test/get-test/:IDTest', testStudentController.getTest);
     routes.post('/exam/create-exam', examController.createExam);
+
+    // ── Account setup (public — no JWT required) ─────────────────────────────
+    routes.get('/teacher/my-students', teacherPortalController.getMyStudents);
+
+    routes.get('/student-portal/my-progress', studentPortalController.getMyProgress);
+    routes.get('/student-portal/teachers', studentPortalController.getTeachers);
+    routes.post('/student-portal/rate', studentPortalController.submitRating);
+
+    routes.get('/auth/setup/:token', setupPasswordController.verifySetupToken);
+    routes.post('/auth/setup-password', setupPasswordController.setupPassword);
+    routes.post('/auth/forgot-password', setupPasswordController.forgotPassword);
 
     routes.all("*", checkUserJwt, checkUserPermission);
     // CRUD API routes for status
@@ -101,6 +129,28 @@ const initWebRoutes = (app) => {
     routes.post("/user/login", loginRegisterController.handleLogin);
     routes.post("/user/logout", loginRegisterController.handleLogout);
     routes.get("/account", userController.getUserAccount);
+    routes.get("/users", userController.readFunc);
+    routes.post("/users", userController.createFunc);
+    routes.put("/users", userController.updateFunc);
+    routes.delete("/users", userController.deleteFunc);
+    routes.get('/teacher-profile/:userId', teacherProfileController.getProfile);
+    routes.put('/teacher-profile/:userId', teacherProfileController.upsertProfile);
+    routes.post('/teacher-avatar/:userId', uploadTeacherAvatar.single('avatar'), teacherProfileController.uploadAvatar);
+    routes.get("/teacher-course", teacherCourseController.getAssignments);
+    routes.post("/teacher-course", teacherCourseController.setAssignments);
+
+    routes.get("/hocvien", hocvienController.listHocVien);
+    routes.post("/hocvien/register", hocvienController.registerStudent);
+    routes.post("/hocvien/send-credentials", hocvienController.sendCredentials);
+    routes.delete("/hocvien/:id", hocvienController.deleteHocVien);
+    routes.get("/hocvien/portal/me", hocvienController.getPortalData);
+
+    routes.get("/student-assignment", studentAssignmentController.getAssignments);
+    routes.post("/student-assignment", studentAssignmentController.createAssignment);
+    routes.put("/student-assignment/:id", studentAssignmentController.updateAssignment);
+    routes.delete("/student-assignment/:id", studentAssignmentController.deleteAssignment);
+
+    routes.get("/chat/:assignmentId/messages", chatController.getHistory);
 
     //file 
     routes.post("/file/namestandardizationfile", fileController.nameStandardizationFile);

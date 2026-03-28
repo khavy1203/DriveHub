@@ -129,7 +129,7 @@ export const MezonCallback: React.FC = () => {
 
         localStorage.setItem('token', accessToken);
         setAuth(accessToken, role, username, avatarUrl);
-        window.location.replace('/');
+        window.location.replace('/#/dashboard');
       } catch (err: any) {
         const message = err?.message || 'Khong the xu ly callback Mezon.';
         if (window.opener && window.opener !== window && !window.opener.closed) {

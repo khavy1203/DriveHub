@@ -1,7 +1,8 @@
 import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
-import DashBoardLayout from './DashBoardLayout'; // Main Dashboard layout
-import ExamResultsTable from './ExamResultsTable'; // Example sub-page
+import { useAuth } from '../../features/auth/hooks/useAuth';
+import DashBoardLayout from './DashBoardLayout';
+import ExamResultsTable from './ExamResultsTable';
 import DashboardSection from './DashboardSection';
 import PurchaseHistory from './PurchaseHistory';
 import TaskListAndCustomers from './TaskListAndCustomers';
@@ -12,26 +13,58 @@ import UploadFiles from '../../features/dashboard/components/Upload/UploadFiles'
 import Printer from '../../features/dashboard/components/Printer/Printer';
 import ReviewSetManager from '../../features/dashboard/components/ReviewSetManager/ReviewSetManager';
 import ExamSetImporter from '../../features/dashboard/components/ExamSetImporter/ExamSetImporter';
-// import Detect from '../../components/DashBoard/upload/Detect';
+import DashboardHome from './DashboardHome/DashboardHome';
+import TeacherPortal from '../TeacherPortal/TeacherPortal';
+import StudentPortal from '../StudentPortal/StudentPortal';
+import TeacherManagement from './TeacherManagement/TeacherManagement';
+import HocVienManagement from './HocVienManagement/HocVienManagement';
+import ManualAssign from './ManualAssign/ManualAssign';
+import DangKyHocVien from './DangKyHocVien/DangKyHocVien';
+import ChatPage from './ChatPage/ChatPage';
+import { StudentsList } from '../../features/student';
 
 const DashBoardRoute: React.FC = () => {
+  const { role } = useAuth();
+  const isTeacher = role === 'GiaoVien';
+  const isStudent = role === 'HocVien';
+
   return (
     <DashBoardLayout>
       <Routes>
-        <Route path="/" element={<Navigate to="exam-results" replace />} />
+        <Route path="/" element={<Navigate to="home" replace />} />
+
+        {/* Tổng quan */}
+        <Route
+          path="/home"
+          element={isTeacher ? <TeacherPortal embedded /> : isStudent ? <StudentPortal /> : <DashboardHome />}
+        />
+
+        {/* Quản lý thi */}
         <Route path="/exam-results" element={<ExamResultsTable />} />
+        <Route path="/students" element={<StudentsList />} />
+        <Route path="/hoc-vien" element={<HocVienManagement />} />
+        <Route path="/dang-ky-hoc-vien" element={<DangKyHocVien />} />
+        <Route path="/manual-assign" element={<ManualAssign />} />
+        <Route path="/teachers" element={<TeacherManagement />} />
+
+        {/* Cài đặt */}
+        <Route path="/setting" element={<Setting />} />
+        <Route path="/upload" element={<UploadFiles />} />
+        <Route path="/printer" element={<Printer />} />
+        <Route path="/review-sets" element={<ReviewSetManager />} />
+        <Route path="/exam-sets-import" element={<ExamSetImporter />} />
+
+        {/* Chat */}
+        <Route path="/chat" element={<ChatPage />} />
+
+        {/* Legacy */}
         <Route path="/dashboard-section" element={<DashboardSection />} />
         <Route path="/purchase-history" element={<PurchaseHistory />} />
         <Route path="/task-list" element={<TaskListAndCustomers />} />
         <Route path="/weather-activity" element={<WeatherAndActivity />} />
         <Route path="/dashboard-widgets" element={<DashboardWidgets />} />
-        <Route path="/setting" element={<Setting />} />
-        <Route path="/upload" element={<UploadFiles />} />
-        <Route path="/printer" element={<Printer />} />
-        <Route path="/review-sets" element={<ReviewSetManager />} />
-        <Route path="/exam-sets-import" element={<ExamSetImporter />} /> {/* Thêm route cho Printer */}
-        {/* <Route path="/detect" element={<Detect />} /> */}
-        <Route path="*" element={<div>404 - Page Not Found</div>} />
+
+        <Route path="*" element={<Navigate to="home" replace />} />
       </Routes>
     </DashBoardLayout>
   );

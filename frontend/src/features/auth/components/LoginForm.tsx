@@ -4,7 +4,7 @@
  */
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { useApi } from '../../../shared/hooks/useApi';
 import { useAuth } from '../hooks/useAuth';
@@ -183,7 +183,7 @@ export const LoginForm: React.FC = () => {
         toast.success('Đăng nhập thành công!');
         const token = response.DT.access_token;
         const role = response.DT.groupWithRoles.name || 'User';
-          setAuth(token, role, response.DT.username, response.DT.avatarUrl || null);
+        setAuth(token, role, response.DT.username, response.DT.avatarUrl || null);
         navigate('/dashboard');
       } else {
         toast.error(response.EM || 'Đăng nhập thất bại!');
@@ -270,7 +270,7 @@ export const LoginForm: React.FC = () => {
               </div>
 
               <div className="lf-forgot-row">
-                <a href="/forgot-password" className="lf-forgot-link">Quên mật khẩu?</a>
+                <Link to="/forgot-password" className="lf-forgot-link">Quên mật khẩu?</Link>
               </div>
 
               <button className="lf-submit-btn" type="submit" disabled={loading}>

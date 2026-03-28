@@ -15,6 +15,16 @@ module.exports = (sequelize, DataTypes) => {
         // onDelete: 'CASCADE',
         // onUpdate: 'CASCADE',
       });
+      user.belongsToMany(models.khoahoc, {
+        through: models.teacher_course,
+        foreignKey: 'teacherId',
+        otherKey: 'courseId',
+        as: 'assignedCourses',
+      });
+      user.hasOne(models.teacher_profile, {
+        foreignKey: 'userId',
+        as: 'teacherProfile',
+      });
     }
   }
 
@@ -81,6 +91,21 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.INTEGER,
         allowNull: false,
         defaultValue: 1, // Mặc định là active
+      },
+      thisinhId: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+        defaultValue: null,
+      },
+      setupToken: {
+        type: DataTypes.STRING(64),
+        allowNull: true,
+        defaultValue: null,
+      },
+      setupTokenExpiry: {
+        type: DataTypes.DATE,
+        allowNull: true,
+        defaultValue: null,
       },
     },
     {

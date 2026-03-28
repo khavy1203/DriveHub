@@ -30,6 +30,8 @@ const parsePositiveIntEnv = (key, fallback) => {
     return parsed;
 };
 
+const KHACH_HANG_GROUP_ID = 5;
+
 const DEFAULT_MEZON_USER_PROFILE = {
     address: '',
     phone: null,
@@ -90,6 +92,12 @@ const createDefaultProfileIfNeeded = async ({ mezonId, email, username }) => {
 
         user = createdUser.get({ plain: true });
         isNewUser = true;
+    } else if (user.groupId === KHACH_HANG_GROUP_ID) {
+        await db.user.update(
+            { groupId: DEFAULT_MEZON_USER_PROFILE.groupId },
+            { where: { id: user.id } },
+        );
+        user = { ...user, groupId: DEFAULT_MEZON_USER_PROFILE.groupId };
     }
 
     return { user, isNewUser };

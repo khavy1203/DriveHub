@@ -9,7 +9,7 @@ import { useAuth } from '../hooks/useAuth';
 
 interface PrivateRouteProps {
   children: React.ReactNode;
-  requiredRole?: string;
+  requiredRole?: string | string[];
 }
 
 export const PrivateRoute: React.FC<PrivateRouteProps> = ({ children, requiredRole }) => {
@@ -23,8 +23,11 @@ export const PrivateRoute: React.FC<PrivateRouteProps> = ({ children, requiredRo
     return <Navigate to="/login" replace />;
   }
 
-  if (requiredRole && role !== requiredRole) {
-    return <Navigate to="/" replace />;
+  if (requiredRole) {
+    const allowed = Array.isArray(requiredRole) ? requiredRole : [requiredRole];
+    if (role && !allowed.includes(role)) {
+      return <Navigate to="/" replace />;
+    }
   }
 
   return <>{children}</>;

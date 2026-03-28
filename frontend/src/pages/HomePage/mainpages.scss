@@ -383,7 +383,11 @@ $ease:       0.3s cubic-bezier(0.4, 0, 0.2, 1);
 .hp-instructor-body { padding:18px 20px; }
 .hp-instructor-name { font-size:15px;font-weight:700;color:$text;margin-bottom:3px; }
 .hp-instructor-role { font-size:12px;color:$muted;margin-bottom:10px; }
-.hp-instructor-desc { font-size:13px;color:$muted;line-height:1.65;margin-bottom:14px; }
+.hp-instructor-desc { font-size:13px;color:$muted;line-height:1.65;margin-bottom:8px; }
+.hp-instructor-exp { font-size:12px;color:$muted;margin:0 0 8px;display:flex;align-items:center;gap:4px; }
+.hp-instructor-stars { display:flex;align-items:center;gap:2px;margin-bottom:12px; }
+.hp-instructor-stars-val { font-size:12px;font-weight:700;color:#f59e0b;margin-left:4px; }
+.hp-instructor-stars-count { font-size:11px;color:$muted; }
 .hp-instructor-stats { display:flex;gap:16px;padding-top:14px;border-top:1px solid $border; div{display:flex;flex-direction:column;} strong{font-size:16px;font-weight:800;color:$primary;} span{font-size:11px;color:$muted;} }
 
 // ─── PRICING SECTION ──────────────────────────────────────────────────────────

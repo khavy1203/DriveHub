@@ -16,8 +16,8 @@ const compareUserPassword = (userPassword, hashPassword) => {
 }
 
 const checkEmail = async (userEmail) => {
-    let isExist = await db.User.findOne({
-        where: { userEmail: userEmail }
+    let isExist = await db.user.findOne({
+        where: { email: userEmail }
     });
     if (isExist) {
         return true;
@@ -26,7 +26,7 @@ const checkEmail = async (userEmail) => {
 }
 
 const checkPhone = async (userPhone) => {
-    let isExist = await db.User.findOne({
+    let isExist = await db.user.findOne({
         where: { phone: userPhone }
     });
     if (isExist) {

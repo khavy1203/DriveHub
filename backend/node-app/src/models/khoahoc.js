@@ -7,6 +7,12 @@ module.exports = (sequelize, DataTypes) => {
       khoahoc.hasMany(models.thisinh, {
         foreignKey: 'IDKhoaHoc',
       });
+      khoahoc.belongsToMany(models.user, {
+        through: models.teacher_course,
+        foreignKey: 'courseId',
+        otherKey: 'teacherId',
+        as: 'assignedTeachers',
+      });
     }
   }
   khoahoc.init({

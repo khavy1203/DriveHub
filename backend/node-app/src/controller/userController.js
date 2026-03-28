@@ -67,8 +67,8 @@ const updateFunc = async (req, res) => {
 }
 const deleteFunc = async (req, res) => {
     try {
-        console.log("check req.body delete func >>>> ", req.body.id)
-        let data = await userApiServices.deleteUser(req.body.id);
+        const id = req.query.id ?? req.body.id;
+        let data = await userApiServices.deleteUser(id);
         res.status(200).json({
             EM: data.EM,
             EC: data.EC,

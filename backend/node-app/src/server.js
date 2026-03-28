@@ -5,8 +5,10 @@ import bodyParser from 'body-parser';
 import configCors from './config/cors';
 import cookieParser from 'cookie-parser';
 import setupStudentStatusWebSocket from './websocket/wsStudentStatusServer'; // WS server for student status
+import { setupChatWebSocket } from './websocket/wsChatServer'; // WS server for chat
 import http from 'http';
 import botTelegram from './bot/botTelegram';
+import path from 'path';
 const app = express();
 configCors(app);
 app.use(compression()); // gzip tất cả response >= 1KB — giảm 60-70% bandwidth
@@ -31,6 +33,9 @@ app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
 app.use(cookieParser());
 
+// Static file serving for uploaded assets
+app.use('/uploads', express.static(path.join(__dirname, 'upload')));
+
 // botTelegram(app).catch((error) => {
 //     console.error("Failed to initialize bot:", error);
 // });
@@ -38,9 +43,30 @@ app.use(cookieParser());
 // Tạo server HTTP
 const server = http.createServer(app);
 
-// Uncomment if using WebSocket servers
-// setupChatWebSocket(server, '/ws/chat');
-setupStudentStatusWebSocket(server, '/ws/student-status');
+const chatWss = setupChatWebSocket(server, '/ws/chat');
+const statusWss = setupStudentStatusWebSocket(server, '/ws/student-status');
+
+// Route WebSocket upgrades manually so both WSS instances don't fight over
+// the same upgrade event and send conflicting HTTP responses on the socket.
+server.on('upgrade', (req, socket, head) => {
+  try {
+    const pathname = new URL(req.url, 'ws://localhost').pathname;
+    if (pathname === '/ws/chat') {
+      chatWss.handleUpgrade(req, socket, head, (ws) => {
+        chatWss.emit('connection', ws, req);
+      });
+    } else if (pathname === '/ws/student-status') {
+      statusWss.handleUpgrade(req, socket, head, (ws) => {
+        statusWss.emit('connection', ws, req);
+      });
+    } else {
+      socket.destroy();
+    }
+  } catch (e) {
+    console.error('[WS] upgrade routing error:', e.message);
+    socket.destroy();
+  }
+});
 
 initWebRoutes(app);
 
@@ -54,6 +80,10 @@ app.use((req, res) => {
 app.use((err, req, res, next) => {
     console.error(`[ERROR] ${new Date().toISOString()} ${req.method} ${req.originalUrl}`, err.message);
     res.status(500).json({ EC: -1, EM: 'Internal Server Error' });
+});
+
+process.on('unhandledRejection', (reason) => {
+  console.error('[FATAL] Unhandled promise rejection:', reason);
 });
 
 const PORT = process.env.PORT || 8080;

@@ -1,67 +1,55 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
+import axios from '../../axios';
 import './mainpages.scss';
 
-interface Teacher {
-  name: string;
-  role: string;
-  img: string;
-  description: string;
-  students: number;
-  successRate: number;
-}
+type TeacherPublic = {
+  id: number;
+  username: string;
+  profile: {
+    bio?: string;
+    licenseTypes?: string;
+    locationName?: string;
+    avatarUrl?: string;
+    yearsExp?: number;
+  } | null;
+  activeStudents: number;
+  completedStudents: number;
+  avgStars: string;
+  totalRatings: number;
+};
 
-const teachers: Teacher[] = [
-  {
-    name: 'Thầy Nguyễn Văn An',
-    role: 'Hạng B2',
-    img: '/assets/images/teacher/tho/1.jpg',
-    description: 'Hơn 12 năm kinh nghiệm giảng dạy, đào tạo 500+ học viên với tỉ lệ đỗ đạt 98% liên tục nhiều năm liền.',
-    students: 500,
-    successRate: 98,
-  },
-  {
-    name: 'Cô Lê Thị Bích',
-    role: 'Hạng A1',
-    img: '/assets/images/teacher/tho/2.jpg',
-    description: 'Phong cách giảng dạy tận tâm, kiên nhẫn. Đã hướng dẫn 300+ học viên với tỷ lệ đỗ đạt 100%.',
-    students: 300,
-    successRate: 100,
-  },
-  {
-    name: 'Thầy Trần Quốc Cường',
-    role: 'Hạng C',
-    img: '/assets/images/teacher/tho/3.jpg',
-    description: 'Giúp 400+ học viên tự tin cầm lái, tỷ lệ đỗ thực hành lần đầu đạt 96% nhờ phương pháp thực tế.',
-    students: 400,
-    successRate: 96,
-  },
-  {
-    name: 'Cô Phạm Ngọc Dung',
-    role: 'Hạng B1',
-    img: '/assets/images/teacher/tho/1.jpg',
-    description: '10 năm kinh nghiệm đào tạo lái xe, đồng hành cùng 350+ học viên với tỷ lệ đỗ 95%.',
-    students: 350,
-    successRate: 95,
-  },
-  {
-    name: 'Thầy Hoàng Minh Đức',
-    role: 'Hạng B2',
-    img: '/assets/images/teacher/tho/2.jpg',
-    description: 'Phương pháp giảng dạy thực tế, bám sát đề thi. Hỗ trợ 280+ học viên vượt qua kỳ sát hạch.',
-    students: 280,
-    successRate: 97,
-  },
-  {
-    name: 'Cô Vũ Thị Oanh',
-    role: 'Hạng A2',
-    img: '/assets/images/teacher/tho/3.jpg',
-    description: 'Lớp học ôn tập hiệu quả, trực quan. Giúp 320+ học viên vượt qua kỳ thi sát hạch thành công.',
-    students: 320,
-    successRate: 99,
-  },
-];
+const DEFAULT_AVATAR = '/assets/images/teacher/tho/1.jpg';
+
+const renderStars = (avgStr: string) => {
+  const avg = parseFloat(avgStr);
+  const filled = Math.round(avg);
+  return (
+    <div className="hp-instructor-stars">
+      {[1, 2, 3, 4, 5].map(i => (
+        <i key={i} className="material-icons" style={{ fontSize: '1rem', color: i <= filled ? '#f59e0b' : '#d1d5db' }}>
+          {i <= filled ? 'star' : 'star_border'}
+        </i>
+      ))}
+      <span className="hp-instructor-stars-val">{avgStr}</span>
+      <span className="hp-instructor-stars-count">({avg > 0 ? `${avg} sao` : '—'})</span>
+    </div>
+  );
+};
 
 const Portfolio: React.FC = () => {
+  const [teachers, setTeachers] = useState<TeacherPublic[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    axios.get<{ EC: number; DT: TeacherPublic[] }>('/api/public/teachers')
+      .then(res => { if (res.data.EC === 0) setTeachers(res.data.DT); })
+      .catch(() => { /* silent — home page still renders without data */ })
+      .finally(() => setLoading(false));
+  }, []);
+
+  if (loading) return null;
+  if (teachers.length === 0) return null;
+
   return (
     <section id="portfolio" className="hp-instructors hp-section">
       <div className="hp-container">
@@ -79,31 +67,51 @@ const Portfolio: React.FC = () => {
         </div>
 
         <div className="hp-instructors-scroll">
-          {teachers.map((t, i) => (
-            <div className="hp-instructor-card" key={i}>
+          {teachers.map(t => (
+            <div className="hp-instructor-card" key={t.id}>
               <div className="hp-instructor-img">
                 <img
-                  src={t.img}
-                  alt={t.name}
+                  src={t.profile?.avatarUrl || DEFAULT_AVATAR}
+                  alt={t.username}
                   onError={(e) => {
-                    (e.currentTarget as HTMLImageElement).style.display = 'none';
+                    const img = e.currentTarget as HTMLImageElement;
+                    if (img.src !== DEFAULT_AVATAR) img.src = DEFAULT_AVATAR;
                   }}
                 />
-                <div className="hp-instructor-badge">{t.role}</div>
+                {t.profile?.licenseTypes && (
+                  <div className="hp-instructor-badge">Hạng {t.profile.licenseTypes}</div>
+                )}
               </div>
               <div className="hp-instructor-body">
-                <div className="hp-instructor-name">{t.name}</div>
-                <div className="hp-instructor-role">{t.role}</div>
-                <p className="hp-instructor-desc">{t.description}</p>
+                <div className="hp-instructor-name">{t.username}</div>
+                {t.profile?.licenseTypes && (
+                  <div className="hp-instructor-role">Hạng {t.profile.licenseTypes}</div>
+                )}
+                {t.profile?.bio && (
+                  <p className="hp-instructor-desc">{t.profile.bio}</p>
+                )}
+                {t.profile?.yearsExp && (
+                  <p className="hp-instructor-exp">
+                    <i className="material-icons" style={{ fontSize: '0.875rem', verticalAlign: 'middle' }}>work</i>
+                    {' '}{t.profile.yearsExp} năm kinh nghiệm
+                  </p>
+                )}
+                {renderStars(t.avgStars)}
                 <div className="hp-instructor-stats">
                   <div>
-                    <strong>{t.successRate}%</strong>
-                    <span>Tỷ lệ đỗ</span>
+                    <strong>{t.activeStudents}</strong>
+                    <span>Đang học</span>
                   </div>
                   <div>
-                    <strong>{t.students}+</strong>
-                    <span>Học viên</span>
+                    <strong>{t.completedStudents}</strong>
+                    <span>Hoàn thành</span>
                   </div>
+                  {t.totalRatings > 0 && (
+                    <div>
+                      <strong>{t.totalRatings}</strong>
+                      <span>Đánh giá</span>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>

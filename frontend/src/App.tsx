@@ -30,6 +30,10 @@ import QrScannerPage from './pages/HomePage/QRScanner/QrScanner';
 import TrafficCheck from './features/traffic-check/components/TrafficCheck';
 import LicenseCheck from './features/license-check/components/LicenseCheck';
 import { ReviewPage, ReviewChillPage } from './features/review';
+import StudentPortal from './pages/StudentPortal/StudentPortal';
+import SetupPassword from './pages/SetupPassword/SetupPassword';
+import ForgotPassword from './pages/ForgotPassword/ForgotPassword';
+import TeacherPortal from './pages/TeacherPortal/TeacherPortal';
 
 import './App.scss';
 
@@ -111,11 +115,23 @@ const App: React.FC = () => {
                 <Route path="*" element={<Navigate to="/" replace />} />
               </Route>
 
+              {/* Student portal — accessible to any authenticated user */}
+              <Route path="student-portal" element={<StudentPortal />} />
+
+              {/* Setup password — public, one-time link from email */}
+              <Route path="setup-password" element={<SetupPassword />} />
+
+              {/* Forgot password — public */}
+              <Route path="forgot-password" element={<ForgotPassword />} />
+
+              {/* Teacher portal — authenticated teachers */}
+              <Route path="teacher-portal" element={<TeacherPortal />} />
+
               {/* Private Dashboard Routes */}
               <Route
                 path="dashboard/*"
                 element={
-                  <PrivateRoute requiredRole="SupperAdmin">
+                  <PrivateRoute requiredRole={['SupperAdmin', 'Admin', 'GiaoVien', 'HocVien']}>
                     <DashBoardLayoutWrapper />
                   </PrivateRoute>
                 }

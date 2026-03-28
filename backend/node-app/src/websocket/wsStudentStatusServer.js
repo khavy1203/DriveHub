@@ -69,7 +69,7 @@ function broadcastVisitorStats() {
 
 // Set up WebSocket server
 function setupStudentStatusWebSocket(server, path) {
-    wss = new WebSocketServer({ server, path });
+    wss = new WebSocketServer({ noServer: true, perMessageDeflate: false });
     loadStatsFromDB();
 
     wss.on('connection', (ws) => {
@@ -119,6 +119,7 @@ function setupStudentStatusWebSocket(server, path) {
             broadcastVisitorStats();
         });
     });
+    return wss;
 }
 
 // Fetch students by course ID

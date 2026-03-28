@@ -9,6 +9,15 @@ const instance: AxiosInstance = axios.create({
   withCredentials: true,
 });
 
+// Request interceptor — đính kèm Bearer token từ sessionStorage vào mọi request
+instance.interceptors.request.use((config) => {
+  const token = sessionStorage.getItem('auth_token');
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+});
+
 // Response interceptor để xử lý lỗi và hiển thị thông báo toast
 instance.interceptors.response.use(
   (response) => {
