@@ -58,6 +58,7 @@
         "jpeg2000": "^1.1.1",
         "jsonwebtoken": "^9.0.2",
         "lodash": "^4.17.21",
+        "mssql": "^12.2.1",
         "multer": "^1.4.5-lts.1",
         "mysql2": "^3.11.4",
         "nodemailer": "^8.0.4",

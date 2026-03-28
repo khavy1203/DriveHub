@@ -1,0 +1,234 @@
+// ── Shared KQSH component styles ──────────────────────────
+$green:  #22c55e;
+$red:    #ef4444;
+$gray:   #9ca3af;
+$border: #e5e7eb;
+$bg:     #f9fafb;
+$text:   #1e293b;
+$muted:  #64748b;
+
+// ── Badge ─────────────────────────────────────────────────
+.kq__badge {
+  display: inline-block;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 3px 10px;
+  border-radius: 999px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+
+  &--da      { background: #dcfce7; color: #15803d; }
+  &--kda     { background: #fee2e2; color: #b91c1c; }
+  &--va      { background: #f3f4f6; color: #6b7280; }
+  &--unknown { background: #f3f4f6; color: #6b7280; }
+}
+
+// ── Cards ─────────────────────────────────────────────────
+.kq__list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.kq__card {
+  border: 1px solid $border;
+  border-radius: 12px;
+  overflow: hidden;
+  background: #fff;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
+}
+
+.kq__card-header {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 18px;
+  border: none;
+  background: $bg;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+  gap: 12px;
+
+  &:hover { background: #f1f5f9; }
+
+  &--da    { border-left: 4px solid $green; }
+  &--kda   { border-left: 4px solid $red; }
+  &--va    { border-left: 4px solid $gray; }
+  &--unknown { border-left: 4px solid $border; }
+}
+
+.kq__card-header-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.kq__card-header-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.kq__ky-label {
+  font-weight: 700;
+  font-size: 14px;
+  color: $text;
+}
+
+.kq__hang {
+  font-size: 13px;
+  font-weight: 600;
+  color: #3b82f6;
+  background: #eff6ff;
+  padding: 2px 8px;
+  border-radius: 6px;
+}
+
+.kq__ngay { font-size: 13px; color: $muted; }
+
+.kq__chevron { font-size: 20px; color: $muted; }
+
+.kq__card-body { padding: 16px 18px 18px; }
+
+.kq__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-bottom: 14px;
+  font-size: 13px;
+  color: $muted;
+  strong { color: $text; }
+}
+
+// ── Table ─────────────────────────────────────────────────
+.kq__table-wrap {
+  overflow-x: auto;
+  border-radius: 8px;
+  border: 1px solid $border;
+}
+
+.kq__table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+
+  th {
+    background: $bg;
+    padding: 10px 14px;
+    text-align: left;
+    font-weight: 600;
+    color: $muted;
+    white-space: nowrap;
+    border-bottom: 1px solid $border;
+  }
+
+  td {
+    padding: 10px 14px;
+    border-bottom: 1px solid $border;
+    color: $text;
+    vertical-align: middle;
+    &:last-child { white-space: nowrap; }
+  }
+
+  tr:last-child td { border-bottom: none; }
+}
+
+.kq__subject-name { font-weight: 500; }
+
+.kq__score-cell {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 120px;
+}
+
+.kq__score-val {
+  font-weight: 700;
+  font-size: 15px;
+  width: 32px;
+  text-align: right;
+  flex-shrink: 0;
+}
+
+.kq__progress-bar {
+  flex: 1;
+  height: 6px;
+  background: #e5e7eb;
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.kq__progress-fill {
+  height: 100%;
+  border-radius: 999px;
+  transition: width 0.3s ease;
+  &--pass { background: $green; }
+  &--fail { background: $red; }
+}
+
+.kq__vang-tag { font-style: italic; color: $gray; font-size: 13px; }
+.kq__no-subjects { font-size: 13px; color: $muted; margin: 0; }
+
+// ── States ────────────────────────────────────────────────
+.kq__loading,
+.kq__error {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 32px 24px;
+  color: $muted;
+  font-size: 15px;
+}
+
+.kq__spinner {
+  width: 20px;
+  height: 20px;
+  border: 3px solid #e2e8f0;
+  border-top-color: #3b82f6;
+  border-radius: 50%;
+  animation: kq-spin 0.7s linear infinite;
+  flex-shrink: 0;
+}
+
+.kq__error { color: $red; }
+
+.kq__empty {
+  border: 1px dashed $border;
+  border-radius: 12px;
+  padding: 28px 20px;
+  text-align: center;
+  color: $muted;
+  background: $bg;
+
+  .material-icons {
+    font-size: 32px;
+    margin-bottom: 8px;
+    color: #cbd5e1;
+    display: block;
+  }
+
+  p { margin: 4px 0; font-size: 14px; }
+}
+
+// ── Page wrapper (student view only) ──────────────────────
+.kq__page {
+  max-width: 840px;
+  margin: 0 auto;
+  padding: 28px 20px 48px;
+}
+
+.kq__page-header { margin-bottom: 24px; }
+
+.kq__title {
+  font-size: 22px;
+  font-weight: 700;
+  color: $text;
+  margin: 0 0 6px;
+}
+
+.kq__hoten { color: $muted; font-size: 14px; margin: 0; }
+
+@keyframes kq-spin { to { transform: rotate(360deg); } }

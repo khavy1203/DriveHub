@@ -1,0 +1,113 @@
+// ── KQSH Sync Panel ───────────────────────────────────────
+$primary: #3b82f6;
+$green:   #22c55e;
+$red:     #ef4444;
+$border:  #e5e7eb;
+$bg:      #f8fafc;
+$text:    #1e293b;
+$muted:   #64748b;
+
+.kqsp__panel {
+  display: flex;
+  gap: 18px;
+  background: #fff;
+  border: 1px solid $border;
+  border-radius: 14px;
+  padding: 22px 24px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+  max-width: 520px;
+}
+
+.kqsp__icon-wrap {
+  width: 44px;
+  height: 44px;
+  background: #eff6ff;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+
+  .material-icons {
+    color: $primary;
+    font-size: 22px;
+  }
+}
+
+.kqsp__content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.kqsp__title {
+  font-size: 15px;
+  font-weight: 700;
+  color: $text;
+  margin: 0;
+}
+
+.kqsp__desc {
+  font-size: 13px;
+  color: $muted;
+  margin: 0;
+  line-height: 1.5;
+}
+
+.kqsp__btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  background: $primary;
+  color: #fff;
+  border: none;
+  border-radius: 9px;
+  padding: 9px 18px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.2s ease, background-color 0.2s ease;
+  align-self: flex-start;
+
+  .material-icons { font-size: 18px; }
+
+  &:hover:not(:disabled) { background: #2563eb; }
+  &:disabled { opacity: 0.6; cursor: not-allowed; }
+}
+
+.kqsp__spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(255, 255, 255, 0.4);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: kqsp-spin 0.7s linear infinite;
+}
+
+.kqsp__result {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  padding: 8px 12px;
+  border-radius: 8px;
+
+  .material-icons { font-size: 18px; }
+
+  &--success {
+    background: #f0fdf4;
+    color: #15803d;
+    .material-icons { color: $green; }
+  }
+
+  &--error {
+    background: #fef2f2;
+    color: #b91c1c;
+    .material-icons { color: $red; }
+  }
+}
+
+@keyframes kqsp-spin {
+  to { transform: rotate(360deg); }
+}

@@ -39,6 +39,7 @@ module.exports = (sequelize, DataTypes) => {
       GhiChu: { type: DataTypes.TEXT, allowNull: true },
       IDKhoaHoc: { type: DataTypes.STRING(20), allowNull: true },
       userId: { type: DataTypes.INTEGER, allowNull: true },
+      avatarUrl: { type: DataTypes.STRING(512), allowNull: true },
       status: {
         type: DataTypes.ENUM('registered', 'assigned', 'learning', 'dat_completed', 'exam_ready'),
         allowNull: false,

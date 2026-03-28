@@ -103,7 +103,28 @@ const listByKhoaHoc = async (courseId) => {
       ],
       order: [['createdAt', 'DESC']],
     });
-    return { EM: 'ok', EC: 0, DT: rows.map(r => r.get({ plain: true })) };
+
+    const hocVienIds = rows.map(r => r.id);
+    const latestExams = hocVienIds.length
+      ? await db.kqsh_thisinh.findAll({
+          where: { hocVienId: hocVienIds },
+          attributes: ['hocVienId', 'KetQuaSH', 'NgaySH'],
+          order: [['NgaySH', 'DESC']],
+        })
+      : [];
+
+    const latestByHv = {};
+    for (const exam of latestExams) {
+      const id = exam.hocVienId;
+      if (!latestByHv[id]) latestByHv[id] = { KetQuaSH: exam.KetQuaSH, NgaySH: exam.NgaySH };
+    }
+
+    const plain = rows.map(r => ({
+      ...r.get({ plain: true }),
+      latestKQSH: latestByHv[r.id] ?? null,
+    }));
+
+    return { EM: 'ok', EC: 0, DT: plain };
   } catch (e) {
     console.error('[hocvienService.listByKhoaHoc]', e);
     return { EM: 'Lỗi server', EC: -1, DT: [] };
@@ -159,4 +180,39 @@ const getPortalData = async (userId) => {
   }
 };
 
-export default { registerStudent, listByKhoaHoc, deleteHocVien, getPortalData };
+// ── Admin update học viên info ────────────────────────────────────────────────
+const updateHocVienInfo = async (id, fields) => {
+  try {
+    const hocVien = await db.hoc_vien.findByPk(id);
+    if (!hocVien) return { EM: 'Không tìm thấy học viên', EC: 1, DT: null };
+
+    const allowed = ['HoTen', 'SoCCCD', 'NgaySinh', 'GioiTinh', 'phone', 'email', 'DiaChi', 'loaibangthi', 'GplxDaCo', 'GhiChu'];
+    const updates = {};
+    for (const key of allowed) {
+      if (fields[key] !== undefined) {
+        updates[key] = fields[key] === '' ? null : fields[key];
+      }
+    }
+
+    await hocVien.update(updates);
+    return { EM: 'Cập nhật thành công', EC: 0, DT: hocVien.get({ plain: true }) };
+  } catch (e) {
+    console.error('[hocvienService.updateHocVienInfo]', e);
+    return { EM: 'Lỗi server', EC: -1, DT: null };
+  }
+};
+
+// ── Student avatar upload ─────────────────────────────────────────────────────
+const updateAvatar = async (userId, avatarUrl) => {
+  try {
+    const hocVien = await db.hoc_vien.findOne({ where: { userId } });
+    if (!hocVien) return { EM: 'Không tìm thấy hồ sơ học viên', EC: 1, DT: null };
+    await hocVien.update({ avatarUrl });
+    return { EM: 'Cập nhật ảnh đại diện thành công', EC: 0, DT: { avatarUrl } };
+  } catch (e) {
+    console.error('[hocvienService.updateAvatar]', e);
+    return { EM: 'Lỗi server', EC: -1, DT: null };
+  }
+};
+
+export default { registerStudent, listByKhoaHoc, deleteHocVien, getPortalData, updateAvatar, updateHocVienInfo };

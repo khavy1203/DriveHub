@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { useAuth } from '../../features/auth/hooks/useAuth';
 import { ChatPanel } from '../../features/chat';
+import { useKQSHByStudent, KQSHCardList } from '../../features/kqsh';
 import axios from '../../axios';
 import './TeacherPortal.scss';
 
@@ -28,6 +29,7 @@ type Assignment = {
   notes?: string;
   createdAt: string;
   hocVien: HocVien;
+  hasKQSH?: boolean;
 };
 
 type EditState = {
@@ -73,6 +75,7 @@ const TeacherPortal: React.FC<Props> = ({ embedded = false }) => {
   const [expandedId, setExpandedId] = useState<number | null>(null);
   const [editMap, setEditMap] = useState<Record<number, EditState>>({});
   const [saving, setSaving] = useState<number | null>(null);
+  const [kqshModal, setKqshModal] = useState<{ hocVienId: number; hoTen: string } | null>(null);
 
   useEffect(() => {
     if (!isAuthLoading && !isAuthenticated) {
@@ -288,6 +291,19 @@ const TeacherPortal: React.FC<Props> = ({ embedded = false }) => {
                         <span className={`tp__badge tp__badge--${a.status}`}>
                           {STATUS_LABEL[a.status]}
                         </span>
+                        {a.hasKQSH && (
+                          <button
+                            type="button"
+                            className="tp__btn-kqsh-inline"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setKqshModal({ hocVienId: hv.id, hoTen: hv.HoTen });
+                            }}
+                          >
+                            <span className="material-icons">check_circle</span>
+                            Đã có dữ liệu sát hạch
+                          </button>
+                        )}
                       </div>
                       <div className="tp__card-meta">
                         {hv.phone && <span><span className="material-icons">phone</span>{hv.phone}</span>}
@@ -411,6 +427,16 @@ const TeacherPortal: React.FC<Props> = ({ embedded = false }) => {
                           label={`Chat với ${hv.HoTen}`}
                         />
                       </div>
+
+                      <div className="tp__kqsh-section">
+                        <button
+                          className="tp__btn-kqsh"
+                          onClick={() => setKqshModal({ hocVienId: hv.id, hoTen: hv.HoTen })}
+                        >
+                          <span className="material-icons">assignment</span>
+                          Xem kết quả sát hạch
+                        </button>
+                      </div>
                     </div>
                   )}
                 </div>
@@ -419,6 +445,38 @@ const TeacherPortal: React.FC<Props> = ({ embedded = false }) => {
           </div>
         )}
       </main>
+
+      {kqshModal && <KQSHModal hocVienId={kqshModal.hocVienId} hoTen={kqshModal.hoTen} onClose={() => setKqshModal(null)} />}
+    </div>
+  );
+};
+
+type KQSHModalProps = { hocVienId: number; hoTen: string; onClose: () => void };
+
+const KQSHModal: React.FC<KQSHModalProps> = ({ hocVienId, hoTen, onClose }) => {
+  const { data, loading, error } = useKQSHByStudent(hocVienId, 'teacher');
+
+  return (
+    <div className="tp__overlay" onClick={onClose}>
+      <div className="tp__kqsh-modal" onClick={e => e.stopPropagation()}>
+        <div className="tp__kqsh-modal-header">
+          <div>
+            <h3 className="tp__kqsh-modal-title">Kết quả sát hạch</h3>
+            <p className="tp__kqsh-modal-sub">{hoTen}</p>
+          </div>
+          <button className="tp__kqsh-modal-close" onClick={onClose} aria-label="Đóng">
+            <span className="material-icons">close</span>
+          </button>
+        </div>
+        <div className="tp__kqsh-modal-body">
+          <KQSHCardList
+            records={data?.records ?? []}
+            loading={loading}
+            error={error}
+            emptyMessage="Học viên này chưa có dữ liệu sát hạch."
+          />
+        </div>
+      </div>
     </div>
   );
 };

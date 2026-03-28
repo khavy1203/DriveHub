@@ -21,6 +21,7 @@ import HocVienManagement from './HocVienManagement/HocVienManagement';
 import ManualAssign from './ManualAssign/ManualAssign';
 import DangKyHocVien from './DangKyHocVien/DangKyHocVien';
 import ChatPage from './ChatPage/ChatPage';
+import KQSHPage from './KQSHPage/KQSHPage';
 import { StudentsList } from '../../features/student';
 
 const DashBoardRoute: React.FC = () => {
@@ -53,6 +54,9 @@ const DashBoardRoute: React.FC = () => {
         <Route path="/printer" element={<Printer />} />
         <Route path="/review-sets" element={<ReviewSetManager />} />
         <Route path="/exam-sets-import" element={<ExamSetImporter />} />
+
+        {/* Kết quả sát hạch */}
+        <Route path="/ket-qua-sat-hanh" element={<KQSHPage />} />
 
         {/* Chat */}
         <Route path="/chat" element={<ChatPage />} />

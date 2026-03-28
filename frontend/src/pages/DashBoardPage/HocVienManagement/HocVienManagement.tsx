@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import useApiService from '../../../services/useApiService';
+import { KQSHDrawerSection, KetQuaBadge } from '../../../features/kqsh';
 import './HocVienManagement.scss';
 
 type Teacher = { id: number; username: string; email: string; phone?: string };
@@ -30,6 +31,7 @@ type HocVien = {
   IDKhoaHoc?: string;
   status: 'registered' | 'assigned' | 'learning' | 'dat_completed' | 'exam_ready';
   assignment?: Assignment;
+  latestKQSH?: { KetQuaSH: string; NgaySH: string } | null;
 };
 
 const HV_STATUS_LABEL: Record<string, string> = {
@@ -72,6 +74,11 @@ const HocVienManagement: React.FC = () => {
   const [editStatus, setEditStatus] = useState<'waiting' | 'learning' | 'completed'>('learning');
   const [editDatHours, setEditDatHours] = useState(0);
   const [progressSaving, setProgressSaving] = useState(false);
+
+  // Edit info
+  const [editingInfo, setEditingInfo] = useState(false);
+  const [editFields, setEditFields] = useState<Partial<HocVien>>({});
+  const [savingInfo, setSavingInfo] = useState(false);
 
   // Assign modal
   const [assignTarget, setAssignTarget] = useState<HocVien | null>(null);
@@ -119,6 +126,38 @@ const HocVienManagement: React.FC = () => {
     setEditProgress(s.assignment?.progressPercent ?? 0);
     setEditStatus(s.assignment?.status ?? 'learning');
     setEditDatHours(s.assignment?.datHoursCompleted ?? 0);
+    setEditingInfo(false);
+    setEditFields({});
+  };
+
+  const startEditInfo = () => {
+    if (!drawerItem) return;
+    setEditFields({
+      HoTen: drawerItem.HoTen,
+      SoCCCD: drawerItem.SoCCCD ?? '',
+      NgaySinh: drawerItem.NgaySinh ?? '',
+      GioiTinh: drawerItem.GioiTinh ?? '',
+      phone: drawerItem.phone ?? '',
+      email: drawerItem.email ?? '',
+      DiaChi: drawerItem.DiaChi ?? '',
+      loaibangthi: drawerItem.loaibangthi ?? '',
+    });
+    setEditingInfo(true);
+  };
+
+  const handleSaveInfo = async () => {
+    if (!drawerItem) return;
+    setSavingInfo(true);
+    try {
+      const res = await put<{ EC: number; EM: string; DT: HocVien }>(`/api/hocvien/${drawerItem.id}`, editFields);
+      if (res.EC === 0) {
+        setEditingInfo(false);
+        await fetchData();
+        setDrawerItem(prev => prev ? { ...prev, ...editFields } : null);
+      }
+    } finally {
+      setSavingInfo(false);
+    }
   };
 
   const openAssign = (s: HocVien, e: React.MouseEvent) => {
@@ -246,6 +285,7 @@ const HocVienManagement: React.FC = () => {
                 <th>Tiến độ</th>
                 <th>Trạng thái</th>
                 <th>Giáo viên</th>
+                <th className="hvm__th-center">Kết quả SH</th>
                 <th className="hvm__th-right">Thao tác</th>
               </tr>
             </thead>
@@ -303,6 +343,18 @@ const HocVienManagement: React.FC = () => {
                         <span className="hvm__not-assigned">Chưa phân công</span>
                       )}
                     </td>
+                    <td className="hvm__th-center">
+                      {s.latestKQSH ? (
+                        <div className="hvm__kqsh-cell">
+                          <KetQuaBadge kq={s.latestKQSH.KetQuaSH} />
+                          <span className="hvm__kqsh-date">
+                            {new Date(s.latestKQSH.NgaySH).toLocaleDateString('vi-VN')}
+                          </span>
+                        </div>
+                      ) : (
+                        <span className="hvm__td-muted">—</span>
+                      )}
+                    </td>
                     <td>
                       <div className="hvm__row-actions">
                         <button className="hvm__btn-assign" onClick={e => openAssign(s, e)}>
@@ -357,22 +409,85 @@ const HocVienManagement: React.FC = () => {
             </div>
 
             <div className="hvm__drawer-section">
-              <h5 className="hvm__drawer-section-title">Thông tin cá nhân</h5>
-              <div className="hvm__drawer-info-grid">
-                {[
-                  ['CCCD / CMND', drawerItem.SoCCCD],
-                  ['Ngày sinh', formatDate(drawerItem.NgaySinh)],
-                  ['Giới tính', drawerItem.GioiTinh],
-                  ['Số điện thoại', drawerItem.phone],
-                  ['Email', drawerItem.email],
-                  ['Địa chỉ', drawerItem.DiaChi],
-                ].map(([label, value]) => (
-                  <div key={label} className="hvm__drawer-info-item">
-                    <span className="hvm__drawer-info-label">{label}</span>
-                    <span className="hvm__drawer-info-value">{value || '—'}</span>
-                  </div>
-                ))}
+              <div className="hvm__drawer-section-header">
+                <h5 className="hvm__drawer-section-title">Thông tin cá nhân</h5>
+                {!editingInfo && (
+                  <button className="hvm__btn-edit-info" onClick={startEditInfo}>
+                    <span className="material-icons">edit</span>
+                    Chỉnh sửa
+                  </button>
+                )}
               </div>
+
+              {editingInfo ? (
+                <div className="hvm__info-edit-form">
+                  {([
+                    { key: 'HoTen',      label: 'Họ và tên',      type: 'text' },
+                    { key: 'SoCCCD',     label: 'CCCD / CMND',    type: 'text' },
+                    { key: 'NgaySinh',   label: 'Ngày sinh',      type: 'date' },
+                    { key: 'GioiTinh',   label: 'Giới tính',      type: 'select', opts: ['Nam', 'Nữ', 'Khác'] },
+                    { key: 'phone',      label: 'Số điện thoại',  type: 'tel' },
+                    { key: 'email',      label: 'Email',          type: 'email' },
+                    { key: 'loaibangthi',label: 'Loại bằng thi',  type: 'text' },
+                    { key: 'DiaChi',     label: 'Địa chỉ',        type: 'textarea' },
+                  ] as const).map(({ key, label, type, ...rest }) => (
+                    <label key={key} className="hvm__info-field">
+                      <span className="hvm__info-field-label">{label}</span>
+                      {type === 'select' ? (
+                        <select
+                          className="hvm__edit-select"
+                          value={(editFields as Record<string, string>)[key] ?? ''}
+                          onChange={e => setEditFields(f => ({ ...f, [key]: e.target.value }))}
+                        >
+                          <option value="">— Chọn —</option>
+                          {(rest as { opts?: string[] }).opts?.map(o => (
+                            <option key={o} value={o}>{o}</option>
+                          ))}
+                        </select>
+                      ) : type === 'textarea' ? (
+                        <textarea
+                          className="hvm__edit-textarea hvm__edit-textarea--sm"
+                          rows={2}
+                          value={(editFields as Record<string, string>)[key] ?? ''}
+                          onChange={e => setEditFields(f => ({ ...f, [key]: e.target.value }))}
+                        />
+                      ) : (
+                        <input
+                          type={type}
+                          className="hvm__edit-input"
+                          value={(editFields as Record<string, string>)[key] ?? ''}
+                          onChange={e => setEditFields(f => ({ ...f, [key]: e.target.value }))}
+                        />
+                      )}
+                    </label>
+                  ))}
+                  <div className="hvm__info-edit-actions">
+                    <button className="hvm__btn-ghost" onClick={() => setEditingInfo(false)}>Huỷ</button>
+                    <button className="hvm__btn-primary" onClick={handleSaveInfo} disabled={savingInfo}>
+                      {savingInfo
+                        ? <><span className="material-icons hvm__spin">sync</span>Đang lưu...</>
+                        : <><span className="material-icons">save</span>Lưu</>
+                      }
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <div className="hvm__drawer-info-grid">
+                  {[
+                    ['CCCD / CMND', drawerItem.SoCCCD],
+                    ['Ngày sinh', formatDate(drawerItem.NgaySinh)],
+                    ['Giới tính', drawerItem.GioiTinh],
+                    ['Số điện thoại', drawerItem.phone],
+                    ['Email', drawerItem.email],
+                    ['Địa chỉ', drawerItem.DiaChi],
+                  ].map(([label, value]) => (
+                    <div key={label} className="hvm__drawer-info-item">
+                      <span className="hvm__drawer-info-label">{label}</span>
+                      <span className="hvm__drawer-info-value">{value || '—'}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
 
             <div className="hvm__drawer-section">
@@ -428,6 +543,11 @@ const HocVienManagement: React.FC = () => {
                 </div>
               </div>
             )}
+
+            <div className="hvm__drawer-section">
+              <h5 className="hvm__drawer-section-title">Kết quả sát hạch</h5>
+              <KQSHDrawerSection hocVienId={drawerItem.id} />
+            </div>
           </div>
 
           <div className="hvm__drawer-footer">

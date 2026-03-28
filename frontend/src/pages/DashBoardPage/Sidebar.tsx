@@ -59,9 +59,11 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed }) => {
         { label: 'Giáo viên của tôi',   icon: 'person',       to: '/dashboard/home?section=myteacher' },
         { label: 'Danh sách giáo viên', icon: 'group',        to: '/dashboard/home?section=teachers'  },
         { label: 'Tin nhắn',            icon: 'chat',         to: '/dashboard/chat'                   },
+        { label: 'Thông tin cá nhân',   icon: 'manage_accounts', to: '/dashboard/home?section=profile' },
         { label: 'Đánh giá',            icon: 'rate_review',  to: '/dashboard/home?section=rate'      },
       ],
     },
+    { label: 'Kết quả sát hạch', icon: 'fact_check', to: '/dashboard/ket-qua-sat-hanh' },
     { label: 'Tra cứu GPLX', icon: 'manage_search', to: '/license-check' },
   ];
 

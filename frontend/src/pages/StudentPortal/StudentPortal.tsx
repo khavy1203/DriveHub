@@ -72,7 +72,19 @@ const renderStars = (avgStr: string, size: 'sm' | 'md' = 'sm') => {
   );
 };
 
-type NavKey = 'progress' | 'myteacher' | 'teachers' | 'rate';
+type HocVienProfile = {
+  id: number;
+  HoTen: string;
+  SoCCCD: string | null;
+  phone: string | null;
+  DiaChi: string | null;
+  email: string | null;
+  NgaySinh: string | null;
+  loaibangthi: string | null;
+  avatarUrl: string | null;
+};
+
+type NavKey = 'progress' | 'myteacher' | 'teachers' | 'rate' | 'profile';
 
 // ── Component ─────────────────────────────────────────────────────────────────
 
@@ -94,17 +106,25 @@ const StudentPortal: React.FC = () => {
   const [submittingRating, setSubmittingRating] = useState(false);
   const [ratingDone, setRatingDone] = useState(false);
 
+  // Profile state
+  const [profile, setProfile] = useState<HocVienProfile | null>(null);
+  const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
+  const avatarInputRef = useRef<HTMLInputElement>(null);
+
   // Section refs for scroll-to
   const progressRef = useRef<HTMLElement>(null);
   const myteacherRef = useRef<HTMLElement>(null);
   const teachersRef = useRef<HTMLElement>(null);
   const rateRef = useRef<HTMLElement>(null);
+  const profileRef = useRef<HTMLElement>(null);
 
   const refMap: Record<NavKey, React.RefObject<HTMLElement | null>> = {
     progress: progressRef,
     myteacher: myteacherRef,
     teachers: teachersRef,
     rate: rateRef,
+    profile: profileRef,
   };
 
   const scrollToSection = (key: NavKey) => {
@@ -122,6 +142,17 @@ const StudentPortal: React.FC = () => {
     const timer = setTimeout(() => scrollToSection(section), 150);
     return () => clearTimeout(timer);
   }, [searchParams]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const fetchProfile = useCallback(async () => {
+    try {
+      const res = await axios.get<{ EC: number; DT: HocVienProfile }>('/api/hocvien/portal/me');
+      if (res.data.EC === 0 && res.data.DT) {
+        setProfile(res.data.DT);
+      }
+    } catch {
+      // silent — supplemental
+    }
+  }, []);
 
   const fetchProgress = useCallback(async () => {
     setLoadingProgress(true);
@@ -152,8 +183,42 @@ const StudentPortal: React.FC = () => {
     if (isAuthenticated) {
       fetchProgress();
       fetchTeachers();
+      fetchProfile();
     }
-  }, [isAuthenticated, fetchProgress, fetchTeachers]);
+  }, [isAuthenticated, fetchProgress, fetchTeachers, fetchProfile]);
+
+  const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setAvatarPreview(URL.createObjectURL(file));
+  };
+
+  const handleAvatarUpload = async () => {
+    const file = avatarInputRef.current?.files?.[0];
+    if (!file) return;
+    setUploadingAvatar(true);
+    try {
+      const formData = new FormData();
+      formData.append('avatar', file);
+      const res = await axios.post<{ EC: number; EM: string; DT: { avatarUrl: string } }>(
+        '/api/hocvien/portal/avatar',
+        formData,
+        { headers: { 'Content-Type': 'multipart/form-data' } }
+      );
+      if (res.data.EC === 0) {
+        toast.success('Đã cập nhật ảnh đại diện');
+        setAvatarPreview(null);
+        if (avatarInputRef.current) avatarInputRef.current.value = '';
+        fetchProfile();
+      } else {
+        toast.error(res.data.EM || 'Upload thất bại');
+      }
+    } catch {
+      toast.error('Lỗi kết nối server');
+    } finally {
+      setUploadingAvatar(false);
+    }
+  };
 
   const handleSubmitRating = async () => {
     if (!selectedStar) { toast.error('Vui lòng chọn số sao'); return; }
@@ -198,7 +263,87 @@ const StudentPortal: React.FC = () => {
   return (
     <div className="hvp">
 
-      {/* Section 1: Tiến độ học tập */}
+      {/* Thông tin cá nhân — đặt trên tiến độ */}
+      <section ref={profileRef} className="hvp__section">
+        <h2 className="hvp__section-title">Thông tin cá nhân</h2>
+        <div className="hvp__profile-card">
+
+          {/* Avatar block */}
+          <div className="hvp__avatar-block">
+            <div className="hvp__avatar-wrap">
+              {(avatarPreview || profile?.avatarUrl) ? (
+                <img
+                  src={avatarPreview ?? profile!.avatarUrl!}
+                  alt="Ảnh đại diện"
+                  className="hvp__avatar-img"
+                />
+              ) : (
+                <div className="hvp__avatar-placeholder">
+                  <span className="material-icons">person</span>
+                </div>
+              )}
+              <button
+                type="button"
+                className="hvp__avatar-edit-btn"
+                onClick={() => avatarInputRef.current?.click()}
+                title="Đổi ảnh đại diện"
+              >
+                <span className="material-icons">photo_camera</span>
+              </button>
+            </div>
+            <input
+              ref={avatarInputRef}
+              type="file"
+              accept="image/jpeg,image/png,image/webp"
+              style={{ display: 'none' }}
+              onChange={handleAvatarChange}
+            />
+            {profile && <p className="hvp__avatar-name">{profile.HoTen}</p>}
+            {avatarPreview && (
+              <button
+                type="button"
+                className="hvp__save-btn"
+                onClick={handleAvatarUpload}
+                disabled={uploadingAvatar}
+              >
+                {uploadingAvatar
+                  ? <><span className="material-icons hvp__spin">sync</span>Đang lưu...</>
+                  : <><span className="material-icons">save</span>Lưu ảnh</>
+                }
+              </button>
+            )}
+          </div>
+
+          {/* Info read-only */}
+          {profile && (
+            <div className="hvp__profile-info-grid">
+              {[
+                { icon: 'badge',          label: 'Số CCCD / CMND',  val: profile.SoCCCD },
+                { icon: 'phone',          label: 'Số điện thoại',   val: profile.phone },
+                { icon: 'mail_outline',   label: 'Email',           val: profile.email },
+                { icon: 'cake',           label: 'Ngày sinh',       val: profile.NgaySinh },
+                { icon: 'directions_car', label: 'Loại bằng thi',   val: profile.loaibangthi },
+                { icon: 'location_on',    label: 'Địa chỉ',         val: profile.DiaChi },
+              ].map(({ icon, label, val }) => val ? (
+                <div key={label} className="hvp__info-item">
+                  <span className="material-icons hvp__info-icon">{icon}</span>
+                  <div>
+                    <p className="hvp__info-label">{label}</p>
+                    <p className="hvp__info-val">{val}</p>
+                  </div>
+                </div>
+              ) : null)}
+
+              <div className="hvp__info-notice">
+                <span className="material-icons">info_outline</span>
+                Thông tin trên do trung tâm quản lý. Để thay đổi, vui lòng liên hệ nhân viên.
+              </div>
+            </div>
+          )}
+        </div>
+      </section>
+
+      {/* Tiến độ học tập */}
       <section ref={progressRef} className="hvp__section">
         <h2 className="hvp__section-title">Tiến độ học tập</h2>
         <div className="hvp__progress-grid">
@@ -281,7 +426,7 @@ const StudentPortal: React.FC = () => {
         </div>
       </section>
 
-      {/* Section 2: Giáo viên đang dạy tôi */}
+      {/* Giáo viên đang dạy tôi */}
       <section ref={myteacherRef} className="hvp__section">
         <div className="hvp__section-header">
           <h2 className="hvp__section-title">Giáo viên đang dạy tôi</h2>
@@ -382,7 +527,7 @@ const StudentPortal: React.FC = () => {
         )}
       </section>
 
-      {/* Section 3: Danh sách giáo viên */}
+      {/* Danh sách giáo viên */}
       <section ref={teachersRef} className="hvp__section">
         <div className="hvp__section-header hvp__section-header--teachers">
           <div>
@@ -468,7 +613,7 @@ const StudentPortal: React.FC = () => {
         )}
       </section>
 
-      {/* Section 4: Đánh giá */}
+      {/* Đánh giá */}
       <section ref={rateRef} className="hvp__section hvp__section--last">
         <h2 className="hvp__section-title">Đánh giá giáo viên</h2>
 

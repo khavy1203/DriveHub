@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import useApiService from '../../../services/useApiService';
+import KQSHSyncPanel from '../KQSHPage/KQSHSyncPanel';
 import './DashboardHome.scss';
 
 type StatCard = {
@@ -121,6 +122,12 @@ const DashboardHome: React.FC = () => {
             </button>
           ))}
         </div>
+      </div>
+
+      {/* KQSH Sync */}
+      <div className="dbh__section">
+        <h2 className="dbh__section-title">Đồng bộ dữ liệu</h2>
+        <KQSHSyncPanel />
       </div>
     </div>
   );

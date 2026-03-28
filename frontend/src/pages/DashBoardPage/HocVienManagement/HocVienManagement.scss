@@ -762,3 +762,127 @@
   0%, 100% { opacity: 1; }
   50% { opacity: 0.4; }
 }
+
+// ── Drawer edit info ───────────────────────────────────────
+.hvm__drawer-section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+
+  .hvm__drawer-section-title { margin-bottom: 0; }
+}
+
+.hvm__btn-edit-info {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #3b82f6;
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+  border-radius: 8px;
+  padding: 4px 10px;
+  cursor: pointer;
+  transition: background 0.15s;
+
+  .material-icons { font-size: 15px; }
+  &:hover { background: #dbeafe; }
+}
+
+.hvm__info-edit-form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.hvm__info-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.hvm__info-field-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.hvm__edit-input,
+.hvm__edit-select,
+.hvm__edit-textarea {
+  width: 100%;
+  padding: 7px 10px;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 8px;
+  font-size: 13px;
+  font-family: 'Inter', sans-serif;
+  color: #1e293b;
+  background: #fff;
+  outline: none;
+  transition: border-color 0.15s;
+
+  &:focus { border-color: #3b82f6; box-shadow: 0 0 0 3px rgba(59,130,246,0.1); }
+}
+
+.hvm__edit-textarea--sm {
+  resize: none;
+  min-height: 54px;
+}
+
+.hvm__info-edit-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.hvm__btn-ghost {
+  padding: 7px 16px;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 8px;
+  background: transparent;
+  font-size: 13px;
+  font-weight: 600;
+  color: #64748b;
+  cursor: pointer;
+  transition: background 0.15s;
+
+  &:hover { background: #f8fafc; }
+}
+
+// ── KQSH badge in table ──────────────────────────────────
+.hvm__kqsh-cell {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.hvm__kqsh-date {
+  font-size: 11px;
+  color: #94a3b8;
+  white-space: nowrap;
+}
+
+.hvm__btn-primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 7px 16px;
+  border: none;
+  border-radius: 8px;
+  background: #3b82f6;
+  color: #fff;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s;
+
+  .material-icons { font-size: 16px; }
+  &:hover:not(:disabled) { background: #2563eb; }
+  &:disabled { opacity: 0.55; cursor: not-allowed; }
+}

@@ -29,6 +29,7 @@ import gplxController from "../controller/gplxController";
 import reviewSetController from "../controller/reviewSetController";
 import examSetImportController from "../controller/examSetImportController";
 import chatController from "../controller/chatController";
+import { triggerSync, getMyKQSH, testMssqlConnection, getHocVienKQSH, getTeacherStudentKQSH } from "../controller/kqshController";
 
 
 const routes = express.Router();
@@ -57,13 +58,19 @@ const createDiskStorage = (destinationPath) => {
 const uploadImageText = multer({ storage: createDiskStorage(path.join(__dirname, '../upload/originTextImg')) });
 const uploadStorageQR = multer({ storage: createDiskStorage(path.join(__dirname, '../upload/originQR')) });
 const memoryUpload = multer({ storage: multer.memoryStorage() });
+const imageFileFilter = (req, file, cb) => {
+    if (/^image\/(jpeg|png|webp|gif)$/.test(file.mimetype)) cb(null, true);
+    else cb(new Error('Chỉ chấp nhận file ảnh (jpg, png, webp, gif)'));
+};
 const uploadTeacherAvatar = multer({
     storage: createDiskStorage(path.join(__dirname, '../upload/teacher-avatars')),
     limits: { fileSize: 5 * 1024 * 1024 },
-    fileFilter: (req, file, cb) => {
-        if (/^image\/(jpeg|png|webp|gif)$/.test(file.mimetype)) cb(null, true);
-        else cb(new Error('Chỉ chấp nhận file ảnh (jpg, png, webp, gif)'));
-    },
+    fileFilter: imageFileFilter,
+});
+const uploadStudentAvatar = multer({
+    storage: createDiskStorage(path.join(__dirname, '../upload/student-avatars')),
+    limits: { fileSize: 5 * 1024 * 1024 },
+    fileFilter: imageFileFilter,
 });
 
 const initWebRoutes = (app) => {
@@ -99,6 +106,7 @@ const initWebRoutes = (app) => {
 
     // ── Account setup (public — no JWT required) ─────────────────────────────
     routes.get('/teacher/my-students', teacherPortalController.getMyStudents);
+    routes.get('/teacher/students/:hocVienId/kqsh', getTeacherStudentKQSH);
 
     routes.get('/student-portal/my-progress', studentPortalController.getMyProgress);
     routes.get('/student-portal/teachers', studentPortalController.getTeachers);
@@ -140,10 +148,13 @@ const initWebRoutes = (app) => {
     routes.post("/teacher-course", teacherCourseController.setAssignments);
 
     routes.get("/hocvien", hocvienController.listHocVien);
+    routes.get("/hocvien/:id/kqsh", getHocVienKQSH);
     routes.post("/hocvien/register", hocvienController.registerStudent);
     routes.post("/hocvien/send-credentials", hocvienController.sendCredentials);
+    routes.put("/hocvien/:id", hocvienController.updateHocVienInfo);
     routes.delete("/hocvien/:id", hocvienController.deleteHocVien);
     routes.get("/hocvien/portal/me", hocvienController.getPortalData);
+    routes.post("/hocvien/portal/avatar", uploadStudentAvatar.single('avatar'), hocvienController.uploadAvatar);
 
     routes.get("/student-assignment", studentAssignmentController.getAssignments);
     routes.post("/student-assignment", studentAssignmentController.createAssignment);
@@ -151,6 +162,10 @@ const initWebRoutes = (app) => {
     routes.delete("/student-assignment/:id", studentAssignmentController.deleteAssignment);
 
     routes.get("/chat/:assignmentId/messages", chatController.getHistory);
+
+    routes.get("/student-portal/ket-qua-sat-hanh", getMyKQSH);
+    routes.post("/admin/kqsh/sync", triggerSync);
+    routes.get("/admin/kqsh/test-connection", testMssqlConnection);
 
     //file 
     routes.post("/file/namestandardizationfile", fileController.nameStandardizationFile);

@@ -1,63 +1,53 @@
 {
-    "development": {
-       "username": "root",
-        "password": "12345",
-        "database": "userstatus",
-        "host": "localhost",
-        "dialect": "mysql",
-        "timezone": "+07:00",
-        "logging": false,
-        "define": {
-            "freezeTableName": true
-        }
-    },
-    "test": {
-        "username": "root",
-        "password": "12345",
-        "database": "userstatus",
-        "host": "localhost",
-        "dialect": "mysql",
-        "timezone": "+07:00",
-        "logging": false,
-        "define": {
-            "freezeTableName": true
-        }
-    },
-    "docker_test": {
-        "username": "root",
-        "password": "12345",
-        "database": "userstatus",
-        "host": "mysql_db",
-        "dialect": "mysql",
-        "timezone": "+07:00",
-        "logging": false,
-        "define": {
-            "freezeTableName": true
-        }
-    },
-    "production": {
-        "username": "ud3v7y6suym75ol8",
-        "password": "0RYXqOnOj4wJquQ5nlrP",
-        "database": "b6i7q5qabwnazzwabegz",
-        "host": "b6i7q5qabwnazzwabegz-mysql.services.clever-cloud.com",
-        "dialect": "mysql",
-        "timezone": "+07:00",
-        "logging": false,
-        "define": {
-            "freezeTableName": true
-        },
-        "port": 21053
-    },
-    "buildlocal": {
-        "username": "root",
-        "password": "",
-        "database": "userstatus",
-        "host": "127.0.0.1",
-        "dialect": "mysql",
-        "timezone": "+07:00",
-        "logging": false,
-        "define": {
-            "freezeTableName": true
-        }
-    }
+  "development": {
+    "username": "",
+    "password": "",
+    "database": "userstatus",
+    "host": "localhost",
+    "dialect": "mysql",
+    "timezone": "+07:00",
+    "logging": false,
+    "define": { "freezeTableName": true }
+  },
+  "test": {
+    "username": "",
+    "password": "",
+    "database": "userstatus",
+    "host": "localhost",
+    "dialect": "mysql",
+    "timezone": "+07:00",
+    "logging": false,
+    "define": { "freezeTableName": true }
+  },
+  "docker_test": {
+    "username": "",
+    "password": "",
+    "database": "userstatus",
+    "host": "mysql_db",
+    "dialect": "mysql",
+    "timezone": "+07:00",
+    "logging": false,
+    "define": { "freezeTableName": true }
+  },
+  "production": {
+    "username": "",
+    "password": "",
+    "database": "",
+    "host": "",
+    "dialect": "mysql",
+    "timezone": "+07:00",
+    "logging": false,
+    "define": { "freezeTableName": true },
+    "port": 3306
+  },
+  "buildlocal": {
+    "username": "",
+    "password": "",
+    "database": "userstatus",
+    "host": "127.0.0.1",
+    "dialect": "mysql",
+    "timezone": "+07:00",
+    "logging": false,
+    "define": { "freezeTableName": true }
+  }
 }

@@ -105,7 +105,25 @@ const getAssignmentsByTeacher = async (teacherUserId) => {
       ],
       order: [['createdAt', 'DESC']],
     });
-    return { EM: 'ok', EC: 0, DT: rows.map(r => r.get({ plain: true })) };
+
+    const plain = rows.map((r) => r.get({ plain: true }));
+    const hocVienIds = [...new Set(plain.map((p) => p.hocVienId).filter(Boolean))];
+
+    let hasKqshSet = new Set();
+    if (hocVienIds.length) {
+      const kqshRows = await db.kqsh_thisinh.findAll({
+        where: { hocVienId: { [Op.in]: hocVienIds } },
+        attributes: ['hocVienId'],
+      });
+      hasKqshSet = new Set(kqshRows.map((r) => r.hocVienId));
+    }
+
+    const withFlag = plain.map((p) => ({
+      ...p,
+      hasKQSH: hasKqshSet.has(p.hocVienId),
+    }));
+
+    return { EM: 'ok', EC: 0, DT: withFlag };
   } catch (e) {
     console.error('[getAssignmentsByTeacher]', e);
     return { EM: 'Server error', EC: -1, DT: [] };

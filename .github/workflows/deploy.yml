@@ -157,6 +157,11 @@ jobs:
                   - DB_DATABASE=${DB_NAME}
                   - DB_USERNAME=${DB_USER}
                   - DB_PASSWORD=${DB_PASS}
+                  - MSSQL_HOST=${MSSQL_HOST}
+                  - MSSQL_PORT=${MSSQL_PORT:-1433}
+                  - MSSQL_USER=${MSSQL_USER}
+                  - MSSQL_PASSWORD=${MSSQL_PASSWORD}
+                  - MSSQL_DATABASE=${MSSQL_DATABASE}
                 volumes:
                   - backend_upload:/app/build/upload
                 depends_on:
@@ -215,6 +220,11 @@ jobs:
             DB_USER=${{ secrets.DB_USER }}
             DB_PASS=${{ secrets.DB_PASS }}
             MYSQL_ROOT_PASSWORD=${{ secrets.MYSQL_ROOT_PASSWORD }}
+            MSSQL_HOST=${{ secrets.MSSQL_HOST }}
+            MSSQL_PORT=${{ secrets.MSSQL_PORT }}
+            MSSQL_USER=${{ secrets.MSSQL_USER }}
+            MSSQL_PASSWORD=${{ secrets.MSSQL_PASSWORD }}
+            MSSQL_DATABASE=${{ secrets.MSSQL_DATABASE }}
             ENVEOF
 
             # Stop containers cũ (giải phóng ports trước khi pull)
