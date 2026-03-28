@@ -22,6 +22,11 @@ export function useChatSocket(assignmentId: number | null): UseChatSocketReturn 
   const reconnectTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const reconnectCount = useRef(0);
   const destroyed = useRef(false);
+  // Monotonically-increasing counter. Each connect() call captures its own
+  // value; handlers check against the current value and bail if stale.
+  // Prevents a closing old WS from firing onclose/onmessage into the new
+  // conversation when the teacher switches between students.
+  const connectionIdRef = useRef(0);
   // Queue of message bodies to send after reconnect
   const pendingQueue = useRef<string[]>([]);
 
@@ -33,6 +38,10 @@ export function useChatSocket(assignmentId: number | null): UseChatSocketReturn 
 
   const connect = useCallback((id: number) => {
     if (destroyed.current) return;
+
+    connectionIdRef.current += 1;
+    const connId = connectionIdRef.current;
+    const isStale = () => connectionIdRef.current !== connId;
 
     const config = getConfig();
     const token = sessionStorage.getItem('auth_token') ?? '';
@@ -46,6 +55,7 @@ export function useChatSocket(assignmentId: number | null): UseChatSocketReturn 
     setStatus('connecting');
 
     ws.onmessage = (event) => {
+      if (isStale()) return;
       let msg: { type: string; payload: unknown };
       try {
         msg = JSON.parse(event.data);
@@ -129,7 +139,7 @@ export function useChatSocket(assignmentId: number | null): UseChatSocketReturn 
     };
 
     ws.onclose = () => {
-      if (destroyed.current) return;
+      if (destroyed.current || isStale()) return;
       setStatus('closed');
       if (reconnectCount.current < MAX_RECONNECT_ATTEMPTS) {
         reconnectCount.current += 1;
