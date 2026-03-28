@@ -225,8 +225,7 @@
 }
 
 
-@media screen and (max-width: 900px) {
-    /* Mentor yêu cầu ẩn vĩnh viễn trên mobile */
+@media screen and (max-width: 991px) {
     .header-area {
         display: none !important;
     }
@@ -356,6 +355,21 @@
         width: 38px !important;
         height: 38px !important;
         border-radius: 9px;
+    }
+}
+
+.header-dropdown-divider {
+    height: 1px;
+    background-color: #f1f5f9;
+    margin: 4px 0;
+}
+
+.header-dropdown-item--dashboard {
+    color: #1e293b !important;
+
+    &:hover {
+        background: #f0f9ff !important;
+        color: #03a4ed !important;
     }
 }
 

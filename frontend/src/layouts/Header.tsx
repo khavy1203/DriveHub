@@ -118,11 +118,6 @@ export const Header: React.FC = () => {
                     Phạt nguội
                   </NavLink>
                 </li>
-                <li>
-                  <NavLink to="/dashboard" className={({ isActive }) => (isActive ? 'active' : '')}>
-                    DashBoard
-                  </NavLink>
-                </li>
                 {/* <li className="has-submenu">
                   <span className="nav-link-custom">Tools</span>
                   <ul className="submenu">
@@ -172,6 +167,15 @@ export const Header: React.FC = () => {
 
                     {isProfileOpen ? (
                       <div className="header-dropdown" role="menu">
+                        <button
+                          className="header-dropdown-item header-dropdown-item--dashboard"
+                          onClick={() => { setIsProfileOpen(false); navigate('/dashboard'); }}
+                          role="menuitem"
+                        >
+                          <i className="fa fa-tachometer"></i>
+                          Dashboard
+                        </button>
+                        <div className="header-dropdown-divider" />
                         <button
                           className="header-dropdown-item"
                           onClick={handleLogout}
