@@ -212,6 +212,7 @@ jobs:
             MEZON_USERINFO_URL=${{ secrets.MEZON_USERINFO_URL }}
             MEZON_TIMEOUT_MS=${{ secrets.MEZON_TIMEOUT_MS }}
             REACT_APP_MEZON_REDIRECT_URI=${{ secrets.REACT_APP_MEZON_REDIRECT_URI }}
+            REACT_APP_MEZON_AUTHORIZE_URL=${{ secrets.REACT_APP_MEZON_AUTHORIZE_URL }}
             CORS_ORIGINS=${{ secrets.CORS_ORIGINS }}
             COOKIE_SECURE=${{ secrets.COOKIE_SECURE }}
             SESSION_TTL_MS=${{ secrets.SESSION_TTL_MS }}
@@ -243,15 +244,21 @@ jobs:
             docker compose -f docker-compose.prod.yml pull
             docker compose -f docker-compose.prod.yml up -d
 
-            # Retry migration cho đến khi DB sẵn sàng (tối đa 60s)
+            # Wait for backend + DB to stabilise, then migrate
+            echo "Waiting 15s for containers to stabilise..."
+            sleep 15
+
             echo "Running migration..."
             for i in $(seq 1 12); do
               docker compose -f docker-compose.prod.yml exec -T backend \
-                npx sequelize-cli db:migrate --env docker_production && break
+                npx sequelize-cli db:migrate --env docker_production 2>&1 && break
               echo "Migration attempt $i failed, retrying in 5s..."
               sleep 5
             done
             echo "Migration done."
+
+            # Show backend logs for quick diagnostics
+            docker compose -f docker-compose.prod.yml logs --tail=30 backend
 
             # Clean up old images
             docker image prune -f

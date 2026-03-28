@@ -45,4 +45,4 @@ COPY --from=builder /app/.sequelizerc ./.sequelizerc
 
 EXPOSE 8080
 
-CMD ["sh", "-c", "npx sequelize-cli db:migrate --env docker_production && node build/server.js"]
+CMD ["node", "build/server.js"]
