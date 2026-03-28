@@ -144,6 +144,14 @@ jobs:
                   - REACT_APP_MEZON_REDIRECT_URI=${REACT_APP_MEZON_REDIRECT_URI}
                   - REACT_APP_MEZON_AUTHORIZE_URL=${REACT_APP_MEZON_AUTHORIZE_URL}
                   - CORS_ORIGINS=${CORS_ORIGINS}
+                  - COOKIE_SECURE=${COOKIE_SECURE}
+                  - SESSION_TTL_MS=${SESSION_TTL_MS}
+                  - MEZON_TIMEOUT_MS=${MEZON_TIMEOUT_MS}
+                  - DEFAULT_MEZON_USER_GENDER_ID=${DEFAULT_MEZON_USER_GENDER_ID}
+                  - DEFAULT_MEZON_USER_GROUP_ID=${DEFAULT_MEZON_USER_GROUP_ID}
+                  - DEFAULT_MEZON_USER_ACTIVE=${DEFAULT_MEZON_USER_ACTIVE}
+                  - FRONTEND_URL=${FRONTEND_URL}
+                  - BACKEND_URL=${BACKEND_URL}
                   - DB_HOST=mysql_db
                   - DB_PORT=3306
                   - DB_DATABASE=${DB_NAME}
@@ -198,6 +206,11 @@ jobs:
             CORS_ORIGINS=${{ secrets.CORS_ORIGINS }}
             COOKIE_SECURE=${{ secrets.COOKIE_SECURE }}
             SESSION_TTL_MS=${{ secrets.SESSION_TTL_MS }}
+            DEFAULT_MEZON_USER_GENDER_ID=${{ secrets.DEFAULT_MEZON_USER_GENDER_ID }}
+            DEFAULT_MEZON_USER_GROUP_ID=${{ secrets.DEFAULT_MEZON_USER_GROUP_ID }}
+            DEFAULT_MEZON_USER_ACTIVE=${{ secrets.DEFAULT_MEZON_USER_ACTIVE }}
+            FRONTEND_URL=${{ secrets.FRONTEND_URL }}
+            BACKEND_URL=${{ secrets.BACKEND_URL }}
             DB_NAME=${{ secrets.DB_NAME }}
             DB_USER=${{ secrets.DB_USER }}
             DB_PASS=${{ secrets.DB_PASS }}
