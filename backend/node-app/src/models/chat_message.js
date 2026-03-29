@@ -30,6 +30,8 @@ module.exports = (sequelize, DataTypes) => {
       modelName: 'chat_message',
       tableName: 'chat_message',
       timestamps: true,
+      charset: 'utf8mb4',
+      collate: 'utf8mb4_unicode_ci',
     }
   );
 

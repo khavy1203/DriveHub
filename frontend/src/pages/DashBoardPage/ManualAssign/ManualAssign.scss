@@ -6,8 +6,9 @@
   --assign-blue-soft: #dbeafe;
   --assign-green: #22c55e;
   --assign-green-soft: #dcfce7;
-  --assign-orange: #f97316;
-  --assign-orange-hover: #ea580c;
+  --assign-teal: #00685d;
+  --assign-teal-soft: #e6f5f3;
+  --assign-teal-hover: #005249;
   --assign-text: #0f172a;
   --assign-muted: #64748b;
   --assign-border: #e2e8f0;
@@ -422,7 +423,7 @@
   &__panel {
     border: 1px solid var(--assign-border);
     border-radius: var(--assign-radius);
-    background: var(--assign-card);
+    background: var(--assign-teal-soft);
     box-shadow: var(--assign-shadow);
     position: relative;
 
@@ -432,8 +433,8 @@
     }
 
     &--active {
-      border-color: rgba(249, 115, 22, 0.45);
-      box-shadow: 0 8px 28px rgba(249, 115, 22, 0.12);
+      border-color: rgba(0, 104, 93, 0.35);
+      box-shadow: 0 8px 28px rgba(0, 104, 93, 0.1);
     }
   }
 
@@ -445,7 +446,7 @@
     margin: 0 0 8px;
     font-size: 1.1rem;
     font-weight: 800;
-    color: var(--assign-blue);
+    color: var(--assign-teal);
   }
 
   &__panel-desc {
@@ -492,20 +493,21 @@
     gap: 10px;
     padding: 10px 12px;
     border-radius: 10px;
-    border: 1px solid var(--assign-border);
-    background: #f8fafc;
+    border: 1px solid rgba(0, 104, 93, 0.15);
+    background: var(--assign-card);
     cursor: pointer;
     font: inherit;
     text-align: left;
     transition: background 0.15s, border-color 0.15s;
 
     &:hover {
-      background: var(--assign-blue-soft);
+      background: #ccece8;
+      border-color: rgba(0, 104, 93, 0.3);
     }
 
     &--on {
-      border-color: var(--assign-blue);
-      background: var(--assign-blue-soft);
+      border-color: var(--assign-teal);
+      background: #ccece8;
     }
   }
 
@@ -513,30 +515,31 @@
     width: 36px;
     height: 36px;
     border-radius: 10px;
-    background: var(--assign-card);
+    background: var(--assign-teal);
     font-weight: 800;
     font-size: 0.75rem;
     display: flex;
     align-items: center;
     justify-content: center;
-    color: var(--assign-blue);
+    color: #fff;
   }
 
   &__suggest-name {
     flex: 1;
     font-weight: 700;
-    font-size: 0.875rem;
+    font-size: 0.9rem;
+    color: var(--assign-text);
   }
 
   &__suggest-score {
     font-size: 0.8rem;
     font-weight: 800;
-    color: var(--assign-green);
+    color: var(--assign-teal);
   }
 
   &__panel-divider {
     height: 1px;
-    background: var(--assign-border);
+    background: rgba(0, 104, 93, 0.15);
     margin: 12px 0 16px;
   }
 
@@ -554,13 +557,13 @@
     font-size: 1rem;
     font-weight: 800;
     color: #fff;
-    background: var(--assign-orange);
+    background: var(--assign-teal);
     cursor: pointer;
-    box-shadow: 0 4px 14px rgba(249, 115, 22, 0.35);
+    box-shadow: 0 4px 14px rgba(0, 104, 93, 0.3);
     transition: background 0.15s, transform 0.1s;
 
     &:hover:not(:disabled) {
-      background: var(--assign-orange-hover);
+      background: var(--assign-teal-hover);
     }
 
     &:disabled {
@@ -797,7 +800,7 @@
     border-radius: 2px;
   }
 
-  $confetti-colors: var(--assign-orange), var(--assign-green), var(--assign-blue), #eab308;
+  $confetti-colors: var(--assign-teal), var(--assign-green), var(--assign-blue), #eab308;
 
   @for $i from 1 through 14 {
     &__confetti-bit:nth-child(#{$i}) {

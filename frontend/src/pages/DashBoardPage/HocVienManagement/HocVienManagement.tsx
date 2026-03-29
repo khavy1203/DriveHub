@@ -5,9 +5,10 @@ import useApiService from '../../../services/useApiService';
 import { useAuth } from '../../../features/auth/hooks/useAuth';
 import { KQSHDrawerSection, KetQuaBadge } from '../../../features/kqsh';
 import { TrainingProgressBlock } from '../../../features/trainingPortal';
+import { buildClassGroups, extractDistrictLine, shortCourseName, sortStudentsInGroup, type KhoaHocBrief } from '../../../shared/studentClassGrouping';
 import './HocVienManagement.scss';
 
-type Teacher = { id: number; username: string; email: string; phone?: string };
+type Teacher = { id: number; username: string; email: string; phone?: string; address?: string | null };
 
 type Assignment = {
   id: number;
@@ -31,7 +32,11 @@ type HocVien = {
   email?: string;
   DiaChi?: string;
   loaibangthi?: string;
-  IDKhoaHoc?: string;
+  IDKhoaHoc?: string | null;
+  khoahoc?: KhoaHocBrief | null;
+  createdAt?: string;
+  /** Tiến độ % từ đồng bộ CSĐT (training_snapshot) */
+  trainingProgressPct?: number | null;
   status: 'registered' | 'assigned' | 'learning' | 'dat_completed' | 'exam_ready';
   assignment?: Assignment;
   latestKQSH?: { KetQuaSH: string; NgaySH: string } | null;
@@ -60,6 +65,21 @@ const getInitials = (name: string) =>
 const formatDate = (raw?: string) => {
   if (!raw) return '—';
   try { return new Date(raw).toLocaleDateString('vi-VN'); } catch { return raw; }
+};
+
+const teacherMatchScore = (teacher: Teacher, selected: HocVien[]): number => {
+  const addr = (teacher.address ?? '').toLowerCase();
+  if (!addr) return 68;
+  let pts = 0;
+  for (const s of selected) {
+    const dist = extractDistrictLine(s.DiaChi).toLowerCase();
+    if (!dist || dist === '—') continue;
+    if (addr.includes(dist)) { pts++; continue; }
+    const words = dist.split(/\s+/).filter(w => w.length > 2);
+    if (words.some(w => addr.includes(w))) pts++;
+  }
+  if (selected.length === 0) return 70;
+  return Math.min(99, Math.round(52 + (pts / selected.length) * 47));
 };
 
 const HocVienManagement: React.FC = () => {
@@ -95,6 +115,13 @@ const HocVienManagement: React.FC = () => {
   const [assignTeacherId, setAssignTeacherId] = useState<number | ''>('');
   const [assignNotes, setAssignNotes] = useState('');
   const [assignSaving, setAssignSaving] = useState(false);
+  const [collapsedCourses, setCollapsedCourses] = useState<Set<string>>(new Set());
+
+  // Bulk assign state
+  const [bulkSelected, setBulkSelected] = useState<Set<number>>(new Set());
+  const [bulkTeacherId, setBulkTeacherId] = useState<number | ''>('');
+  const [bulkSaving, setBulkSaving] = useState(false);
+  const [bulkConfirmOpen, setBulkConfirmOpen] = useState(false);
 
   const fetchData = useCallback(() => {
     setLoadingData(true);
@@ -130,6 +157,91 @@ const HocVienManagement: React.FC = () => {
     }
     return list;
   }, [hocVienList, licenseFilter, statusFilter, search]);
+
+  const courseGroups = useMemo(() => {
+    const raw = buildClassGroups(filtered, s => s.createdAt);
+    return raw.map(g => ({
+      ...g,
+      students: sortStudentsInGroup(g.students, 'name', 'asc'),
+    }));
+  }, [filtered]);
+
+  const toggleCourseCollapsed = (key: string) => {
+    setCollapsedCourses(prev => {
+      const next = new Set(prev);
+      if (next.has(key)) next.delete(key);
+      else next.add(key);
+      return next;
+    });
+  };
+
+  // Bulk selection helpers
+  const toggleBulkOne = (id: number, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setBulkSelected(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  const toggleBulkGroup = (ids: number[], e: React.MouseEvent) => {
+    e.stopPropagation();
+    const allSelected = ids.length > 0 && ids.every(id => bulkSelected.has(id));
+    setBulkSelected(prev => {
+      const next = new Set(prev);
+      if (allSelected) ids.forEach(id => next.delete(id));
+      else ids.forEach(id => next.add(id));
+      return next;
+    });
+  };
+
+  const bulkSelectedStudents = useMemo(
+    () => hocVienList.filter(s => bulkSelected.has(s.id)),
+    [hocVienList, bulkSelected],
+  );
+
+  const teacherSuggestions = useMemo(() => {
+    if (bulkSelectedStudents.length === 0) return [];
+    const scored = teachers.map(t => ({
+      teacher: t,
+      score: teacherMatchScore(t, bulkSelectedStudents),
+    }));
+    scored.sort((a, b) => b.score - a.score);
+    return scored.slice(0, 5);
+  }, [teachers, bulkSelectedStudents]);
+
+  const bulkTeacher = teachers.find(t => t.id === bulkTeacherId);
+
+  const runBulkAssign = async () => {
+    if (!bulkTeacherId || bulkSelected.size === 0) return;
+    setBulkSaving(true);
+    try {
+      const ids = [...bulkSelected];
+      const results = await Promise.all(
+        ids.map(hocVienId =>
+          post<{ EC: number; EM?: string }>('/api/student-assignment', {
+            hocVienId,
+            teacherId: bulkTeacherId,
+            courseId: null,
+          }),
+        ),
+      );
+      const failed = results.filter(r => r.EC !== 0);
+      if (failed.length > 0) {
+        toast.error(failed[0]?.EM || `Có ${failed.length} lượt phân công thất bại.`);
+        return;
+      }
+      setBulkSelected(new Set());
+      setBulkConfirmOpen(false);
+      setBulkTeacherId('');
+      await fetchData();
+      toast.success(`Đã phân công thành công ${ids.length} học viên.`);
+    } finally {
+      setBulkSaving(false);
+    }
+  };
 
   const openAssign = (s: HocVien, e: React.MouseEvent) => {
     e.stopPropagation();
@@ -217,7 +329,8 @@ const HocVienManagement: React.FC = () => {
         <div>
           <h1 className="hvm__title">Quản lý Học viên</h1>
           <p className="hvm__subtitle">
-            Theo dõi và quản lý <strong>{hocVienList.length}</strong> học viên đào tạo
+            Theo dõi và quản lý <strong>{hocVienList.length}</strong> học viên — sắp xếp theo{' '}
+            <strong>khóa học</strong> (tên khóa học), nhóm mới hơn lên trên
           </p>
         </div>
         <div className="hvm__header-actions">
@@ -303,7 +416,21 @@ const HocVienManagement: React.FC = () => {
           <table className="hvm__table">
             <thead>
               <tr>
+                <th className="hvm__th-check">
+                  <input
+                    type="checkbox"
+                    className="hvm__bulk-checkbox"
+                    checked={filtered.length > 0 && filtered.every(s => bulkSelected.has(s.id))}
+                    onChange={() => {
+                      const allIds = filtered.map(s => s.id);
+                      const allSelected = allIds.every(id => bulkSelected.has(id));
+                      setBulkSelected(allSelected ? new Set() : new Set(allIds));
+                    }}
+                    title="Chọn tất cả"
+                  />
+                </th>
                 <th>Học viên</th>
+                <th>Khóa học</th>
                 <th>Địa chỉ</th>
                 <th className="hvm__th-center">Hạng</th>
                 <th>Tiến độ</th>
@@ -313,87 +440,132 @@ const HocVienManagement: React.FC = () => {
                 <th className="hvm__th-right">Thao tác</th>
               </tr>
             </thead>
-            <tbody>
-              {filtered.map(s => {
-                const a = s.assignment;
-                const pct = a?.progressPercent ?? 0;
-                const assignStatus = a?.status ?? 'waiting';
-                const teacherName = a?.teacher?.username ?? teachers.find(t => t.id === a?.teacherId)?.username;
-                return (
-                  <tr
-                    key={s.id}
-                    onClick={() => setModalItem(s)}
-                    className="hvm__row--clickable"
-                    title="Xem hồ sơ học viên"
-                  >
-                    <td>
-                      <div className="hvm__student-cell">
-                        <div className="hvm__avatar">{getInitials(s.HoTen)}</div>
-                        <div>
-                          <div className="hvm__student-name">{s.HoTen}</div>
-                          <div className="hvm__student-id">
-                            {s.SoCCCD ? `CCCD: ${s.SoCCCD}` : `HV-${String(s.id).padStart(4, '0')}`}
-                          </div>
-                        </div>
-                      </div>
-                    </td>
-                    <td className="hvm__td-muted">{s.DiaChi || '—'}</td>
-                    <td className="hvm__th-center">
-                      {s.loaibangthi ? <span className="hvm__rank-badge">{s.loaibangthi}</span> : '—'}
-                    </td>
-                    <td>
-                      <div className="hvm__progress-cell">
-                        <div className="hvm__progress-labels"><span>{pct}%</span></div>
-                        <div className="hvm__progress-track">
-                          <div
-                            className={`hvm__progress-fill ${assignStatus === 'completed' ? 'hvm__progress-fill--done' : ''}`}
-                            style={{ width: `${pct}%` }}
-                          />
-                        </div>
-                      </div>
-                    </td>
-                    <td>
-                      <span className={`hvm__status-badge hvm__status-badge--${assignStatus}`}>
-                        {assignStatus === 'learning' && <span className="hvm__status-dot" />}
-                        {ASSIGN_STATUS_LABEL[assignStatus]}
-                      </span>
-                    </td>
-                    <td>
-                      {teacherName ? (
-                        <div className="hvm__teacher-cell">
-                          <div className="hvm__teacher-avatar">{getInitials(teacherName)}</div>
-                          <span className="hvm__teacher-name">{teacherName}</span>
-                        </div>
-                      ) : (
-                        <span className="hvm__not-assigned">Chưa phân công</span>
-                      )}
-                    </td>
-                    <td className="hvm__th-center">
-                      {s.latestKQSH ? (
-                        <div className="hvm__kqsh-cell">
-                          <KetQuaBadge kq={s.latestKQSH.KetQuaSH} />
-                          <span className="hvm__kqsh-date">
-                            {new Date(s.latestKQSH.NgaySH).toLocaleDateString('vi-VN')}
-                          </span>
-                        </div>
-                      ) : (
-                        <span className="hvm__td-muted">—</span>
-                      )}
-                    </td>
-                    <td>
-                      <div className="hvm__row-actions">
-                        <button className="hvm__btn-assign" onClick={e => openAssign(s, e)}>
-                          {a ? 'Đổi GV' : 'Phân công'}
+            {courseGroups.map(group => {
+              const collapsed = collapsedCourses.has(group.key);
+              const headPrimary = group.subtitle ? `${group.title} · ${group.subtitle}` : group.title;
+              return (
+                <tbody key={group.key}>
+                  <tr className="hvm__course-head-row">
+                    <td colSpan={10}>
+                      <button
+                        type="button"
+                        className="hvm__course-head"
+                        onClick={() => toggleCourseCollapsed(group.key)}
+                        aria-expanded={!collapsed}
+                      >
+                        <span className="material-icons hvm__course-head-icon">
+                          {collapsed ? 'expand_more' : 'expand_less'}
+                        </span>
+                        <span className="hvm__course-head-label">Khóa học:</span>
+                        <span className="hvm__course-head-title">{headPrimary}</span>
+                        <span className="hvm__course-head-count">{group.students.length} học viên</span>
+                        <button
+                          type="button"
+                          className="hvm__course-select-all"
+                          onClick={e => toggleBulkGroup(group.students.map(s => s.id), e)}
+                        >
+                          {group.students.every(s => bulkSelected.has(s.id)) ? 'Bỏ chọn nhóm' : 'Chọn nhóm'}
                         </button>
-                        <button className="hvm__btn-delete" onClick={e => handleDelete(s, e)} title="Xoá học viên">
-                          <span className="material-icons">delete</span>
-                        </button>
-                      </div>
+                      </button>
                     </td>
                   </tr>
-                );
-              })}
-            </tbody>
+                  {!collapsed &&
+                    group.students.map(s => {
+                      const a = s.assignment;
+                      const pct = Math.max(
+                        a?.progressPercent ?? 0,
+                        typeof s.trainingProgressPct === 'number' ? s.trainingProgressPct : 0,
+                      );
+                      const assignStatus = a?.status ?? 'waiting';
+                      const teacherName =
+                        a?.teacher?.username ?? teachers.find(t => t.id === a?.teacherId)?.username;
+                      const tenKhoa = shortCourseName(s.khoahoc?.TenKhoaHoc?.trim() || s.IDKhoaHoc);
+                      return (
+                        <tr
+                          key={s.id}
+                          onClick={() => setModalItem(s)}
+                          className={`hvm__row--clickable ${bulkSelected.has(s.id) ? 'hvm__row--selected' : ''}`}
+                          title="Xem hồ sơ học viên"
+                        >
+                          <td className="hvm__td-check" onClick={e => toggleBulkOne(s.id, e)}>
+                            <input
+                              type="checkbox"
+                              className="hvm__bulk-checkbox"
+                              checked={bulkSelected.has(s.id)}
+                              onChange={() => {}}
+                            />
+                          </td>
+                          <td>
+                            <div className="hvm__student-cell">
+                              <div className="hvm__avatar">{getInitials(s.HoTen)}</div>
+                              <div>
+                                <div className="hvm__student-name">{s.HoTen}</div>
+                                <div className="hvm__student-id">
+                                  {s.SoCCCD ? `CCCD: ${s.SoCCCD}` : `HV-${String(s.id).padStart(4, '0')}`}
+                                </div>
+                              </div>
+                            </div>
+                          </td>
+                          <td className="hvm__td-course">{tenKhoa}</td>
+                          <td className="hvm__td-muted">{s.DiaChi || '—'}</td>
+                          <td className="hvm__th-center">
+                            {s.loaibangthi ? <span className="hvm__rank-badge">{s.loaibangthi}</span> : '—'}
+                          </td>
+                          <td>
+                            <div className="hvm__progress-cell">
+                              <div className="hvm__progress-labels"><span>{pct}%</span></div>
+                              <div className="hvm__progress-track">
+                                <div
+                                  className={`hvm__progress-fill ${assignStatus === 'completed' ? 'hvm__progress-fill--done' : ''}`}
+                                  style={{ width: `${pct}%` }}
+                                />
+                              </div>
+                            </div>
+                          </td>
+                          <td>
+                            <span className={`hvm__status-badge hvm__status-badge--${assignStatus}`}>
+                              {assignStatus === 'learning' && <span className="hvm__status-dot" />}
+                              {ASSIGN_STATUS_LABEL[assignStatus]}
+                            </span>
+                          </td>
+                          <td>
+                            {teacherName ? (
+                              <div className="hvm__teacher-cell">
+                                <div className="hvm__teacher-avatar">{getInitials(teacherName)}</div>
+                                <span className="hvm__teacher-name">{teacherName}</span>
+                              </div>
+                            ) : (
+                              <span className="hvm__not-assigned">Chưa phân công</span>
+                            )}
+                          </td>
+                          <td className="hvm__th-center">
+                            {s.latestKQSH ? (
+                              <div className="hvm__kqsh-cell">
+                                <KetQuaBadge kq={s.latestKQSH.KetQuaSH} />
+                                <span className="hvm__kqsh-date">
+                                  {new Date(s.latestKQSH.NgaySH).toLocaleDateString('vi-VN')}
+                                </span>
+                              </div>
+                            ) : (
+                              <span className="hvm__td-muted">—</span>
+                            )}
+                          </td>
+                          <td>
+                            <div className="hvm__row-actions">
+                              <button className="hvm__btn-assign" onClick={e => openAssign(s, e)}>
+                                {a ? 'Đổi GV' : 'Phân công'}
+                              </button>
+                              <button className="hvm__btn-delete" onClick={e => handleDelete(s, e)} title="Xoá học viên">
+                                <span className="material-icons">delete</span>
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                </tbody>
+              );
+            })}
           </table>
           <div className="hvm__table-footer">
             Hiển thị <strong>{filtered.length}</strong> / <strong>{hocVienList.length}</strong> học viên
@@ -518,6 +690,95 @@ const HocVienManagement: React.FC = () => {
                 {importing
                   ? <><span className="material-icons hvm__spin">sync</span>Đang import...</>
                   : <><span className="material-icons">cloud_download</span>Import &amp; Đồng bộ</>
+                }
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Bulk Assign Panel */}
+      {bulkSelected.size > 0 && (
+        <div className="hvm__bulk-panel">
+          <div className="hvm__bulk-panel-left">
+            <span className="hvm__bulk-count">
+              <span className="material-icons">check_circle</span>
+              Đã chọn <strong>{bulkSelected.size}</strong> học viên
+            </span>
+            <button
+              type="button"
+              className="hvm__bulk-clear"
+              onClick={() => setBulkSelected(new Set())}
+            >
+              Bỏ chọn
+            </button>
+          </div>
+          <div className="hvm__bulk-panel-center">
+            <span className="hvm__bulk-label">Gợi ý GV:</span>
+            <div className="hvm__bulk-suggestions">
+              {teacherSuggestions.map(({ teacher: t, score }) => (
+                <button
+                  key={t.id}
+                  type="button"
+                  className={`hvm__bulk-suggest ${bulkTeacherId === t.id ? 'hvm__bulk-suggest--on' : ''}`}
+                  onClick={() => setBulkTeacherId(t.id)}
+                >
+                  <span className="hvm__bulk-suggest-avatar">{getInitials(t.username)}</span>
+                  <span className="hvm__bulk-suggest-name">{t.username}</span>
+                  <span className="hvm__bulk-suggest-score">{score}%</span>
+                </button>
+              ))}
+            </div>
+            <select
+              className="hvm__bulk-select"
+              value={bulkTeacherId}
+              onChange={e => setBulkTeacherId(e.target.value ? +e.target.value : '')}
+            >
+              <option value="">— Chọn GV —</option>
+              {teachers.map(t => (
+                <option key={t.id} value={t.id}>{t.username}</option>
+              ))}
+            </select>
+          </div>
+          <button
+            type="button"
+            className="hvm__bulk-cta"
+            disabled={bulkSaving || !bulkTeacherId}
+            onClick={() => setBulkConfirmOpen(true)}
+          >
+            <span className="material-icons">assignment_turned_in</span>
+            Assign {bulkSelected.size} học viên
+          </button>
+        </div>
+      )}
+
+      {/* Bulk Assign Confirm Modal */}
+      {bulkConfirmOpen && (
+        <div className="hvm__overlay hvm__overlay--above" onClick={() => setBulkConfirmOpen(false)}>
+          <div className="hvm__modal" onClick={e => e.stopPropagation()}>
+            <div className="hvm__modal-header">
+              <div>
+                <h3>Xác nhận phân công hàng loạt</h3>
+                <p className="hvm__modal-subtitle">
+                  Phân công <strong>{bulkSelected.size}</strong> học viên cho{' '}
+                  <strong>{bulkTeacher?.username ?? 'giáo viên'}</strong>
+                </p>
+              </div>
+              <button className="hvm__modal-close" onClick={() => setBulkConfirmOpen(false)}>
+                <span className="material-icons">close</span>
+              </button>
+            </div>
+            <div className="hvm__modal-body">
+              <p style={{ margin: 0, fontSize: '14px', color: '#6d7a77' }}>
+                Hành động này sẽ tạo phân công mới cho {bulkSelected.size} học viên đã chọn. Tiếp tục?
+              </p>
+            </div>
+            <div className="hvm__modal-footer">
+              <button className="hvm__btn-ghost" onClick={() => setBulkConfirmOpen(false)}>Huỷ</button>
+              <button className="hvm__btn-primary" onClick={runBulkAssign} disabled={bulkSaving}>
+                {bulkSaving
+                  ? <><span className="material-icons hvm__spin">sync</span>Đang xử lý...</>
+                  : <><span className="material-icons">assignment_turned_in</span>Xác nhận Assign</>
                 }
               </button>
             </div>
@@ -656,6 +917,10 @@ const HocVienModal: React.FC<HocVienModalProps> = ({
 
   const a = item.assignment;
   const tName = a?.teacher?.username ?? teachers.find(t => t.id === a?.teacherId)?.username;
+  const trainPct = typeof item.trainingProgressPct === 'number' ? item.trainingProgressPct : 0;
+  const assignPct = a?.progressPercent ?? 0;
+  const summaryProgressPct = Math.max(assignPct, trainPct);
+  const khoaSummary = shortCourseName(item.khoahoc?.TenKhoaHoc?.trim() || item.IDKhoaHoc);
 
   return (
     <div className="hvm__overlay hvm__overlay--detail" onClick={onClose} role="dialog" aria-modal="true" aria-labelledby="hvm-dm-title">
@@ -814,9 +1079,13 @@ const HocVienModal: React.FC<HocVienModalProps> = ({
                         )}
                       </div>
                     ))}
+                    <div className="hvm__dm-info-item hvm__dm-info-item--full">
+                      <span className="hvm__dm-info-label">Khóa học</span>
+                      <span className="hvm__dm-info-val hvm__dm-info-val--wrap">{khoaSummary}</span>
+                    </div>
                     <div className="hvm__dm-info-item">
                       <span className="hvm__dm-info-label">Tiến độ</span>
-                      <span className="hvm__dm-info-val">{a?.progressPercent ?? 0}%</span>
+                      <span className="hvm__dm-info-val">{summaryProgressPct}%</span>
                     </div>
                   </>
                 ) : (
@@ -829,9 +1098,13 @@ const HocVienModal: React.FC<HocVienModalProps> = ({
                       <span className="hvm__dm-info-label">Giới tính</span>
                       <span className="hvm__dm-info-val">{item.GioiTinh || '—'}</span>
                     </div>
+                    <div className="hvm__dm-info-item hvm__dm-info-item--full">
+                      <span className="hvm__dm-info-label">Khóa học</span>
+                      <span className="hvm__dm-info-val hvm__dm-info-val--wrap">{khoaSummary}</span>
+                    </div>
                     <div className="hvm__dm-info-item">
                       <span className="hvm__dm-info-label">Tiến độ</span>
-                      <span className="hvm__dm-info-val">{a?.progressPercent ?? 0}%</span>
+                      <span className="hvm__dm-info-val">{summaryProgressPct}%</span>
                     </div>
                     <div className="hvm__dm-info-item hvm__dm-info-item--full">
                       <span className="hvm__dm-info-label">Địa chỉ</span>

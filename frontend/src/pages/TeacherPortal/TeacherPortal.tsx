@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { useAuth } from '../../features/auth/hooks/useAuth';
@@ -6,6 +6,7 @@ import { ChatPanel } from '../../features/chat';
 import { useKQSHByStudent, KQSHCardList } from '../../features/kqsh';
 import axios from '../../axios';
 import { TrainingProgressBlock } from '../../features/trainingPortal';
+import { buildClassGroups, shortCourseName, sortStudentsInGroup, type KhoaHocBrief } from '../../shared/studentClassGrouping';
 import './TeacherPortal.scss';
 
 type HocVien = {
@@ -19,6 +20,10 @@ type HocVien = {
   phone?: string;
   email?: string;
   status: string;
+  IDKhoaHoc?: string | null;
+  khoahoc?: KhoaHocBrief | null;
+  createdAt?: string;
+  trainingProgressPct?: number | null;
 };
 
 type Assignment = {
@@ -75,6 +80,7 @@ const TeacherPortal: React.FC<Props> = ({ embedded = false }) => {
 
   const [detailModal, setDetailModal] = useState<Assignment | null>(null);
   const [kqshModal, setKqshModal] = useState<{ hocVienId: number; hoTen: string } | null>(null);
+  const [collapsedCourses, setCollapsedCourses] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     if (!isAuthLoading && !isAuthenticated) navigate('/login');
@@ -106,6 +112,38 @@ const TeacherPortal: React.FC<Props> = ({ embedded = false }) => {
     const matchStatus = statusFilter === 'all' || a.status === statusFilter;
     return matchSearch && matchStatus;
   });
+
+  const courseGroups = useMemo(() => {
+    const synthetic = filtered.map(a => ({
+      ...a.hocVien,
+      createdAt: a.hocVien.createdAt ?? a.createdAt,
+    }));
+    const built = buildClassGroups(synthetic, s => s.createdAt);
+    const byHvId = new Map<number, Assignment>();
+    filtered.forEach(a => byHvId.set(a.hocVien.id, a));
+    return built.map(g => ({
+      key: g.key,
+      title: g.title,
+      subtitle: g.subtitle,
+      assignments: sortStudentsInGroup(g.students, 'name', 'asc')
+        .map(s => byHvId.get(s.id))
+        .filter((x): x is Assignment => x != null),
+    }));
+  }, [filtered]);
+
+  const toggleCourseCollapsed = (key: string) => {
+    setCollapsedCourses(prev => {
+      const next = new Set(prev);
+      if (next.has(key)) next.delete(key);
+      else next.add(key);
+      return next;
+    });
+  };
+
+  const khoaHocLabel = (hv: HocVien): string | null => {
+    const raw = hv.khoahoc?.TenKhoaHoc?.trim() || hv.IDKhoaHoc || null;
+    return raw ? shortCourseName(raw) : null;
+  };
 
   const stats = {
     total: assignments.length,
@@ -151,7 +189,7 @@ const TeacherPortal: React.FC<Props> = ({ embedded = false }) => {
         <div className="tp__welcome">
           <div>
             <h1>Xin chào, {displayName} 👋</h1>
-            <p>Quản lý tiến độ học viên được phân công cho bạn</p>
+            <p>Quản lý tiến độ học viên của bạn — nhóm theo tên khóa học (mới hơn lên trên)</p>
           </div>
         </div>
 
@@ -215,52 +253,88 @@ const TeacherPortal: React.FC<Props> = ({ embedded = false }) => {
             <p>{assignments.length === 0 ? 'Bạn chưa được phân công học viên nào.' : 'Không tìm thấy học viên phù hợp.'}</p>
           </div>
         ) : (
-          <div className="tp__list">
-            {filtered.map(a => {
-              const hv = a.hocVien;
+          <div className="tp__course-groups">
+            {courseGroups.map(group => {
+              const collapsed = collapsedCourses.has(group.key);
+              const headLine = group.subtitle ? `${group.title} · ${group.subtitle}` : group.title;
               return (
-                <div
-                  key={a.id}
-                  className="tp__card"
-                  onClick={() => setDetailModal(a)}
-                  role="button"
-                  tabIndex={0}
-                  onKeyDown={e => e.key === 'Enter' && setDetailModal(a)}
-                  aria-label={`Xem chi tiết ${hv.HoTen}`}
-                >
-                  <div className="tp__card-avatar">{getInitials(hv.HoTen)}</div>
-
-                  <div className="tp__card-info">
-                    <div className="tp__card-name-row">
-                      <span className="tp__card-name">{hv.HoTen}</span>
-                      {hv.loaibangthi && (
-                        <span className="tp__badge tp__badge--license">Hạng {hv.loaibangthi}</span>
-                      )}
-                      <span className={`tp__badge tp__badge--${a.status}`}>
-                        {STATUS_LABEL[a.status]}
-                      </span>
-                      {a.hasKQSH && (
-                        <span className="tp__badge tp__badge--kqsh">
-                          <span className="material-icons">verified</span>Đã sát hạch
-                        </span>
-                      )}
+                <section key={group.key} className="tp__course-block">
+                  <button
+                    type="button"
+                    className="tp__course-head"
+                    onClick={() => toggleCourseCollapsed(group.key)}
+                    aria-expanded={!collapsed}
+                  >
+                    <span className="material-icons">{collapsed ? 'expand_more' : 'expand_less'}</span>
+                    <div className="tp__course-head-text">
+                      <p className="tp__course-head-name">Khóa học: {headLine}</p>
+                      <p className="tp__course-head-sub">{group.assignments.length} học viên</p>
                     </div>
-                    <div className="tp__card-meta">
-                      {hv.phone && <span><span className="material-icons">phone</span>{hv.phone}</span>}
-                      {hv.SoCCCD && <span><span className="material-icons">badge</span>{hv.SoCCCD}</span>}
-                      <span><span className="material-icons">calendar_today</span>Từ {formatDate(a.createdAt)}</span>
-                    </div>
-                  </div>
+                    <span className="tp__course-count">{group.assignments.length}</span>
+                  </button>
+                  {!collapsed && (
+                    <div className="tp__list">
+                      {group.assignments.map(a => {
+                        const hv = a.hocVien;
+                        const kh = khoaHocLabel(hv);
+                        const cardPct = Math.max(
+                          a.progressPercent,
+                          typeof hv.trainingProgressPct === 'number' ? hv.trainingProgressPct : 0,
+                        );
+                        return (
+                          <div
+                            key={a.id}
+                            className="tp__card"
+                            onClick={() => setDetailModal(a)}
+                            role="button"
+                            tabIndex={0}
+                            onKeyDown={e => e.key === 'Enter' && setDetailModal(a)}
+                            aria-label={`Xem chi tiết ${hv.HoTen}`}
+                          >
+                            <div className="tp__card-avatar">{getInitials(hv.HoTen)}</div>
 
-                  <div className="tp__card-progress">
-                    <div className="tp__progress-bar">
-                      <div className="tp__progress-fill" style={{ width: `${a.progressPercent}%` }} />
-                    </div>
-                    <span className="tp__progress-pct">{a.progressPercent}%</span>
-                  </div>
+                            <div className="tp__card-info">
+                              <div className="tp__card-name-row">
+                                <span className="tp__card-name">{hv.HoTen}</span>
+                                {hv.loaibangthi && (
+                                  <span className="tp__badge tp__badge--license">Hạng {hv.loaibangthi}</span>
+                                )}
+                                <span className={`tp__badge tp__badge--${a.status}`}>
+                                  {STATUS_LABEL[a.status]}
+                                </span>
+                                {a.hasKQSH && (
+                                  <span className="tp__badge tp__badge--kqsh">
+                                    <span className="material-icons">verified</span>Đã sát hạch
+                                  </span>
+                                )}
+                              </div>
+                              <div className="tp__card-meta">
+                                {kh && (
+                                  <span title="Khóa học">
+                                    <span className="material-icons">school</span>
+                                    {kh}
+                                  </span>
+                                )}
+                                {hv.phone && <span><span className="material-icons">phone</span>{hv.phone}</span>}
+                                {hv.SoCCCD && <span><span className="material-icons">badge</span>{hv.SoCCCD}</span>}
+                                <span><span className="material-icons">calendar_today</span>Từ {formatDate(a.createdAt)}</span>
+                              </div>
+                            </div>
 
-                  <span className="tp__card-arrow material-icons">chevron_right</span>
-                </div>
+                            <div className="tp__card-progress">
+                              <div className="tp__progress-bar">
+                                <div className="tp__progress-fill" style={{ width: `${cardPct}%` }} />
+                              </div>
+                              <span className="tp__progress-pct">{cardPct}%</span>
+                            </div>
+
+                            <span className="tp__card-arrow material-icons">chevron_right</span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </section>
               );
             })}
           </div>

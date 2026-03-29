@@ -188,13 +188,13 @@
   &__table-wrap {
     background: #fff;
     border-radius: 16px;
-    overflow: hidden;
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
     box-shadow: 0 1px 4px rgba(0, 32, 28, 0.06);
     max-width: 100%;
 
     @media (max-width: 768px) {
-      overflow-x: auto;
-      -webkit-overflow-scrolling: touch;
       border-radius: 12px;
     }
   }
@@ -203,11 +203,13 @@
     width: 100%;
     border-collapse: collapse;
     font-size: 13px;
+    table-layout: fixed;
+    min-width: 980px;
 
     thead tr { background: #f2f4f4; }
 
     th {
-      padding: 12px 20px;
+      padding: 12px 14px;
       text-align: left;
       font-weight: 700;
       font-size: 11px;
@@ -216,19 +218,33 @@
       color: #3d4946;
       white-space: nowrap;
 
+      // Column widths (10 cols)
+      &:nth-child(1) { width: 36px; }   // Checkbox
+      &:nth-child(2) { width: 170px; }  // Học viên
+      &:nth-child(3) { width: 100px; }  // Khóa học (short name)
+      &:nth-child(4) { width: 120px; }  // Địa chỉ
+      &:nth-child(5) { width: 50px; }   // Hạng
+      &:nth-child(6) { width: 100px; }  // Tiến độ
+      &:nth-child(7) { width: 110px; }  // Trạng thái
+      &:nth-child(8) { width: 110px; }  // Giáo viên
+      &:nth-child(9) { width: 80px; }   // Kết quả SH
+      &:nth-child(10) { width: 100px; } // Thao tác
+
       @media (max-width: 768px) {
-        padding: 10px 12px;
+        padding: 10px 10px;
       }
     }
 
     td {
-      padding: 14px 20px;
+      padding: 14px 14px;
       border-top: 1px solid #eceeee;
       color: #191c1d;
       vertical-align: middle;
+      overflow: hidden;
+      text-overflow: ellipsis;
 
       @media (max-width: 768px) {
-        padding: 12px 12px;
+        padding: 12px 10px;
       }
     }
 
@@ -244,10 +260,11 @@
     }
   }
 
-  &__course-head-row td {
-    padding: 0 !important;
-    border-top: none !important;
+  &__table &__course-head-row td {
+    padding: 0;
+    border-top: none;
     background: #f0fdfa;
+    overflow: visible;
   }
 
   &__course-head {
@@ -269,9 +286,9 @@
     }
   }
 
-  &__course-head-icon {
+  &__course-head-icon.material-icons {
     color: #00685d;
-    font-size: 22px !important;
+    font-size: 22px;
   }
 
   &__course-head-label {
@@ -303,12 +320,20 @@
     font-weight: 600;
     font-size: 12px;
     color: #0f766e;
-    max-width: 160px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 
   &__th-center { text-align: center; }
   &__th-right { text-align: right; }
-  &__td-muted { color: #9ca3af; font-size: 12px; }
+  &__td-muted {
+    color: #9ca3af;
+    font-size: 12px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
 
   // ── Student cell ──────────────────────────────────────────
   &__student-cell {
@@ -355,7 +380,7 @@
   }
 
   // ── Progress ──────────────────────────────────────────────
-  &__progress-cell { min-width: 100px; }
+  &__progress-cell { min-width: 80px; }
 
   &__progress-labels {
     display: flex;
@@ -473,6 +498,201 @@
     .material-icons { font-size: 18px; }
 
     &:hover { color: #e53935; background: rgba(229, 57, 53, 0.08); }
+  }
+
+  // ── Checkbox column ────────────────────────────────────────
+  &__th-check,
+  &__td-check {
+    width: 40px;
+    text-align: center;
+    cursor: pointer;
+  }
+
+  &__bulk-checkbox {
+    width: 16px;
+    height: 16px;
+    accent-color: #00685d;
+    cursor: pointer;
+  }
+
+  &__row--selected td {
+    background: #f0fdfa;
+  }
+
+  &__course-select-all {
+    flex-shrink: 0;
+    border: 1px solid #00685d;
+    background: #fff;
+    color: #00685d;
+    font-weight: 700;
+    font-size: 11px;
+    padding: 5px 12px;
+    border-radius: 999px;
+    cursor: pointer;
+    transition: background 0.15s;
+
+    &:hover { background: #f0fdfa; }
+  }
+
+  // ── Bulk assign panel (sticky bottom) ─────────────────────
+  &__bulk-panel {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 400;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 14px 24px;
+    background: #fff;
+    border-top: 2px solid #00685d;
+    box-shadow: 0 -4px 24px rgba(0, 32, 28, 0.12);
+    animation: hvm-slide-bottom 0.2s ease;
+
+    @media (max-width: 768px) {
+      flex-wrap: wrap;
+      gap: 10px;
+      padding: 12px 14px;
+    }
+  }
+
+  &__bulk-panel-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-shrink: 0;
+  }
+
+  &__bulk-count {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 14px;
+    font-weight: 700;
+    color: #00685d;
+
+    .material-icons { font-size: 20px; }
+  }
+
+  &__bulk-clear {
+    border: none;
+    background: none;
+    color: #6d7a77;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    text-decoration: underline;
+
+    &:hover { color: #191c1d; }
+  }
+
+  &__bulk-panel-center {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex: 1;
+    min-width: 0;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  &__bulk-label {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #6d7a77;
+    flex-shrink: 0;
+  }
+
+  &__bulk-suggestions {
+    display: flex;
+    gap: 6px;
+    flex-shrink: 0;
+  }
+
+  &__bulk-suggest {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 10px;
+    border-radius: 8px;
+    border: 1px solid #e1e5e4;
+    background: #f8faf9;
+    cursor: pointer;
+    font: inherit;
+    transition: background 0.12s, border-color 0.12s;
+    white-space: nowrap;
+
+    &:hover { background: #f0fdfa; border-color: rgba(0, 104, 93, 0.3); }
+
+    &--on {
+      border-color: #00685d;
+      background: #f0fdfa;
+    }
+  }
+
+  &__bulk-suggest-avatar {
+    width: 24px;
+    height: 24px;
+    border-radius: 6px;
+    background: #00685d;
+    color: #fff;
+    font-size: 9px;
+    font-weight: 800;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  &__bulk-suggest-name {
+    font-size: 12px;
+    font-weight: 700;
+    color: #191c1d;
+  }
+
+  &__bulk-suggest-score {
+    font-size: 11px;
+    font-weight: 800;
+    color: #00685d;
+  }
+
+  &__bulk-select {
+    padding: 6px 10px;
+    background: #f2f4f4;
+    border: 1px solid #e1e5e4;
+    border-radius: 8px;
+    font-size: 12px;
+    color: #191c1d;
+    outline: none;
+    cursor: pointer;
+    font-family: inherit;
+    flex-shrink: 0;
+
+    &:focus { box-shadow: 0 0 0 2px rgba(0, 104, 93, 0.2); }
+  }
+
+  &__bulk-cta {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 20px;
+    background: #00685d;
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    box-shadow: 0 4px 14px rgba(0, 104, 93, 0.22);
+    transition: background 0.15s, transform 0.1s;
+    flex-shrink: 0;
+    white-space: nowrap;
+
+    .material-icons { font-size: 18px; }
+    &:hover:not(:disabled) { background: #00857a; transform: translateY(-1px); }
+    &:disabled { opacity: 0.55; cursor: not-allowed; box-shadow: none; }
   }
 
   // ── Table footer ──────────────────────────────────────────
@@ -797,6 +1017,11 @@
 @keyframes hvm-fade {
   from { opacity: 0; }
   to   { opacity: 1; }
+}
+
+@keyframes hvm-slide-bottom {
+  from { opacity: 0; transform: translateY(100%); }
+  to   { opacity: 1; transform: translateY(0); }
 }
 
 // ── KQSH badge in table ──────────────────────────────────

@@ -1,5 +1,9 @@
 import db from '../models/index.js';
 import { Op } from 'sequelize';
+import {
+  loadTrainingSnapshotsByHocVienIds,
+  enrichHocVienPlainWithTrainingSnapshot,
+} from './trainingSnapshotEnrich.js';
 
 const getAssignmentsByCourse = async (courseId) => {
   try {
@@ -127,10 +131,19 @@ const getAssignmentsByTeacher = async (teacherUserId) => {
       hasKqshSet = new Set(kqshRows.map((r) => r.hocVienId));
     }
 
-    const withFlag = plain.map((p) => ({
-      ...p,
-      hasKQSH: hasKqshSet.has(p.hocVienId),
-    }));
+    const snapMap = await loadTrainingSnapshotsByHocVienIds(hocVienIds);
+
+    const withFlag = plain.map((p) => {
+      const snap = snapMap.get(p.hocVienId);
+      const hocVien = p.hocVien
+        ? enrichHocVienPlainWithTrainingSnapshot({ ...p.hocVien }, snap ?? null)
+        : p.hocVien;
+      return {
+        ...p,
+        hocVien,
+        hasKQSH: hasKqshSet.has(p.hocVienId),
+      };
+    });
 
     return { EM: 'ok', EC: 0, DT: withFlag };
   } catch (e) {

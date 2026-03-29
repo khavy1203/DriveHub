@@ -2,6 +2,10 @@ import crypto from 'crypto';
 import db from '../models/index.js';
 import { hashUserPassword } from './loginRegisterService.js';
 import mailService from './mailService.js';
+import {
+  loadTrainingSnapshotsByHocVienIds,
+  enrichHocVienPlainWithTrainingSnapshot,
+} from './trainingSnapshotEnrich.js';
 
 const HOC_VIEN_GROUP_ID = 4;
 
@@ -125,10 +129,17 @@ const listByKhoaHoc = async (courseId) => {
       if (!latestByHv[id]) latestByHv[id] = { KetQuaSH: exam.KetQuaSH, NgaySH: exam.NgaySH };
     }
 
-    const plain = rows.map(r => ({
-      ...r.get({ plain: true }),
-      latestKQSH: latestByHv[r.id] ?? null,
-    }));
+    const snapMap = await loadTrainingSnapshotsByHocVienIds(rows.map((r) => r.id));
+
+    const plain = rows.map((r) => {
+      const base = r.get({ plain: true });
+      const snap = snapMap.get(r.id);
+      const enriched = enrichHocVienPlainWithTrainingSnapshot(base, snap ?? null);
+      return {
+        ...enriched,
+        latestKQSH: latestByHv[r.id] ?? null,
+      };
+    });
 
     return { EM: 'ok', EC: 0, DT: plain };
   } catch (e) {

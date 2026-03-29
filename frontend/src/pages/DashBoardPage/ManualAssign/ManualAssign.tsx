@@ -37,6 +37,7 @@ type HocVien = {
   IDKhoaHoc?: string | null;
   khoahoc?: KhoaHocBrief | null;
   createdAt?: string;
+  trainingProgressPct?: number | null;
   assignment?: Assignment;
 };
 
@@ -162,8 +163,8 @@ const ManualAssign: React.FC = () => {
       const key = id || '__no_class__';
       const label =
         key === '__no_class__'
-          ? 'Chưa xếp lớp'
-          : (s.khoahoc?.TenKhoaHoc?.trim() || s.khoahoc?.IDKhoaHoc || s.IDKhoaHoc || 'Lớp');
+          ? 'Chưa gán khóa học'
+          : (s.khoahoc?.TenKhoaHoc?.trim() || s.khoahoc?.IDKhoaHoc || s.IDKhoaHoc || 'Khóa học');
       if (!map.has(key)) map.set(key, label);
     }
     return [...map.entries()].sort((a, b) => a[1].localeCompare(b[1], 'vi'));
@@ -410,13 +411,13 @@ const ManualAssign: React.FC = () => {
               </select>
             </div>
             <div className="assign-page__field">
-              <label className="assign-page__label">Nhóm lớp</label>
+              <label className="assign-page__label">Khóa học</label>
               <select
                 className="assign-page__select"
                 value={filterClassKey}
                 onChange={e => setFilterClassKey(e.target.value)}
               >
-                <option value="">Tất cả lớp</option>
+                <option value="">Tất cả khóa</option>
                 {classFilterOptions.map(([val, lab]) => (
                   <option key={val} value={val}>
                     {lab}
@@ -425,7 +426,7 @@ const ManualAssign: React.FC = () => {
               </select>
             </div>
             <div className="assign-page__field assign-page__field--sort">
-              <label className="assign-page__label">Sắp xếp trong lớp</label>
+              <label className="assign-page__label">Sắp xếp trong khóa</label>
               <div className="assign-page__sort-btns">
                 <button
                   type="button"
@@ -490,9 +491,9 @@ const ManualAssign: React.FC = () => {
                         {isCollapsed ? 'expand_more' : 'expand_less'}
                       </span>
                       <div className="assign-page__group-titles">
-                        <h2 className="assign-page__group-title">Lớp {classLabel}</h2>
+                        <h2 className="assign-page__group-title">Khóa học: {classLabel}</h2>
                         <p className="assign-page__group-meta">
-                          {group.students.length} học viên · Lớp mới nhất ưu tiên trên cùng
+                          {group.students.length} học viên · Khóa mới hơn ưu tiên trên cùng
                         </p>
                       </div>
                       <button
@@ -511,7 +512,10 @@ const ManualAssign: React.FC = () => {
                         {group.students.map(s => {
                           const a = s.assignment;
                           const status = a?.status ?? 'waiting';
-                          const pct = a?.progressPercent ?? 0;
+                          const pct = Math.max(
+                            a?.progressPercent ?? 0,
+                            typeof s.trainingProgressPct === 'number' ? s.trainingProgressPct : 0,
+                          );
                           const isSel = selected.has(s.id);
                           const classNameShort =
                             s.khoahoc?.TenKhoaHoc?.trim() || s.khoahoc?.IDKhoaHoc || s.IDKhoaHoc || '—';

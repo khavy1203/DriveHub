@@ -20,6 +20,12 @@ export type ClassGroupRow<T> = {
   students: T[];
 };
 
+/** Strip trailing "(CODE)" from course names like "CD_229B (52001K26B003)" → "CD_229B". */
+export const shortCourseName = (raw?: string | null): string => {
+  if (!raw?.trim()) return '—';
+  return raw.trim().replace(/\s*\([^)]*\)\s*$/, '').trim() || raw.trim();
+};
+
 export const extractDistrictLine = (diaChi?: string | null): string => {
   if (!diaChi?.trim()) return '—';
   const parts = diaChi.split(',').map(p => p.trim()).filter(Boolean);
@@ -58,20 +64,21 @@ export const buildClassGroups = <T extends WithClassFields>(
   for (const [key, list] of map) {
     const sample = list[0];
     const kh = sample?.khoahoc;
+    const rawName = kh?.TenKhoaHoc?.trim() || sample?.IDKhoaHoc || kh?.IDKhoaHoc || '';
     const title =
       key === '__no_class__'
-        ? 'Chưa xếp lớp'
-        : (kh?.TenKhoaHoc?.trim() || kh?.IDKhoaHoc || sample?.IDKhoaHoc || 'Lớp');
+        ? 'Chưa gán khóa học'
+        : (shortCourseName(rawName) || 'Khóa học');
 
     let subtitle = '';
-    if (key !== '__no_class__' && kh?.NgayThi) {
-      try {
-        subtitle = `Khai giảng ${new Date(kh.NgayThi).toLocaleDateString('vi-VN')}`;
-      } catch {
-        subtitle = '';
+    if (key !== '__no_class__') {
+      if (kh?.NgayThi) {
+        try {
+          subtitle = new Date(kh.NgayThi).toLocaleDateString('vi-VN');
+        } catch {
+          /* ignore */
+        }
       }
-    } else if (key !== '__no_class__') {
-      subtitle = 'Chưa có ngày khai giảng';
     }
 
     const maxCourseDate = Math.max(
@@ -87,7 +94,10 @@ export const buildClassGroups = <T extends WithClassFields>(
     groups.push({ key, title, subtitle, sortKey, students: list });
   }
 
-  groups.sort((a, b) => b.sortKey - a.sortKey);
+  groups.sort((a, b) => {
+    if (b.sortKey !== a.sortKey) return b.sortKey - a.sortKey;
+    return a.title.localeCompare(b.title, 'vi');
+  });
   return groups;
 };
 

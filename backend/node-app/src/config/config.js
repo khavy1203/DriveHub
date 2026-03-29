@@ -29,7 +29,8 @@ function mysqlConfig(poolExtra = null) {
     dialect: 'mysql',
     timezone: process.env.TIMEZONE || '+07:00',
     logging: false,
-    define: { freezeTableName: true },
+    define: { freezeTableName: true, charset: 'utf8mb4', collate: 'utf8mb4_unicode_ci' },
+    dialectOptions: { charset: 'utf8mb4' },
     pool,
   };
 }

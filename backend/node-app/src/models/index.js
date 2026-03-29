@@ -20,6 +20,7 @@ if (process.env.USE_ENV_VARIABLE === 'true') {
     dialect: config.dialect,
     timezone: config.timezone,
     define: config.define,
+    dialectOptions: config.dialectOptions,
     logging: false,
     pool: config.pool,
   });

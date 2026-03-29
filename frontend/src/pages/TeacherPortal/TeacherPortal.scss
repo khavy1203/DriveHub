@@ -251,16 +251,17 @@
     margin-bottom: 2px;
     border: 1.5px solid var(--tp-border);
     border-radius: var(--tp-radius);
-    background: linear-gradient(95deg, rgba(0, 104, 93, 0.09), #fff 55%);
+    background: #fff;
     cursor: pointer;
     font: inherit;
     text-align: left;
     color: var(--tp-text);
-    transition: border-color 0.15s, box-shadow 0.15s;
+    transition: border-color 0.18s, box-shadow 0.18s, background 0.18s;
 
     &:hover {
-      border-color: var(--tp-teal-light);
-      box-shadow: var(--tp-shadow);
+      border-color: rgba(0, 104, 93, 0.25);
+      box-shadow: 0 2px 12px rgba(0, 104, 93, 0.08);
+      background: #f8fcfb;
     }
 
     .material-icons:first-of-type {
@@ -316,25 +317,20 @@
     position: relative;
 
     &:hover {
-      box-shadow: 0 6px 24px rgba(0, 104, 93, 0.12);
-      border-color: rgba(0, 104, 93, 0.15);
+      box-shadow: 0 4px 16px rgba(0, 104, 93, 0.08);
+      border-color: rgba(0, 104, 93, 0.12);
       border-left-color: var(--tp-teal);
-      background: #f8fdfb;
-      transform: translateY(-2px);
+      background: #fafffe;
+      transform: translateY(-1px);
 
       .tp__card-avatar {
         background: var(--tp-teal);
         color: #fff;
-        box-shadow: 0 3px 10px rgba(0, 104, 93, 0.3);
       }
 
       .tp__card-arrow {
         color: var(--tp-teal);
-        transform: translateX(3px);
-      }
-
-      .tp__progress-fill {
-        filter: brightness(1.1);
+        transform: translateX(2px);
       }
     }
 
@@ -392,9 +388,11 @@
     display: flex;
     align-items: center;
     gap: 10px;
-    width: 150px;
+    width: 200px;
     flex-shrink: 0;
-    @media (max-width: 600px) { width: 100%; }
+    margin-left: auto;
+    padding-left: 40px;
+    @media (max-width: 600px) { width: 100%; padding-left: 0; margin-left: 0; }
   }
 
   &__progress-bar {

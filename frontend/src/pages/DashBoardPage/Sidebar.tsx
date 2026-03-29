@@ -23,8 +23,7 @@ const ADMIN_NAV_ITEMS: NavItem[] = [
       { label: 'Kết quả thi',      icon: 'fact_check',      to: '/dashboard/exam-results' },
       { label: 'Học viên',         icon: 'school',          to: '/dashboard/hoc-vien' },
       { label: 'Đăng ký học viên', icon: 'person_add',      to: '/dashboard/dang-ky-hoc-vien' },
-      { label: 'Phân công',        icon: 'assignment_ind',  to: '/dashboard/manual-assign' },
-      { label: 'Danh sách theo lớp', icon: 'groups',         to: '/dashboard/danh-sach-hoc-vien' },
+
       { label: 'Giáo viên',        icon: 'manage_accounts', to: '/dashboard/teachers' },
     ],
   },
@@ -44,7 +43,6 @@ const ADMIN_NAV_ITEMS: NavItem[] = [
 
 const TEACHER_NAV_ITEMS: NavItem[] = [
   { label: 'Học viên của tôi', icon: 'school', to: '/dashboard/home' },
-  { label: 'Danh sách theo lớp', icon: 'groups', to: '/dashboard/danh-sach-hoc-vien' },
   { label: 'Tin nhắn', icon: 'chat', to: '/dashboard/chat' },
   { label: 'Tra cứu GPLX', icon: 'manage_search', to: '/license-check' },
 ];
