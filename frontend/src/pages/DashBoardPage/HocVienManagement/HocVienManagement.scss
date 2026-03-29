@@ -952,23 +952,47 @@
   font-weight: 700;
   cursor: pointer;
   border: none;
-  transition: background 0.15s, transform 0.12s;
+  transition: background 0.15s, transform 0.12s, opacity 0.15s;
   font-family: inherit;
+  white-space: nowrap;
 
   .material-icons { font-size: 18px; }
+
+  &:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
 
   &--primary {
     background: var(--dm-primary);
     color: #fff;
     box-shadow: 0 4px 14px rgba(0, 104, 93, 0.25);
-    &:hover { background: var(--dm-primary-hover); transform: translateY(-1px); }
+    &:hover:not(:disabled) { background: var(--dm-primary-hover); transform: translateY(-1px); }
+  }
+
+  &--edit {
+    background: #f0fdfa;
+    color: #00685d;
+    border: 1px solid #99f6e4;
+    &:hover:not(:disabled) { background: #ccfbf1; transform: translateY(-1px); }
+  }
+
+  &--save {
+    background: #00685d;
+    color: #fff;
+    box-shadow: 0 4px 14px rgba(0, 104, 93, 0.25);
+    &:hover:not(:disabled) { background: var(--dm-primary-hover); transform: translateY(-1px); }
+  }
+
+  &--ghost {
+    background: #f8faf9;
+    color: #4b5563;
+    border: 1px solid #d1d5db;
+    &:hover:not(:disabled) { background: #e5e7eb; }
   }
 
   &--danger {
     background: var(--dm-danger-bg);
     color: var(--dm-danger);
     border: 1px solid #fecaca;
-    &:hover { background: #fee2e2; }
+    &:hover:not(:disabled) { background: #fee2e2; }
   }
 }
 
@@ -1013,9 +1037,62 @@
   border: 1px solid var(--dm-outline);
   border-radius: 10px;
   min-width: 0;
+  transition: border-color 0.15s, background 0.15s;
 
   &--full {
     grid-column: 1 / -1;
+  }
+
+  &--editable {
+    background: #fff;
+    border-color: #99f6e4;
+    padding: 8px 10px;
+  }
+}
+
+.hvm__dm-inline-input {
+  display: block;
+  width: 100%;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--dm-text);
+  font-family: inherit;
+  background: transparent;
+  border: none;
+  outline: none;
+  padding: 0;
+  margin-top: 2px;
+  min-width: 0;
+  box-sizing: border-box;
+
+  &:focus {
+    color: #00685d;
+  }
+
+  &[type='date'] {
+    cursor: pointer;
+  }
+}
+
+.hvm__dm-inline-textarea {
+  display: block;
+  width: 100%;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--dm-text);
+  font-family: inherit;
+  background: transparent;
+  border: none;
+  outline: none;
+  padding: 0;
+  margin-top: 2px;
+  resize: none;
+  min-width: 0;
+  box-sizing: border-box;
+  line-height: 1.5;
+
+  &:focus {
+    color: #00685d;
   }
 }
 

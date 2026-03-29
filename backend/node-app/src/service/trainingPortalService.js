@@ -16,6 +16,28 @@ const getBaseUrl = () => {
 export const isTrainingApiConfigured = () => Boolean(getBaseUrl());
 
 /**
+ * Safe summary for admin / deploy checks (no secrets, host only).
+ * @returns {{ configured: boolean, host: string | null, timeoutMs: number, protocol: string | null }}
+ */
+export const getTrainingApiDebugMeta = () => {
+  const base = getBaseUrl();
+  if (!base) {
+    return { configured: false, host: null, timeoutMs: getTimeoutMs(), protocol: null };
+  }
+  try {
+    const u = new URL(base);
+    return {
+      configured: true,
+      host: u.host,
+      timeoutMs: getTimeoutMs(),
+      protocol: u.protocol.replace(':', '') || null,
+    };
+  } catch {
+    return { configured: true, host: 'invalid_url', timeoutMs: getTimeoutMs(), protocol: null };
+  }
+};
+
+/**
  * @param {string} cccd
  * @returns {Promise<import('axios').AxiosResponse<unknown>>}
  */

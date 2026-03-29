@@ -1,11 +1,40 @@
 import db from '../models/index';
 import { Op } from 'sequelize';
+import { isAxiosError } from 'axios';
 import { fetchPublicStudent, isTrainingApiConfigured } from './trainingPortalService';
 
 const SYNC_DELAY_MS = 500;
 const STALE_HOURS = 3;
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+
+const syncDebugEnabled = () =>
+  process.env.TRAINING_SYNC_DEBUG === '1' || process.env.TRAINING_SYNC_DEBUG === 'true';
+
+/** Last 4 digits only — avoid logging full CCCD. */
+const maskCccd = (s) => {
+  const t = String(s || '').trim();
+  if (!t) return '';
+  if (t.length <= 4) return '****';
+  return `…${t.slice(-4)}`;
+};
+
+const axiosFailDetail = (err) => {
+  if (!isAxiosError(err)) return {};
+  return {
+    axiosCode: err.code || null,
+    httpStatus: err.response?.status ?? null,
+    requestPath: err.config?.url ? String(err.config.url).split('?')[0] : null,
+  };
+};
+
+const logSyncDebug = (...args) => {
+  if (syncDebugEnabled()) console.log('[TrainingSync:debug]', ...args);
+};
+
+const logSyncFail = (ctx) => {
+  console.error('[TrainingSync:fail]', JSON.stringify(ctx));
+};
 
 const isRecord = (v) => typeof v === 'object' && v !== null && !Array.isArray(v);
 
@@ -96,12 +125,22 @@ export const syncOneStudent = async (hocVienId) => {
       syncError: 'No CCCD on profile',
       lastSyncAt: null,
     });
+    logSyncFail({ step: 'no_cccd', hocVienId });
     return { ok: false, error: 'No CCCD' };
   }
+
+  logSyncDebug('sync start', { hocVienId, cccd: maskCccd(cccd) });
 
   try {
     const upstream = await fetchPublicStudent(cccd);
     const data = upstream.data;
+
+    logSyncDebug('upstream response', {
+      hocVienId,
+      cccd: maskCccd(cccd),
+      httpStatus: upstream.status,
+      ec: isRecord(data) ? data.EC : null,
+    });
 
     if (!isRecord(data) || data.EC !== 0 || !isRecord(data.DT)) {
       const msg = (isRecord(data) && data.EM) ? String(data.EM) : `Upstream status ${upstream.status}`;
@@ -113,6 +152,13 @@ export const syncOneStudent = async (hocVienId) => {
         syncStatus: 'error',
         syncError: msg,
         lastSyncAt: new Date(),
+      });
+      logSyncFail({
+        step: 'upstream_em',
+        hocVienId,
+        cccd: maskCccd(cccd),
+        httpStatus: upstream.status,
+        error: msg,
       });
       return { ok: false, error: msg };
     }
@@ -135,9 +181,18 @@ export const syncOneStudent = async (hocVienId) => {
       await assignment.update({ progressPercent: pct });
     }
 
+    logSyncDebug('sync ok', { hocVienId, cccd: maskCccd(cccd), pct });
     return { ok: true, pct };
   } catch (err) {
     const msg = err?.message || 'Unknown sync error';
+    logSyncFail({
+      step: 'exception',
+      hocVienId,
+      cccd: maskCccd(cccd),
+      error: msg,
+      errCode: err?.code || null,
+      ...axiosFailDetail(err),
+    });
     await db.training_snapshot.upsert({
       hocVienId,
       cccd,
@@ -153,10 +208,12 @@ export const syncOneStudent = async (hocVienId) => {
 export const syncAllIncomplete = async () => {
   if (!isTrainingApiConfigured()) {
     console.log('[TrainingSync] TRAINING_API_BASE_URL not configured, skipping');
+    logSyncDebug('skip: TRAINING_API_BASE_URL empty — set it on deploy and restart process');
     return { success: 0, error: 0, skipped: 0, elapsed: 0 };
   }
 
   const start = Date.now();
+  logSyncDebug('syncAllIncomplete started');
   const students = await db.hoc_vien.findAll({
     where: {
       SoCCCD: { [Op.and]: [{ [Op.ne]: null }, { [Op.ne]: '' }] },

@@ -182,11 +182,21 @@ const getPortalData = async (userId) => {
 
 // ── Admin update học viên info ────────────────────────────────────────────────
 const updateHocVienInfo = async (id, fields) => {
+  if (!id || isNaN(Number(id))) {
+    return { EM: 'ID học viên không hợp lệ', EC: -1, DT: null };
+  }
+
   try {
     const hocVien = await db.hoc_vien.findByPk(id);
-    if (!hocVien) return { EM: 'Không tìm thấy học viên', EC: 1, DT: null };
+    if (!hocVien) {
+      console.warn(`[hocvienService.updateHocVienInfo] hocVienId=${id} not found`);
+      return { EM: 'Không tìm thấy học viên', EC: 1, DT: null };
+    }
 
-    const allowed = ['HoTen', 'SoCCCD', 'NgaySinh', 'GioiTinh', 'phone', 'email', 'DiaChi', 'loaibangthi', 'GplxDaCo', 'GhiChu'];
+    const allowed = [
+      'HoTen', 'SoCCCD', 'NgaySinh', 'GioiTinh',
+      'phone', 'email', 'DiaChi', 'loaibangthi', 'GplxDaCo', 'GhiChu',
+    ];
     const updates = {};
     for (const key of allowed) {
       if (fields[key] !== undefined) {
@@ -194,11 +204,16 @@ const updateHocVienInfo = async (id, fields) => {
       }
     }
 
+    if (Object.keys(updates).length === 0) {
+      return { EM: 'Không có trường nào được cập nhật', EC: -1, DT: null };
+    }
+
     await hocVien.update(updates);
+    console.log(`[hocvienService.updateHocVienInfo] OK hocVienId=${id} fields=${Object.keys(updates).join(',')}`);
     return { EM: 'Cập nhật thành công', EC: 0, DT: hocVien.get({ plain: true }) };
   } catch (e) {
-    console.error('[hocvienService.updateHocVienInfo]', e);
-    return { EM: 'Lỗi server', EC: -1, DT: null };
+    console.error(`[hocvienService.updateHocVienInfo] hocVienId=${id}`, e.message, e.stack?.split('\n')[1]);
+    return { EM: e.message || 'Lỗi server', EC: -1, DT: null };
   }
 };
 

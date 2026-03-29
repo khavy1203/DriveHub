@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useCallback, useMemo, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { toast } from 'react-toastify';
 import useApiService from '../../../services/useApiService';
 import { useAuth } from '../../../features/auth/hooks/useAuth';
 import { KQSHDrawerSection, KetQuaBadge } from '../../../features/kqsh';
@@ -370,8 +371,11 @@ const HocVienManagement: React.FC = () => {
           onClose={() => setModalItem(null)}
           onAssign={(s, e) => openAssign(s, e)}
           onDelete={(s, e) => handleDelete(s, e)}
-          onRefresh={async () => {
+          onRefresh={async (updatedFields?: Partial<HocVien>) => {
             await fetchData();
+            if (updatedFields) {
+              setModalItem(prev => prev ? { ...prev, ...updatedFields } : prev);
+            }
           }}
           put={put}
         />
@@ -434,7 +438,7 @@ type HocVienModalProps = {
   onClose: () => void;
   onAssign: (s: HocVien, e: React.MouseEvent) => void;
   onDelete: (s: HocVien, e: React.MouseEvent) => void;
-  onRefresh: () => Promise<void>;
+  onRefresh: (updatedFields?: Partial<HocVien>) => Promise<void>;
   put: <T>(url: string, data?: object) => Promise<T>;
 };
 
@@ -466,18 +470,25 @@ const HocVienModal: React.FC<HocVienModalProps> = ({
     bodyRef.current?.scrollTo(0, 0);
   }, [initialItem]);
 
+  const formatDateForInput = (raw?: string): string => {
+    if (!raw) return '';
+    // Cắt timestamp: "1990-01-15T00:00:00.000Z" → "1990-01-15"
+    const match = raw.match(/^(\d{4}-\d{2}-\d{2})/);
+    return match ? match[1] : raw;
+  };
+
   const startEditInfo = () => {
     setEditFields({
       HoTen: item.HoTen,
       SoCCCD: item.SoCCCD ?? '',
-      NgaySinh: item.NgaySinh ?? '',
+      NgaySinh: formatDateForInput(item.NgaySinh),
       GioiTinh: item.GioiTinh ?? '',
       phone: item.phone ?? '',
       email: item.email ?? '',
       DiaChi: item.DiaChi ?? '',
       loaibangthi: item.loaibangthi ?? '',
     });
-    setEditingInfo(true);
+    // Không gọi setEditingInfo ở đây — nút toggle tự xử lý trạng thái mở/đóng
   };
 
   const handleSaveInfo = async () => {
@@ -487,8 +498,13 @@ const HocVienModal: React.FC<HocVienModalProps> = ({
       if (res.EC === 0) {
         setItem(prev => ({ ...prev, ...editFields }));
         setEditingInfo(false);
-        await onRefresh();
+        toast.success('Cập nhật thông tin học viên thành công!');
+        await onRefresh(editFields as Partial<HocVien>);
+      } else {
+        toast.error(res.EM || 'Lưu thất bại. Vui lòng thử lại.');
       }
+    } catch {
+      // httpClient đã hiện toast lỗi HTTP; catch để tránh unhandled rejection
     } finally {
       setSavingInfo(false);
     }
@@ -560,6 +576,25 @@ const HocVienModal: React.FC<HocVienModalProps> = ({
               <span className="material-icons">assignment_turned_in</span>
               {a ? 'Đổi giáo viên' : 'Phân công GV'}
             </button>
+            {editingInfo ? (
+              <>
+                <button type="button" className="hvm__dm-btn hvm__dm-btn--save" onClick={handleSaveInfo} disabled={savingInfo}>
+                  {savingInfo
+                    ? <><span className="material-icons hvm__spin">sync</span>Đang lưu...</>
+                    : <><span className="material-icons">save</span>Lưu thay đổi</>
+                  }
+                </button>
+                <button type="button" className="hvm__dm-btn hvm__dm-btn--ghost" onClick={() => setEditingInfo(false)}>
+                  <span className="material-icons">close</span>
+                  Huỷ
+                </button>
+              </>
+            ) : (
+              <button type="button" className="hvm__dm-btn hvm__dm-btn--edit" onClick={() => { startEditInfo(); setEditingInfo(true); }}>
+                <span className="material-icons">edit</span>
+                Chỉnh sửa
+              </button>
+            )}
             <button
               type="button"
               className="hvm__dm-btn hvm__dm-btn--danger"
@@ -577,90 +612,77 @@ const HocVienModal: React.FC<HocVienModalProps> = ({
 
             <div className="hvm__dm-col hvm__dm-col--side">
               <div className="hvm__dm-info-grid">
-                <div className="hvm__dm-info-item">
-                  <span className="hvm__dm-info-label">Ngày sinh</span>
-                  <span className="hvm__dm-info-val">{formatDate(item.NgaySinh)}</span>
-                </div>
-                <div className="hvm__dm-info-item">
-                  <span className="hvm__dm-info-label">Giới tính</span>
-                  <span className="hvm__dm-info-val">{item.GioiTinh || '—'}</span>
-                </div>
-                <div className="hvm__dm-info-item">
-                  <span className="hvm__dm-info-label">Tiến độ</span>
-                  <span className="hvm__dm-info-val">{a?.progressPercent ?? 0}%</span>
-                </div>
-                <div className="hvm__dm-info-item hvm__dm-info-item--full">
-                  <span className="hvm__dm-info-label">Địa chỉ</span>
-                  <span className="hvm__dm-info-val hvm__dm-info-val--wrap">{item.DiaChi || '—'}</span>
-                </div>
+                {editingInfo ? (
+                  <>
+                    {([
+                      { key: 'HoTen',       label: 'Họ và tên',     type: 'text' },
+                      { key: 'SoCCCD',      label: 'CCCD / CMND',   type: 'text' },
+                      { key: 'NgaySinh',    label: 'Ngày sinh',     type: 'date' },
+                      { key: 'GioiTinh',    label: 'Giới tính',     type: 'select', opts: ['Nam', 'Nữ', 'Khác'] },
+                      { key: 'phone',       label: 'Số điện thoại', type: 'tel' },
+                      { key: 'email',       label: 'Email',         type: 'email' },
+                      { key: 'loaibangthi', label: 'Hạng bằng',     type: 'text' },
+                      { key: 'DiaChi',      label: 'Địa chỉ',       type: 'textarea' },
+                    ] as const).map(({ key, label, type, ...rest }) => (
+                      <div
+                        key={key}
+                        className={`hvm__dm-info-item hvm__dm-info-item--editable${type === 'textarea' ? ' hvm__dm-info-item--full' : ''}`}
+                      >
+                        <span className="hvm__dm-info-label">{label}</span>
+                        {type === 'select' ? (
+                          <select
+                            className="hvm__dm-inline-input"
+                            value={(editFields as Record<string, string>)[key] ?? ''}
+                            onChange={e => setEditFields(f => ({ ...f, [key]: e.target.value }))}
+                          >
+                            <option value="">— Chọn —</option>
+                            {(rest as { opts?: string[] }).opts?.map(o => (
+                              <option key={o} value={o}>{o}</option>
+                            ))}
+                          </select>
+                        ) : type === 'textarea' ? (
+                          <textarea
+                            className="hvm__dm-inline-textarea"
+                            rows={2}
+                            value={(editFields as Record<string, string>)[key] ?? ''}
+                            onChange={e => setEditFields(f => ({ ...f, [key]: e.target.value }))}
+                          />
+                        ) : (
+                          <input
+                            type={type}
+                            className="hvm__dm-inline-input"
+                            value={(editFields as Record<string, string>)[key] ?? ''}
+                            onChange={e => setEditFields(f => ({ ...f, [key]: e.target.value }))}
+                          />
+                        )}
+                      </div>
+                    ))}
+                    <div className="hvm__dm-info-item">
+                      <span className="hvm__dm-info-label">Tiến độ</span>
+                      <span className="hvm__dm-info-val">{a?.progressPercent ?? 0}%</span>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <div className="hvm__dm-info-item">
+                      <span className="hvm__dm-info-label">Ngày sinh</span>
+                      <span className="hvm__dm-info-val">{formatDate(item.NgaySinh)}</span>
+                    </div>
+                    <div className="hvm__dm-info-item">
+                      <span className="hvm__dm-info-label">Giới tính</span>
+                      <span className="hvm__dm-info-val">{item.GioiTinh || '—'}</span>
+                    </div>
+                    <div className="hvm__dm-info-item">
+                      <span className="hvm__dm-info-label">Tiến độ</span>
+                      <span className="hvm__dm-info-val">{a?.progressPercent ?? 0}%</span>
+                    </div>
+                    <div className="hvm__dm-info-item hvm__dm-info-item--full">
+                      <span className="hvm__dm-info-label">Địa chỉ</span>
+                      <span className="hvm__dm-info-val hvm__dm-info-val--wrap">{item.DiaChi || '—'}</span>
+                    </div>
+                  </>
+                )}
               </div>
-
-          {/* Collapsible: edit info */}
-          <div className="hvm__dm-section">
-            <button type="button" className="hvm__dm-section-toggle" onClick={() => { if (!editingInfo) startEditInfo(); setEditingInfo(o => !o); }}>
-              <span className="material-icons">edit_note</span>
-              <span>Chỉnh sửa thông tin cá nhân</span>
-              <span className="material-icons hvm__dm-chevron">{editingInfo ? 'expand_less' : 'expand_more'}</span>
-            </button>
-            {editingInfo && (
-              <div className="hvm__dm-section-body">
-                <div className="hvm__info-edit-form">
-                  {([
-                    { key: 'HoTen',       label: 'Họ và tên',     type: 'text' },
-                    { key: 'SoCCCD',      label: 'CCCD / CMND',   type: 'text' },
-                    { key: 'NgaySinh',    label: 'Ngày sinh',     type: 'date' },
-                    { key: 'GioiTinh',    label: 'Giới tính',     type: 'select', opts: ['Nam', 'Nữ', 'Khác'] },
-                    { key: 'phone',       label: 'Số điện thoại', type: 'tel' },
-                    { key: 'email',       label: 'Email',         type: 'email' },
-                    { key: 'loaibangthi', label: 'Loại bằng thi', type: 'text' },
-                    { key: 'DiaChi',      label: 'Địa chỉ',       type: 'textarea' },
-                  ] as const).map(({ key, label, type, ...rest }) => (
-                    <label
-                      key={key}
-                      className={`hvm__info-field${type === 'textarea' ? ' hvm__info-field--full' : ''}`}
-                    >
-                      <span className="hvm__info-field-label">{label}</span>
-                      {type === 'select' ? (
-                        <select
-                          className="hvm__edit-select"
-                          value={(editFields as Record<string, string>)[key] ?? ''}
-                          onChange={e => setEditFields(f => ({ ...f, [key]: e.target.value }))}
-                        >
-                          <option value="">— Chọn —</option>
-                          {(rest as { opts?: string[] }).opts?.map(o => (
-                            <option key={o} value={o}>{o}</option>
-                          ))}
-                        </select>
-                      ) : type === 'textarea' ? (
-                        <textarea
-                          className="hvm__edit-textarea hvm__edit-textarea--sm"
-                          rows={2}
-                          value={(editFields as Record<string, string>)[key] ?? ''}
-                          onChange={e => setEditFields(f => ({ ...f, [key]: e.target.value }))}
-                        />
-                      ) : (
-                        <input
-                          type={type}
-                          className="hvm__edit-input"
-                          value={(editFields as Record<string, string>)[key] ?? ''}
-                          onChange={e => setEditFields(f => ({ ...f, [key]: e.target.value }))}
-                        />
-                      )}
-                    </label>
-                  ))}
-                </div>
-                <div className="hvm__info-edit-actions">
-                  <button className="hvm__btn-ghost" onClick={() => setEditingInfo(false)}>Huỷ</button>
-                  <button className="hvm__btn-primary" onClick={handleSaveInfo} disabled={savingInfo}>
-                    {savingInfo
-                      ? <><span className="material-icons hvm__spin">sync</span>Đang lưu...</>
-                      : <><span className="material-icons">save</span>Lưu</>
-                    }
-                  </button>
-                </div>
-              </div>
-            )}
-          </div>
 
           {/* Teacher info */}
           {tName && (

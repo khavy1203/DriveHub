@@ -7,6 +7,7 @@ import {
   isSnapshotStale,
   getSyncStats,
 } from '../service/trainingSyncService.js';
+import { getTrainingApiDebugMeta } from '../service/trainingPortalService.js';
 
 const ALLOWED_GROUPS = new Set(['HocVien', 'GiaoVien', 'Admin', 'SupperAdmin']);
 const ADMIN_GROUPS = new Set(['Admin', 'SupperAdmin']);
@@ -141,7 +142,17 @@ export const getTrainingSyncStatus = async (req, res) => {
     }
 
     const stats = await getSyncStats();
-    return res.json({ EC: 0, EM: 'OK', DT: stats });
+    const deploy = getTrainingApiDebugMeta();
+    return res.json({
+      EC: 0,
+      EM: 'OK',
+      DT: {
+        ...stats,
+        deploy,
+        logHint:
+          'Server console: set TRAINING_SYNC_DEBUG=true then pm2 logs / docker logs. Fail lines: [TrainingSync:fail].',
+      },
+    });
   } catch (err) {
     console.error('[training/sync-status] Error:', err.message);
     return res.status(500).json({ EC: -1, EM: 'Lỗi server', DT: null });
