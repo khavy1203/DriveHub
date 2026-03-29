@@ -101,7 +101,15 @@ const getAssignmentsByTeacher = async (teacherUserId) => {
           model: db.hoc_vien,
           as: 'hocVien',
           attributes: ['id', 'HoTen', 'SoCCCD', 'NgaySinh', 'GioiTinh',
-            'DiaChi', 'loaibangthi', 'phone', 'email', 'status'],
+            'DiaChi', 'loaibangthi', 'phone', 'email', 'status', 'IDKhoaHoc', 'createdAt'],
+          include: [
+            {
+              model: db.khoahoc,
+              as: 'khoahoc',
+              required: false,
+              attributes: ['IDKhoaHoc', 'TenKhoaHoc', 'NgayThi'],
+            },
+          ],
         },
       ],
       order: [['createdAt', 'DESC']],

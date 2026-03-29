@@ -19,6 +19,7 @@ import StudentPortal from '../StudentPortal/StudentPortal';
 import TeacherManagement from './TeacherManagement/TeacherManagement';
 import HocVienManagement from './HocVienManagement/HocVienManagement';
 import ManualAssign from './ManualAssign/ManualAssign';
+import HocVienListByClass from './HocVienListByClass/HocVienListByClass';
 import DangKyHocVien from './DangKyHocVien/DangKyHocVien';
 import ChatPage from './ChatPage/ChatPage';
 import KQSHPage from './KQSHPage/KQSHPage';
@@ -47,6 +48,7 @@ const DashBoardRoute: React.FC = () => {
         <Route path="/hoc-vien" element={<HocVienManagement />} />
         <Route path="/dang-ky-hoc-vien" element={<DangKyHocVien />} />
         <Route path="/manual-assign" element={<ManualAssign />} />
+        <Route path="/danh-sach-hoc-vien" element={<HocVienListByClass />} />
         <Route path="/teachers" element={<TeacherManagement />} />
 
         {/* Cài đặt */}

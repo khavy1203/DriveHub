@@ -93,6 +93,12 @@ const listByKhoaHoc = async (courseId) => {
         'GhiChu', 'IDKhoaHoc', 'userId', 'status', 'createdAt'],
       include: [
         {
+          model: db.khoahoc,
+          as: 'khoahoc',
+          required: false,
+          attributes: ['IDKhoaHoc', 'TenKhoaHoc', 'NgayThi'],
+        },
+        {
           model: db.student_assignment,
           as: 'assignment',
           required: false,
