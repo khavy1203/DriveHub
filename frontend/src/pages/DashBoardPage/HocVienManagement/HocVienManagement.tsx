@@ -533,7 +533,7 @@ const HocVienModal: React.FC<HocVienModalProps> = ({
   const tName = a?.teacher?.username ?? teachers.find(t => t.id === a?.teacherId)?.username;
 
   return (
-    <div className="hvm__overlay" onClick={onClose} role="dialog" aria-modal="true" aria-labelledby="hvm-dm-title">
+    <div className="hvm__overlay hvm__overlay--detail" onClick={onClose} role="dialog" aria-modal="true" aria-labelledby="hvm-dm-title">
       <div className="hvm__detail-modal" onClick={e => e.stopPropagation()}>
 
         <header className="hvm__dm-header">
