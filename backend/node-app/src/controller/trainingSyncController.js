@@ -7,7 +7,7 @@ import {
   isSnapshotStale,
   getSyncStats,
 } from '../service/trainingSyncService.js';
-import { getTrainingApiDebugMeta } from '../service/trainingPortalService.js';
+import { getTrainingApiDebugMeta, isTrainingApiConfigured } from '../service/trainingPortalService.js';
 
 const ALLOWED_GROUPS = new Set(['HocVien', 'GiaoVien', 'Admin', 'SupperAdmin']);
 const ADMIN_GROUPS = new Set(['Admin', 'SupperAdmin']);
@@ -56,10 +56,22 @@ export const getTrainingStudentCached = async (req, res) => {
     let snapshot = await getSnapshotByCccd(targetCccd);
 
     if (!snapshot || isSnapshotStale(snapshot)) {
-      const hv = await db.hoc_vien.findOne({ where: { SoCCCD: targetCccd }, attributes: ['id'] });
-      if (hv) {
-        await syncOneStudent(hv.id);
-        snapshot = await getSnapshotByCccd(targetCccd);
+      if (!isTrainingApiConfigured()) {
+        // API chưa được cấu hình — trả về snapshot cũ nếu có, không log lỗi liên tục
+        if (!snapshot) {
+          return res.status(503).json({
+            EC: -1,
+            EM: 'Hệ thống chưa kết nối cổng đào tạo. Vui lòng liên hệ quản trị viên.',
+            DT: null,
+          });
+        }
+        // Có snapshot cũ → trả luôn, không sync
+      } else {
+        const hv = await db.hoc_vien.findOne({ where: { SoCCCD: targetCccd }, attributes: ['id'] });
+        if (hv) {
+          await syncOneStudent(hv.id);
+          snapshot = await getSnapshotByCccd(targetCccd);
+        }
       }
     }
 

@@ -32,6 +32,9 @@ services:
       - DB_NAME=${DB_NAME}
       - DB_USER=${DB_USER}
       - DB_PASS=${DB_PASS}
+      - TRAINING_API_BASE_URL=${TRAINING_API_BASE_URL}
+      - TRAINING_API_TIMEOUT_MS=${TRAINING_API_TIMEOUT_MS:-15000}
+      - TRAINING_SYNC_DEBUG=${TRAINING_SYNC_DEBUG:-false}
     depends_on:
       mysql_db:
         condition: service_healthy

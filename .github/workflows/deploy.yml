@@ -168,6 +168,9 @@ jobs:
                   - MAIL_USER=${MAIL_USER}
                   - MAIL_PASS=${MAIL_PASS}
                   - CONTACT_NOTIFY_EMAIL=${CONTACT_NOTIFY_EMAIL}
+                  - TRAINING_API_BASE_URL=${TRAINING_API_BASE_URL}
+                  - TRAINING_API_TIMEOUT_MS=${TRAINING_API_TIMEOUT_MS:-15000}
+                  - TRAINING_SYNC_DEBUG=${TRAINING_SYNC_DEBUG:-false}
                 volumes:
                   - backend_upload:/app/build/upload
                 depends_on:
@@ -238,6 +241,9 @@ jobs:
             MAIL_USER=${{ secrets.MAIL_USER }}
             MAIL_PASS=${{ secrets.MAIL_PASS }}
             CONTACT_NOTIFY_EMAIL=${{ secrets.CONTACT_NOTIFY_EMAIL }}
+            TRAINING_API_BASE_URL=${{ secrets.TRAINING_API_BASE_URL }}
+            TRAINING_API_TIMEOUT_MS=${{ secrets.TRAINING_API_TIMEOUT_MS }}
+            TRAINING_SYNC_DEBUG=${{ secrets.TRAINING_SYNC_DEBUG }}
             ENVEOF
 
             # Stop containers cũ (giải phóng ports trước khi pull)
