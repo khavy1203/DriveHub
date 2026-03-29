@@ -4,6 +4,11 @@ import httpClient from '../../shared/services/httpClient';
 import { getContactPhoneDisplayLabel, getContactTelHref } from './contactUtils';
 import './mainpages.scss';
 
+/** Embed + share link for application submission location (resolved from Google Maps short URL). */
+const APPLICATION_MAP_EMBED_SRC =
+  'https://www.google.com/maps?q=13.999262%2C109.0677072&z=17&hl=vi&output=embed';
+const APPLICATION_MAP_DIRECTIONS_URL = 'https://maps.app.goo.gl/DGV6Sn3ioU4rciWw8';
+
 type SubmitState = 'idle' | 'submitting';
 
 const Contact: React.FC = () => {
@@ -57,14 +62,28 @@ const Contact: React.FC = () => {
               Để lại thông tin và chúng tôi sẽ liên hệ tư vấn khóa học phù hợp nhất cho bạn trong thời gian sớm nhất.
             </p>
 
-            <div className="hp-contact-map">
-              <iframe
-                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d61942.22526329651!2d109.01821118185508!3d13.994928913211206!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x316f3a5fc9342e71%3A0xa38c56f130e30a93!2zQ8ahIHPhu58gMyAtIFRyxrDhu51uZyBDYW8gxJHhurNuZyBDxqEgxJBp4buHbiAtIFjDonkgZOG7sW5nIHbDoCBOw7RuZyBMw6JtIFRydW5nIGLhu5ku!5e0!3m2!1svi!2s!4v1735008160460!5m2!1svi!2s"
-                title="Google Map"
-                loading="lazy"
-                allowFullScreen
-                referrerPolicy="no-referrer-when-downgrade"
-              />
+            <div className="hp-contact-map-wrap">
+              <p className="hp-contact-map-caption">Điểm tiếp nhận / nộp hồ sơ</p>
+              <div className="hp-contact-map">
+                <iframe
+                  src={APPLICATION_MAP_EMBED_SRC}
+                  title="Bản đồ điểm nộp hồ sơ"
+                  loading="lazy"
+                  allowFullScreen
+                  referrerPolicy="no-referrer-when-downgrade"
+                />
+              </div>
+              <a
+                className="hp-contact-directions"
+                href={APPLICATION_MAP_DIRECTIONS_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <i className="material-icons" aria-hidden="true">
+                  directions
+                </i>
+                Chỉ đường trên Google Maps
+              </a>
             </div>
 
             <div className="hp-contact-details">

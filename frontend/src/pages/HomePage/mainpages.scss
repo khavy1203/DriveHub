@@ -425,7 +425,14 @@ $ease:       0.3s cubic-bezier(0.4, 0, 0.2, 1);
 .hp-contact { background:$bg; }
 .hp-contact-inner { display:grid;grid-template-columns:1fr 1fr;gap:56px;align-items:start; @media(max-width:991px){grid-template-columns:1fr;gap:40px;} }
 .hp-contact-info .hp-section-sub { margin-bottom:28px; }
-.hp-contact-map { border-radius:16px;overflow:hidden;box-shadow:$shadow;margin-bottom:18px; iframe{display:block;width:100%;height:260px;border:none;} }
+.hp-contact-map-wrap { margin-bottom:18px; }
+.hp-contact-map-caption { font-size:13px;font-weight:600;color:$text;margin:0 0 10px; }
+.hp-contact-map { border-radius:16px;overflow:hidden;box-shadow:$shadow; iframe{display:block;width:100%;height:260px;border:none;} }
+.hp-contact-directions {
+  display:inline-flex;align-items:center;gap:8px;margin-top:12px;font-size:14px;font-weight:600;color:$primary;text-decoration:none;
+  i { font-size:20px; }
+  &:hover { color:$primary-dk; text-decoration:underline; }
+}
 .hp-contact-details { display:flex;flex-direction:column;gap:10px; }
 
 .hp-contact-item {

@@ -30,3 +30,8 @@ export const getContactTelHref = (): string => {
   if (digits.startsWith('0')) return `tel:+84${digits.slice(1)}`;
   return `tel:+84${digits}`;
 };
+
+/** Scroll to the marketing contact / registration form (section#contact). */
+export const scrollToContactSection = (): void => {
+  document.getElementById('contact')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+};

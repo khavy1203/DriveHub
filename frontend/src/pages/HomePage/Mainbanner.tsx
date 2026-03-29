@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { getContactTelHref, isMobileDevice } from './contactUtils';
+import { scrollToContactSection } from './contactUtils';
 import './mainpages.scss';
 
-type SlideCta = { text: string; href: string; icon: string; useTelOnMobile?: boolean };
+type SlideCta = { text: string; href: string; icon: string };
 
 const slides: Array<{
   badge: string;
@@ -25,7 +25,7 @@ const slides: Array<{
     title: 'Học lái xe chuyên nghiệp tại ',
     highlight: 'Bình Định',
     desc: 'Đội ngũ 50+ giảng viên giàu kinh nghiệm, 300+ xe tập lái hiện đại. Đảm bảo chất lượng đào tạo vượt trội, an toàn và uy tín nhất khu vực.',
-    cta1: { text: 'Liên hệ ngay', href: '#contact', icon: 'phone', useTelOnMobile: true },
+    cta1: { text: 'Liên hệ ngay', href: '#contact', icon: 'phone' },
     cta2: { text: 'Tìm hiểu thêm', href: '#services', icon: 'info' },
   },
   {
@@ -134,8 +134,12 @@ const Mainbanner: React.FC = () => {
 
   const slide = slides[active];
 
-  const cta1Href =
-    slide.cta1.useTelOnMobile && isMobileDevice() ? getContactTelHref() : slide.cta1.href;
+  const handleCta1Click = (e: React.MouseEvent<HTMLAnchorElement>): void => {
+    if (slide.cta1.href === '#contact') {
+      e.preventDefault();
+      scrollToContactSection();
+    }
+  };
 
   return (
     <section className="hp-hero" id="top">
@@ -162,7 +166,7 @@ const Mainbanner: React.FC = () => {
             <p className="hp-hero-desc">{slide.desc}</p>
 
             <div className="hp-hero-cta">
-              <a href={cta1Href} className="hp-btn hp-btn--primary">
+              <a href={slide.cta1.href} className="hp-btn hp-btn--primary" onClick={handleCta1Click}>
                 <i className="material-icons">{slide.cta1.icon}</i>
                 {slide.cta1.text}
               </a>
