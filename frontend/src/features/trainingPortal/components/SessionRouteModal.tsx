@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { MapContainer, TileLayer, Polyline, CircleMarker, Tooltip, useMap } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import axiosInstance from '../../../axios';
@@ -129,7 +130,7 @@ const SessionRouteModal: React.FC<Props> = ({ session, maDK, studentName, onClos
     return [pts[0], pts[step], pts[step * 2], pts[step * 3], pts[pts.length - 1]];
   })();
 
-  return (
+  return createPortal(
     <div className="srm__overlay" onClick={onClose} role="dialog" aria-modal="true">
       <div className="srm__panel" onClick={(e) => e.stopPropagation()}>
         {/* Header */}
@@ -318,7 +319,8 @@ const SessionRouteModal: React.FC<Props> = ({ session, maDK, studentName, onClos
           </div>
         )}
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 };
 
