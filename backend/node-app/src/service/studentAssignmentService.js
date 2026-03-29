@@ -66,9 +66,10 @@ const updateAssignment = async (id, { status, progressPercent, datHoursCompleted
     if (notes !== undefined) row.notes = notes;
     await row.save();
 
-    // Sync hoc_vien status
-    const hvStatus = status === 'completed' ? 'dat_completed' : 'learning';
-    await db.hoc_vien.update({ status: hvStatus }, { where: { id: row.hocVienId } });
+    if (status !== undefined) {
+      const hvStatus = status === 'completed' ? 'dat_completed' : 'learning';
+      await db.hoc_vien.update({ status: hvStatus }, { where: { id: row.hocVienId } });
+    }
 
     return { EM: 'Updated', EC: 0, DT: row.get({ plain: true }) };
   } catch (e) {

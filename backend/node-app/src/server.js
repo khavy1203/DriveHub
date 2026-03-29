@@ -10,6 +10,7 @@ import { setupChatWebSocket } from './websocket/wsChatServer'; // WS server for 
 import http from 'http';
 import botTelegram from './bot/botTelegram';
 import path from 'path';
+import './scheduler/trainingSync';
 const app = express();
 configCors(app);
 app.use(compression()); // gzip tất cả response >= 1KB — giảm 60-70% bandwidth

@@ -16,6 +16,10 @@ module.exports = (sequelize, DataTypes) => {
         foreignKey: 'hocVienId',
         as: 'assignment',
       });
+      hoc_vien.hasOne(models.training_snapshot, {
+        foreignKey: 'hocVienId',
+        as: 'trainingSnapshot',
+      });
     }
   }
 

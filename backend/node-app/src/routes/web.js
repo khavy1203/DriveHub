@@ -39,6 +39,7 @@ import {
   getGroupApiMatrix, setGroupApiPermissions,
 } from "../controller/permissionController";
 import { getTrainingStudent, getTrainingAvatar, getTrainingSessionDetail } from "../controller/trainingPortalController";
+import { getTrainingStudentCached, triggerSyncAll, getTrainingSyncStatus } from "../controller/trainingSyncController";
 
 
 const routes = express.Router();
@@ -204,8 +205,11 @@ const initWebRoutes = (app) => {
     routes.put("/admin/permissions/group-api", setGroupApiPermissions);
 
     routes.get("/training/student", getTrainingStudent);
+    routes.get("/training/student-cached", getTrainingStudentCached);
     routes.get("/training/avatar", getTrainingAvatar);
     routes.get("/training/session-detail", getTrainingSessionDetail);
+    routes.post("/training/sync-all", triggerSyncAll);
+    routes.get("/training/sync-status", getTrainingSyncStatus);
 
     //file 
     routes.post("/file/namestandardizationfile", fileController.nameStandardizationFile);

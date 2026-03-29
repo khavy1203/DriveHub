@@ -63,6 +63,9 @@ export const API_REGISTRY = [
   P('GET', '/api/training/student', 'Đào tạo', 'Proxy tiến độ học viên (CCCD)', false, '/api/training/student'),
   P('GET', '/api/training/avatar', 'Đào tạo', 'Proxy ảnh học viên hệ đào tạo', false, '/api/training/avatar'),
   P('GET', '/api/training/session-detail', 'Đào tạo', 'Proxy lộ trình GPS phiên học', false, '/api/training/session-detail'),
+  P('GET', '/api/training/student-cached', 'Đào tạo', 'Tiến độ học viên (cached)', false, '/api/training/student-cached'),
+  P('POST', '/api/training/sync-all', 'Đào tạo', 'Đồng bộ toàn bộ dữ liệu đào tạo'),
+  P('GET', '/api/training/sync-status', 'Đào tạo', 'Trạng thái đồng bộ dữ liệu đào tạo'),
 
   P('POST', '/api/admin/kqsh/sync', 'KQSH', 'Sync KQSH'),
   P('GET', '/api/admin/kqsh/test-connection', 'KQSH', 'Test MSSQL'),

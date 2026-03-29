@@ -1,6 +1,7 @@
-import React, { useEffect, useState, useCallback, useMemo } from 'react';
+import React, { useEffect, useState, useCallback, useMemo, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import useApiService from '../../../services/useApiService';
+import { useAuth } from '../../../features/auth/hooks/useAuth';
 import { KQSHDrawerSection, KetQuaBadge } from '../../../features/kqsh';
 import { TrainingProgressBlock } from '../../../features/trainingPortal';
 import './HocVienManagement.scss';
@@ -49,6 +50,9 @@ const ASSIGN_STATUS_LABEL: Record<string, string> = {
   completed: 'Hoàn thành',
 };
 
+const canEditAssignmentProgressRole = (role: string | null): boolean =>
+  role === 'Admin' || role === 'SupperAdmin';
+
 const getInitials = (name: string) =>
   name.split(' ').slice(-2).map(w => w[0]).join('').toUpperCase().slice(0, 2);
 
@@ -59,7 +63,9 @@ const formatDate = (raw?: string) => {
 
 const HocVienManagement: React.FC = () => {
   const { get, post, put, del } = useApiService();
+  const { role } = useAuth();
   const navigate = useNavigate();
+  const canEditProgress = canEditAssignmentProgressRole(role);
 
   const [hocVienList, setHocVienList] = useState<HocVien[]>([]);
   const [teachers, setTeachers] = useState<Teacher[]>([]);
@@ -69,17 +75,12 @@ const HocVienManagement: React.FC = () => {
   const [licenseFilter, setLicenseFilter] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
 
-  // Drawer
-  const [drawerItem, setDrawerItem] = useState<HocVien | null>(null);
-  const [editProgress, setEditProgress] = useState(0);
-  const [editStatus, setEditStatus] = useState<'waiting' | 'learning' | 'completed'>('learning');
-  const [editDatHours, setEditDatHours] = useState(0);
-  const [progressSaving, setProgressSaving] = useState(false);
+  // Modal state
+  const [modalItem, setModalItem] = useState<HocVien | null>(null);
 
-  // Edit info
-  const [editingInfo, setEditingInfo] = useState(false);
-  const [editFields, setEditFields] = useState<Partial<HocVien>>({});
-  const [savingInfo, setSavingInfo] = useState(false);
+  // Sync state
+  const [syncing, setSyncing] = useState(false);
+  const [syncResult, setSyncResult] = useState<string | null>(null);
 
   // Assign modal
   const [assignTarget, setAssignTarget] = useState<HocVien | null>(null);
@@ -122,45 +123,6 @@ const HocVienManagement: React.FC = () => {
     return list;
   }, [hocVienList, licenseFilter, statusFilter, search]);
 
-  const openDrawer = (s: HocVien) => {
-    setDrawerItem(s);
-    setEditProgress(s.assignment?.progressPercent ?? 0);
-    setEditStatus(s.assignment?.status ?? 'learning');
-    setEditDatHours(s.assignment?.datHoursCompleted ?? 0);
-    setEditingInfo(false);
-    setEditFields({});
-  };
-
-  const startEditInfo = () => {
-    if (!drawerItem) return;
-    setEditFields({
-      HoTen: drawerItem.HoTen,
-      SoCCCD: drawerItem.SoCCCD ?? '',
-      NgaySinh: drawerItem.NgaySinh ?? '',
-      GioiTinh: drawerItem.GioiTinh ?? '',
-      phone: drawerItem.phone ?? '',
-      email: drawerItem.email ?? '',
-      DiaChi: drawerItem.DiaChi ?? '',
-      loaibangthi: drawerItem.loaibangthi ?? '',
-    });
-    setEditingInfo(true);
-  };
-
-  const handleSaveInfo = async () => {
-    if (!drawerItem) return;
-    setSavingInfo(true);
-    try {
-      const res = await put<{ EC: number; EM: string; DT: HocVien }>(`/api/hocvien/${drawerItem.id}`, editFields);
-      if (res.EC === 0) {
-        setEditingInfo(false);
-        await fetchData();
-        setDrawerItem(prev => prev ? { ...prev, ...editFields } : null);
-      }
-    } finally {
-      setSavingInfo(false);
-    }
-  };
-
   const openAssign = (s: HocVien, e: React.MouseEvent) => {
     e.stopPropagation();
     setAssignTarget(s);
@@ -189,37 +151,35 @@ const HocVienManagement: React.FC = () => {
     e.stopPropagation();
     if (!window.confirm(`Xoá học viên "${s.HoTen}"? Thao tác này sẽ xoá cả tài khoản và dữ liệu phân công.`)) return;
     await del<{ EC: number }>(`/api/hocvien/${s.id}`);
-    if (drawerItem?.id === s.id) setDrawerItem(null);
+    if (modalItem?.id === s.id) setModalItem(null);
     await fetchData();
-  };
-
-  const handleProgressSave = async () => {
-    if (!drawerItem?.assignment) return;
-    setProgressSaving(true);
-    try {
-      await put<{ EC: number }>(`/api/student-assignment/${drawerItem.assignment.id}`, {
-        status: editStatus,
-        progressPercent: editProgress,
-        datHoursCompleted: editDatHours,
-      });
-      await fetchData();
-      setDrawerItem(prev =>
-        prev ? {
-          ...prev,
-          assignment: prev.assignment
-            ? { ...prev.assignment, status: editStatus, progressPercent: editProgress, datHoursCompleted: editDatHours }
-            : prev.assignment,
-        } : null,
-      );
-    } finally {
-      setProgressSaving(false);
-    }
   };
 
   const licenseTypes = [...new Set(hocVienList.map(s => s.loaibangthi).filter(Boolean))].sort() as string[];
 
+  const handleSyncTraining = async () => {
+    setSyncing(true);
+    setSyncResult(null);
+    try {
+      const res = await post<{ EC: number; EM: string }>('/api/training/sync-all', {});
+      if (res.EC === 0) {
+        setSyncResult('Đồng bộ đã bắt đầu. Dữ liệu sẽ được cập nhật trong vài phút...');
+        setTimeout(() => {
+          fetchData();
+          setSyncResult(null);
+        }, 10000);
+      } else {
+        setSyncResult(res.EM || 'Lỗi khi bắt đầu đồng bộ');
+      }
+    } catch {
+      setSyncResult('Lỗi kết nối server');
+    } finally {
+      setSyncing(false);
+    }
+  };
+
   return (
-    <div className={`hvm ${drawerItem ? 'hvm--drawer-open' : ''}`}>
+    <div className="hvm">
       {/* Header */}
       <div className="hvm__header">
         <div>
@@ -228,11 +188,34 @@ const HocVienManagement: React.FC = () => {
             Theo dõi và quản lý <strong>{hocVienList.length}</strong> học viên đào tạo
           </p>
         </div>
-        <button className="hvm__btn-add" onClick={() => navigate('/dashboard/dang-ky-hoc-vien')}>
-          <span className="material-icons">person_add</span>
-          + Thêm học viên mới
-        </button>
+        <div className="hvm__header-actions">
+          <button
+            className="hvm__btn-sync"
+            onClick={handleSyncTraining}
+            disabled={syncing}
+            title="Đồng bộ dữ liệu tiến độ từ hệ thống CSĐT"
+          >
+            <span className={`material-icons${syncing ? ' hvm__spin' : ''}`}>
+              {syncing ? 'sync' : 'cloud_download'}
+            </span>
+            {syncing ? 'Đang đồng bộ...' : 'Đồng bộ CSĐT'}
+          </button>
+          <button className="hvm__btn-add" onClick={() => navigate('/dashboard/dang-ky-hoc-vien')}>
+            <span className="material-icons">person_add</span>
+            + Thêm học viên mới
+          </button>
+        </div>
       </div>
+
+      {syncResult && (
+        <div className="hvm__sync-toast">
+          <span className="material-icons">info</span>
+          <span>{syncResult}</span>
+          <button className="hvm__sync-toast-close" onClick={() => setSyncResult(null)}>
+            <span className="material-icons">close</span>
+          </button>
+        </div>
+      )}
 
       {/* Filters */}
       <div className="hvm__filters">
@@ -299,8 +282,9 @@ const HocVienManagement: React.FC = () => {
                 return (
                   <tr
                     key={s.id}
-                    onClick={() => openDrawer(s)}
-                    className={drawerItem?.id === s.id ? 'hvm__row--active' : ''}
+                    onClick={() => setModalItem(s)}
+                    className="hvm__row--clickable"
+                    title="Xem hồ sơ học viên"
                   >
                     <td>
                       <div className="hvm__student-cell">
@@ -377,197 +361,25 @@ const HocVienManagement: React.FC = () => {
         </div>
       )}
 
-      {/* Right Drawer */}
-      {drawerItem && (
-        <aside className="hvm__drawer">
-          <div className="hvm__drawer-header">
-            <h3>Hồ sơ học viên</h3>
-            <button className="hvm__drawer-close" onClick={() => setDrawerItem(null)}>
-              <span className="material-icons">close</span>
-            </button>
-          </div>
-          <div className="hvm__drawer-body">
-            <div className="hvm__drawer-profile">
-              <div className="hvm__drawer-avatar">{getInitials(drawerItem.HoTen)}</div>
-              <h4 className="hvm__drawer-name">{drawerItem.HoTen}</h4>
-              <p className="hvm__drawer-license">Hạng: <strong>{drawerItem.loaibangthi || '—'}</strong></p>
-              <div className="hvm__drawer-stats">
-                <div>
-                  <span className="hvm__drawer-stat-label">Hồ sơ</span>
-                  <span className="hvm__drawer-stat-value">{HV_STATUS_LABEL[drawerItem.status]}</span>
-                </div>
-                <div className="hvm__drawer-divider" />
-                <div>
-                  <span className="hvm__drawer-stat-label">Tiến độ</span>
-                  <span className="hvm__drawer-stat-value">{drawerItem.assignment?.progressPercent ?? 0}%</span>
-                </div>
-                <div className="hvm__drawer-divider" />
-                <div>
-                  <span className="hvm__drawer-stat-label">Giờ DAT</span>
-                  <span className="hvm__drawer-stat-value">{drawerItem.assignment?.datHoursCompleted ?? 0}h</span>
-                </div>
-              </div>
-            </div>
-
-            <div className="hvm__drawer-section">
-              <div className="hvm__drawer-section-header">
-                <h5 className="hvm__drawer-section-title">Thông tin cá nhân</h5>
-                {!editingInfo && (
-                  <button className="hvm__btn-edit-info" onClick={startEditInfo}>
-                    <span className="material-icons">edit</span>
-                    Chỉnh sửa
-                  </button>
-                )}
-              </div>
-
-              {editingInfo ? (
-                <div className="hvm__info-edit-form">
-                  {([
-                    { key: 'HoTen',      label: 'Họ và tên',      type: 'text' },
-                    { key: 'SoCCCD',     label: 'CCCD / CMND',    type: 'text' },
-                    { key: 'NgaySinh',   label: 'Ngày sinh',      type: 'date' },
-                    { key: 'GioiTinh',   label: 'Giới tính',      type: 'select', opts: ['Nam', 'Nữ', 'Khác'] },
-                    { key: 'phone',      label: 'Số điện thoại',  type: 'tel' },
-                    { key: 'email',      label: 'Email',          type: 'email' },
-                    { key: 'loaibangthi',label: 'Loại bằng thi',  type: 'text' },
-                    { key: 'DiaChi',     label: 'Địa chỉ',        type: 'textarea' },
-                  ] as const).map(({ key, label, type, ...rest }) => (
-                    <label key={key} className="hvm__info-field">
-                      <span className="hvm__info-field-label">{label}</span>
-                      {type === 'select' ? (
-                        <select
-                          className="hvm__edit-select"
-                          value={(editFields as Record<string, string>)[key] ?? ''}
-                          onChange={e => setEditFields(f => ({ ...f, [key]: e.target.value }))}
-                        >
-                          <option value="">— Chọn —</option>
-                          {(rest as { opts?: string[] }).opts?.map(o => (
-                            <option key={o} value={o}>{o}</option>
-                          ))}
-                        </select>
-                      ) : type === 'textarea' ? (
-                        <textarea
-                          className="hvm__edit-textarea hvm__edit-textarea--sm"
-                          rows={2}
-                          value={(editFields as Record<string, string>)[key] ?? ''}
-                          onChange={e => setEditFields(f => ({ ...f, [key]: e.target.value }))}
-                        />
-                      ) : (
-                        <input
-                          type={type}
-                          className="hvm__edit-input"
-                          value={(editFields as Record<string, string>)[key] ?? ''}
-                          onChange={e => setEditFields(f => ({ ...f, [key]: e.target.value }))}
-                        />
-                      )}
-                    </label>
-                  ))}
-                  <div className="hvm__info-edit-actions">
-                    <button className="hvm__btn-ghost" onClick={() => setEditingInfo(false)}>Huỷ</button>
-                    <button className="hvm__btn-primary" onClick={handleSaveInfo} disabled={savingInfo}>
-                      {savingInfo
-                        ? <><span className="material-icons hvm__spin">sync</span>Đang lưu...</>
-                        : <><span className="material-icons">save</span>Lưu</>
-                      }
-                    </button>
-                  </div>
-                </div>
-              ) : (
-                <div className="hvm__drawer-info-grid">
-                  {[
-                    ['CCCD / CMND', drawerItem.SoCCCD],
-                    ['Ngày sinh', formatDate(drawerItem.NgaySinh)],
-                    ['Giới tính', drawerItem.GioiTinh],
-                    ['Số điện thoại', drawerItem.phone],
-                    ['Email', drawerItem.email],
-                    ['Địa chỉ', drawerItem.DiaChi],
-                  ].map(([label, value]) => (
-                    <div key={label} className="hvm__drawer-info-item">
-                      <span className="hvm__drawer-info-label">{label}</span>
-                      <span className="hvm__drawer-info-value">{value || '—'}</span>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            <div className="hvm__drawer-section">
-              <h5 className="hvm__drawer-section-title">Giáo viên phụ trách</h5>
-              {drawerItem.assignment ? (() => {
-                const tName = drawerItem.assignment.teacher?.username
-                  ?? teachers.find(t => t.id === drawerItem.assignment?.teacherId)?.username ?? '—';
-                return (
-                  <div className="hvm__drawer-teacher">
-                    <div className="hvm__teacher-avatar hvm__teacher-avatar--lg">{getInitials(tName)}</div>
-                    <div>
-                      <div className="hvm__drawer-teacher-name">{tName}</div>
-                      {drawerItem.assignment.notes && (
-                        <div className="hvm__drawer-teacher-notes">{drawerItem.assignment.notes}</div>
-                      )}
-                    </div>
-                  </div>
-                );
-              })() : (
-                <p className="hvm__not-assigned">Chưa được phân công giáo viên</p>
-              )}
-            </div>
-
-            {drawerItem.assignment && (
-              <div className="hvm__drawer-section">
-                <h5 className="hvm__drawer-section-title">Cập nhật tiến độ</h5>
-                <div className="hvm__progress-edit">
-                  <label className="hvm__edit-label">
-                    Trạng thái
-                    <select className="hvm__edit-select" value={editStatus}
-                      onChange={e => setEditStatus(e.target.value as typeof editStatus)}>
-                      <option value="waiting">Chờ phân công</option>
-                      <option value="learning">Đang học</option>
-                      <option value="completed">Hoàn thành</option>
-                    </select>
-                  </label>
-                  <label className="hvm__edit-label">
-                    Tiến độ: <strong>{editProgress}%</strong>
-                    <input type="range" min={0} max={100} value={editProgress}
-                      onChange={e => setEditProgress(+e.target.value)} className="hvm__progress-slider" />
-                  </label>
-                  <label className="hvm__edit-label">
-                    Giờ DAT thực hành: <strong>{editDatHours}h</strong>
-                    <input type="number" min={0} step={0.5} value={editDatHours}
-                      onChange={e => setEditDatHours(+e.target.value)} className="hvm__edit-input" />
-                  </label>
-                  <button className="hvm__btn-save-progress" onClick={handleProgressSave} disabled={progressSaving}>
-                    {progressSaving
-                      ? <><span className="material-icons hvm__spin">sync</span>Đang lưu...</>
-                      : <><span className="material-icons">save</span>Lưu tiến độ</>
-                    }
-                  </button>
-                </div>
-              </div>
-            )}
-
-            <div className="hvm__drawer-section">
-              <h5 className="hvm__drawer-section-title">Tiến độ đào tạo (CCCD)</h5>
-              <TrainingProgressBlock mode="staff" cccd={drawerItem.SoCCCD ?? null} compact />
-            </div>
-
-            <div className="hvm__drawer-section">
-              <h5 className="hvm__drawer-section-title">Kết quả sát hạch</h5>
-              <KQSHDrawerSection hocVienId={drawerItem.id} />
-            </div>
-          </div>
-
-          <div className="hvm__drawer-footer">
-            <button className="hvm__btn-assign-big" onClick={e => openAssign(drawerItem, e)}>
-              <span className="material-icons">assignment_turned_in</span>
-              {drawerItem.assignment ? 'Đổi giáo viên' : 'Phân công giáo viên'}
-            </button>
-          </div>
-        </aside>
+      {/* Student detail modal */}
+      {modalItem && (
+        <HocVienModal
+          item={modalItem}
+          teachers={teachers}
+          canEditProgress={canEditProgress}
+          onClose={() => setModalItem(null)}
+          onAssign={(s, e) => openAssign(s, e)}
+          onDelete={(s, e) => handleDelete(s, e)}
+          onRefresh={async () => {
+            await fetchData();
+          }}
+          put={put}
+        />
       )}
 
       {/* Assign Modal */}
       {assignTarget && (
-        <div className="hvm__overlay" onClick={() => setAssignTarget(null)}>
+        <div className="hvm__overlay hvm__overlay--above" onClick={() => setAssignTarget(null)}>
           <div className="hvm__modal" onClick={e => e.stopPropagation()}>
             <div className="hvm__modal-header">
               <div>
@@ -609,6 +421,334 @@ const HocVienManagement: React.FC = () => {
           </div>
         </div>
       )}
+    </div>
+  );
+};
+
+/* ── HocVien Detail Modal ───────────────────────────────────────────────────── */
+
+type HocVienModalProps = {
+  item: HocVien;
+  teachers: Teacher[];
+  canEditProgress: boolean;
+  onClose: () => void;
+  onAssign: (s: HocVien, e: React.MouseEvent) => void;
+  onDelete: (s: HocVien, e: React.MouseEvent) => void;
+  onRefresh: () => Promise<void>;
+  put: <T>(url: string, data?: object) => Promise<T>;
+};
+
+const HocVienModal: React.FC<HocVienModalProps> = ({
+  item: initialItem, teachers, canEditProgress, onClose, onAssign, onDelete, onRefresh, put,
+}) => {
+  const [item, setItem] = useState(initialItem);
+  const bodyRef = useRef<HTMLDivElement>(null);
+
+  const [editingInfo, setEditingInfo] = useState(false);
+  const [editFields, setEditFields] = useState<Partial<HocVien>>({});
+  const [savingInfo, setSavingInfo] = useState(false);
+
+  const [progressOpen, setProgressOpen] = useState(false);
+  const [editProgress, setEditProgress] = useState(initialItem.assignment?.progressPercent ?? 0);
+  const [editStatus, setEditStatus] = useState<'waiting' | 'learning' | 'completed'>(
+    initialItem.assignment?.status ?? 'learning',
+  );
+  const [editDatHours, setEditDatHours] = useState(initialItem.assignment?.datHoursCompleted ?? 0);
+  const [progressSaving, setProgressSaving] = useState(false);
+
+  useEffect(() => {
+    setItem(initialItem);
+    setEditingInfo(false);
+    setProgressOpen(false);
+    setEditProgress(initialItem.assignment?.progressPercent ?? 0);
+    setEditStatus(initialItem.assignment?.status ?? 'learning');
+    setEditDatHours(initialItem.assignment?.datHoursCompleted ?? 0);
+    bodyRef.current?.scrollTo(0, 0);
+  }, [initialItem]);
+
+  const startEditInfo = () => {
+    setEditFields({
+      HoTen: item.HoTen,
+      SoCCCD: item.SoCCCD ?? '',
+      NgaySinh: item.NgaySinh ?? '',
+      GioiTinh: item.GioiTinh ?? '',
+      phone: item.phone ?? '',
+      email: item.email ?? '',
+      DiaChi: item.DiaChi ?? '',
+      loaibangthi: item.loaibangthi ?? '',
+    });
+    setEditingInfo(true);
+  };
+
+  const handleSaveInfo = async () => {
+    setSavingInfo(true);
+    try {
+      const res = await put<{ EC: number; EM: string; DT: HocVien }>(`/api/hocvien/${item.id}`, editFields);
+      if (res.EC === 0) {
+        setItem(prev => ({ ...prev, ...editFields }));
+        setEditingInfo(false);
+        await onRefresh();
+      }
+    } finally {
+      setSavingInfo(false);
+    }
+  };
+
+  const handleProgressSave = async () => {
+    if (!item.assignment || !canEditProgress) return;
+    setProgressSaving(true);
+    try {
+      await put<{ EC: number }>(`/api/student-assignment/${item.assignment.id}`, {
+        status: editStatus,
+        progressPercent: editProgress,
+        datHoursCompleted: editDatHours,
+      });
+      setItem(prev => prev.assignment
+        ? { ...prev, assignment: { ...prev.assignment, status: editStatus, progressPercent: editProgress, datHoursCompleted: editDatHours } }
+        : prev,
+      );
+      await onRefresh();
+    } finally {
+      setProgressSaving(false);
+    }
+  };
+
+  const a = item.assignment;
+  const tName = a?.teacher?.username ?? teachers.find(t => t.id === a?.teacherId)?.username;
+
+  return (
+    <div className="hvm__overlay" onClick={onClose} role="dialog" aria-modal="true" aria-labelledby="hvm-dm-title">
+      <div className="hvm__detail-modal" onClick={e => e.stopPropagation()}>
+
+        <header className="hvm__dm-header">
+          <div className="hvm__dm-header-row hvm__dm-header-row--top">
+            <div className="hvm__dm-header-left">
+              <div className="hvm__dm-avatar">{getInitials(item.HoTen)}</div>
+              <div className="hvm__dm-title-block">
+                <h2 className="hvm__dm-name" id="hvm-dm-title">{item.HoTen}</h2>
+                <div className="hvm__dm-badges">
+                  {item.loaibangthi ? (
+                    <span className="hvm__rank-badge">Hạng {item.loaibangthi}</span>
+                  ) : null}
+                  {a ? (
+                    <span className={`hvm__status-badge hvm__status-badge--${a.status}`}>
+                      {a.status === 'learning' && <span className="hvm__status-dot" />}
+                      {ASSIGN_STATUS_LABEL[a.status]}
+                    </span>
+                  ) : null}
+                  <span className="hvm__hv-status-badge">{HV_STATUS_LABEL[item.status] ?? item.status}</span>
+                </div>
+              </div>
+            </div>
+            <button type="button" className="hvm__dm-close" onClick={onClose} aria-label="Đóng">
+              <span className="material-icons">close</span>
+            </button>
+          </div>
+          <div className="hvm__dm-meta-chips">
+            {item.SoCCCD ? (
+              <span className="hvm__dm-chip"><span className="material-icons">badge</span>{item.SoCCCD}</span>
+            ) : null}
+            {item.phone ? (
+              <span className="hvm__dm-chip"><span className="material-icons">phone</span>{item.phone}</span>
+            ) : null}
+            {item.email ? (
+              <span className="hvm__dm-chip hvm__dm-chip--wide"><span className="material-icons">email</span>{item.email}</span>
+            ) : null}
+          </div>
+          <div className="hvm__dm-toolbar">
+            <button type="button" className="hvm__dm-btn hvm__dm-btn--primary" onClick={e => onAssign(item, e)}>
+              <span className="material-icons">assignment_turned_in</span>
+              {a ? 'Đổi giáo viên' : 'Phân công GV'}
+            </button>
+            <button
+              type="button"
+              className="hvm__dm-btn hvm__dm-btn--danger"
+              onClick={e => { onDelete(item, e); onClose(); }}
+              title="Xoá học viên"
+            >
+              <span className="material-icons">delete_outline</span>
+              Xoá học viên
+            </button>
+          </div>
+        </header>
+
+        <div className="hvm__dm-body" ref={bodyRef}>
+          <div className="hvm__dm-layout">
+
+            <div className="hvm__dm-col hvm__dm-col--side">
+              <div className="hvm__dm-info-grid">
+                <div className="hvm__dm-info-item">
+                  <span className="hvm__dm-info-label">Ngày sinh</span>
+                  <span className="hvm__dm-info-val">{formatDate(item.NgaySinh)}</span>
+                </div>
+                <div className="hvm__dm-info-item">
+                  <span className="hvm__dm-info-label">Giới tính</span>
+                  <span className="hvm__dm-info-val">{item.GioiTinh || '—'}</span>
+                </div>
+                <div className="hvm__dm-info-item">
+                  <span className="hvm__dm-info-label">Tiến độ</span>
+                  <span className="hvm__dm-info-val">{a?.progressPercent ?? 0}%</span>
+                </div>
+                <div className="hvm__dm-info-item hvm__dm-info-item--full">
+                  <span className="hvm__dm-info-label">Địa chỉ</span>
+                  <span className="hvm__dm-info-val hvm__dm-info-val--wrap">{item.DiaChi || '—'}</span>
+                </div>
+              </div>
+
+          {/* Collapsible: edit info */}
+          <div className="hvm__dm-section">
+            <button type="button" className="hvm__dm-section-toggle" onClick={() => { if (!editingInfo) startEditInfo(); setEditingInfo(o => !o); }}>
+              <span className="material-icons">edit_note</span>
+              <span>Chỉnh sửa thông tin cá nhân</span>
+              <span className="material-icons hvm__dm-chevron">{editingInfo ? 'expand_less' : 'expand_more'}</span>
+            </button>
+            {editingInfo && (
+              <div className="hvm__dm-section-body">
+                <div className="hvm__info-edit-form">
+                  {([
+                    { key: 'HoTen',       label: 'Họ và tên',     type: 'text' },
+                    { key: 'SoCCCD',      label: 'CCCD / CMND',   type: 'text' },
+                    { key: 'NgaySinh',    label: 'Ngày sinh',     type: 'date' },
+                    { key: 'GioiTinh',    label: 'Giới tính',     type: 'select', opts: ['Nam', 'Nữ', 'Khác'] },
+                    { key: 'phone',       label: 'Số điện thoại', type: 'tel' },
+                    { key: 'email',       label: 'Email',         type: 'email' },
+                    { key: 'loaibangthi', label: 'Loại bằng thi', type: 'text' },
+                    { key: 'DiaChi',      label: 'Địa chỉ',       type: 'textarea' },
+                  ] as const).map(({ key, label, type, ...rest }) => (
+                    <label
+                      key={key}
+                      className={`hvm__info-field${type === 'textarea' ? ' hvm__info-field--full' : ''}`}
+                    >
+                      <span className="hvm__info-field-label">{label}</span>
+                      {type === 'select' ? (
+                        <select
+                          className="hvm__edit-select"
+                          value={(editFields as Record<string, string>)[key] ?? ''}
+                          onChange={e => setEditFields(f => ({ ...f, [key]: e.target.value }))}
+                        >
+                          <option value="">— Chọn —</option>
+                          {(rest as { opts?: string[] }).opts?.map(o => (
+                            <option key={o} value={o}>{o}</option>
+                          ))}
+                        </select>
+                      ) : type === 'textarea' ? (
+                        <textarea
+                          className="hvm__edit-textarea hvm__edit-textarea--sm"
+                          rows={2}
+                          value={(editFields as Record<string, string>)[key] ?? ''}
+                          onChange={e => setEditFields(f => ({ ...f, [key]: e.target.value }))}
+                        />
+                      ) : (
+                        <input
+                          type={type}
+                          className="hvm__edit-input"
+                          value={(editFields as Record<string, string>)[key] ?? ''}
+                          onChange={e => setEditFields(f => ({ ...f, [key]: e.target.value }))}
+                        />
+                      )}
+                    </label>
+                  ))}
+                </div>
+                <div className="hvm__info-edit-actions">
+                  <button className="hvm__btn-ghost" onClick={() => setEditingInfo(false)}>Huỷ</button>
+                  <button className="hvm__btn-primary" onClick={handleSaveInfo} disabled={savingInfo}>
+                    {savingInfo
+                      ? <><span className="material-icons hvm__spin">sync</span>Đang lưu...</>
+                      : <><span className="material-icons">save</span>Lưu</>
+                    }
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Teacher info */}
+          {tName && (
+            <div className="hvm__dm-section hvm__dm-section--flat">
+              <div className="hvm__dm-section-toggle hvm__dm-section-toggle--static">
+                <span className="material-icons">school</span>
+                <span>Giáo viên phụ trách</span>
+              </div>
+              <div className="hvm__dm-section-body">
+                <div className="hvm__drawer-teacher">
+                  <div className="hvm__teacher-avatar hvm__teacher-avatar--lg">{getInitials(tName)}</div>
+                  <div>
+                    <div className="hvm__drawer-teacher-name">{tName}</div>
+                    {a?.notes && <div className="hvm__drawer-teacher-notes">{a.notes}</div>}
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {a && canEditProgress ? (
+            <div className="hvm__dm-section">
+              <button type="button" className="hvm__dm-section-toggle" onClick={() => setProgressOpen(o => !o)}>
+                <span className="material-icons">trending_up</span>
+                <span>Cập nhật tiến độ</span>
+                <span className="material-icons hvm__dm-chevron">{progressOpen ? 'expand_less' : 'expand_more'}</span>
+              </button>
+              {progressOpen && (
+                <div className="hvm__dm-section-body">
+                  <div className="hvm__progress-edit">
+                    <label className="hvm__edit-label">
+                      Trạng thái
+                      <select className="hvm__edit-select" value={editStatus}
+                        onChange={e => setEditStatus(e.target.value as typeof editStatus)}>
+                        <option value="waiting">Chờ phân công</option>
+                        <option value="learning">Đang học</option>
+                        <option value="completed">Hoàn thành</option>
+                      </select>
+                    </label>
+                    <label className="hvm__edit-label">
+                      Tiến độ: <strong>{editProgress}%</strong>
+                      <input type="range" min={0} max={100} value={editProgress}
+                        onChange={e => setEditProgress(+e.target.value)} className="hvm__progress-slider" />
+                    </label>
+                    <label className="hvm__edit-label">
+                      Giờ DAT thực hành: <strong>{editDatHours}h</strong>
+                      <input type="number" min={0} step={0.5} value={editDatHours}
+                        onChange={e => setEditDatHours(+e.target.value)} className="hvm__edit-input" />
+                    </label>
+                    <button type="button" className="hvm__btn-save-progress" onClick={handleProgressSave} disabled={progressSaving}>
+                      {progressSaving
+                        ? <><span className="material-icons hvm__spin">sync</span>Đang lưu...</>
+                        : <><span className="material-icons">save</span>Lưu tiến độ</>
+                      }
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          ) : null}
+
+            </div>
+
+            <div className="hvm__dm-col hvm__dm-col--main">
+              <div className="hvm__dm-training">
+                <div className="hvm__dm-training-header">
+                  <span className="material-icons">route</span>
+                  <span>Tiến độ đào tạo</span>
+                </div>
+                <div className="hvm__dm-training-scroll">
+                  <TrainingProgressBlock mode="staff" cccd={item.SoCCCD ?? null} compact />
+                </div>
+              </div>
+
+              <div className="hvm__dm-section hvm__dm-section--flat">
+                <div className="hvm__dm-section-toggle hvm__dm-section-toggle--static">
+                  <span className="material-icons">assignment</span>
+                  <span>Kết quả sát hạch</span>
+                </div>
+                <div className="hvm__dm-section-body">
+                  <KQSHDrawerSection hocVienId={item.id} />
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
     </div>
   );
 };

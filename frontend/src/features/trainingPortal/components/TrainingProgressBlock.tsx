@@ -38,7 +38,7 @@ const TrainingProgressBlock: React.FC<Props> = ({
     setLoading(true);
     setHttpError(null);
     try {
-      const res = await axiosInstance.get<TrainingApiResponse>('/api/training/student', {
+      const res = await axiosInstance.get<TrainingApiResponse>('/api/training/student-cached', {
         params: mode === 'staff' && trimmedCccd ? { cccd: trimmedCccd } : {},
       });
       setPayload(res.data);

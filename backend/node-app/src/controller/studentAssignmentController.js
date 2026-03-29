@@ -1,4 +1,12 @@
 import studentAssignmentService from '../service/studentAssignmentService.js';
+import { ADMIN_ACCOUNT } from '../constants/constants.js';
+
+const canEditAssignmentProgress = (req) => {
+  const name = req.user?.groupWithRoles?.name;
+  if (name === 'Admin' || name === 'SupperAdmin') return true;
+  if (req.user?.email === ADMIN_ACCOUNT.email) return true;
+  return false;
+};
 
 const getAssignments = async (req, res) => {
   const { courseId } = req.query;
@@ -18,8 +26,16 @@ const createAssignment = async (req, res) => {
 
 const updateAssignment = async (req, res) => {
   const { id } = req.params;
-  const { status, progressPercent, datHoursCompleted, notes } = req.body;
-  const data = await studentAssignmentService.updateAssignment(+id, { status, progressPercent, datHoursCompleted, notes });
+  const body = req.body || {};
+  let payload;
+  if (canEditAssignmentProgress(req)) {
+    const { status, progressPercent, datHoursCompleted, notes } = body;
+    payload = { status, progressPercent, datHoursCompleted, notes };
+  } else {
+    const { notes } = body;
+    payload = { notes };
+  }
+  const data = await studentAssignmentService.updateAssignment(+id, payload);
   return res.status(200).json(data);
 };
 

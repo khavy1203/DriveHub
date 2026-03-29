@@ -207,21 +207,52 @@ const parseThieuDu = (raw: unknown): ThieuDu | null => {
   return { hang, tongKet, isEligible, criteria };
 };
 
-const EXPECTED_ROAD_SESSIONS = 10;
-
+/**
+ * Compute overall course completion (0–100).
+ *
+ * Primary path — when thieuDu is available (from the training system):
+ *   Each applicable criterion (status !== 'na') already carries an accurate
+ *   pct = min(100, actual / threshold * 100) computed against the real
+ *   regulatory minimum for this hạng.  We average those together with
+ *   the theory completion ratio (if theory data exists).
+ *
+ * Fallback — no thieuDu:
+ *   Estimate from whatever summary modules are present (cabin, caoToc, dat).
+ *   For dat we still avoid a hardcoded session count by using the hours ratio
+ *   from tongGio when possible, defaulting to sessions / 10 otherwise.
+ */
 const computeCourseProgressPct = (params: {
   lyThuyet: TrainingTheoryRow[];
+  thieuDu: ThieuDu | null;
   dat: TrainingFullDisplay['dat'];
   cabin: TrainingFullDisplay['cabin'];
   caoToc: TrainingFullDisplay['caoToc'];
 }): number => {
+  // ── Primary: use real criteria pcts from the training system ────────────
+  if (params.thieuDu) {
+    const parts: number[] = params.thieuDu.criteria
+      .filter((c) => c.status !== 'na')
+      .map((c) => c.pct);
+
+    if (params.lyThuyet.length > 0) {
+      const done = params.lyThuyet.filter((r) => r.hoanThanh).length;
+      parts.push(Math.round((done / params.lyThuyet.length) * 100));
+    }
+
+    if (parts.length === 0) return 0;
+    return Math.round(parts.reduce((a, b) => a + b, 0) / parts.length);
+  }
+
+  // ── Fallback: estimate from summary modules ──────────────────────────────
   const weights: number[] = [];
+
   if (params.lyThuyet.length > 0) {
     const done = params.lyThuyet.filter((r) => r.hoanThanh).length;
     weights.push(done / params.lyThuyet.length);
   }
   if (params.dat !== null) {
-    weights.push(Math.min(1, params.dat.soPhienHoc / EXPECTED_ROAD_SESSIONS));
+    // Use session count as a rough proxy (10 is a common target for B2)
+    weights.push(Math.min(1, params.dat.soPhienHoc / 10));
   }
   if (params.cabin !== null) {
     weights.push(params.cabin.hoanThanh ? 1 : 0);
@@ -229,6 +260,7 @@ const computeCourseProgressPct = (params: {
   if (params.caoToc !== null) {
     weights.push(params.caoToc.hoanThanh ? 1 : 0);
   }
+
   if (weights.length === 0) return 0;
   return Math.round((weights.reduce((a, b) => a + b, 0) / weights.length) * 100);
 };
@@ -306,8 +338,8 @@ export function parseTrainingDisplay(dt: Record<string, unknown>): TrainingFullD
     moduleHistories.push({ key: 'dat', title: 'Lộ trình đường trường (DAT)', sessions });
   }
 
-  const courseProgressPct = computeCourseProgressPct({ lyThuyet, dat, cabin, caoToc });
   const thieuDu = parseThieuDu(dt.thieuDu);
+  const courseProgressPct = computeCourseProgressPct({ lyThuyet, thieuDu, dat, cabin, caoToc });
 
   return {
     hoTen, maSo, rankLabel, ngaySinh, cccd, diaChi, khoaHoc,

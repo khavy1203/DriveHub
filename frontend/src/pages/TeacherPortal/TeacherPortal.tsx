@@ -73,15 +73,11 @@ const TeacherPortal: React.FC<Props> = ({ embedded = false }) => {
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
 
-  const [expandedId, setExpandedId] = useState<number | null>(null);
-  const [editMap, setEditMap] = useState<Record<number, EditState>>({});
-  const [saving, setSaving] = useState<number | null>(null);
+  const [detailModal, setDetailModal] = useState<Assignment | null>(null);
   const [kqshModal, setKqshModal] = useState<{ hocVienId: number; hoTen: string } | null>(null);
 
   useEffect(() => {
-    if (!isAuthLoading && !isAuthenticated) {
-      navigate('/login');
-    }
+    if (!isAuthLoading && !isAuthenticated) navigate('/login');
   }, [isAuthenticated, isAuthLoading, navigate]);
 
   const fetchMyStudents = useCallback(async () => {
@@ -103,44 +99,6 @@ const TeacherPortal: React.FC<Props> = ({ embedded = false }) => {
   useEffect(() => {
     if (isAuthenticated) fetchMyStudents();
   }, [isAuthenticated, fetchMyStudents]);
-
-  const handleExpand = (id: number, a: Assignment) => {
-    if (expandedId === id) { setExpandedId(null); return; }
-    setExpandedId(id);
-    setEditMap(prev => ({
-      ...prev,
-      [id]: {
-        status: a.status,
-        progressPercent: a.progressPercent,
-        datHoursCompleted: a.datHoursCompleted,
-        notes: a.notes ?? '',
-      },
-    }));
-  };
-
-  const handleSave = async (assignmentId: number) => {
-    const edit = editMap[assignmentId];
-    if (!edit) return;
-    setSaving(assignmentId);
-    try {
-      const res = await axios.put<{ EC: number; EM: string }>(`/api/student-assignment/${assignmentId}`, edit);
-      if (res.data.EC === 0) {
-        toast.success('Đã cập nhật tiến độ');
-        setExpandedId(null);
-        fetchMyStudents();
-      } else {
-        toast.error(res.data.EM || 'Cập nhật thất bại');
-      }
-    } catch {
-      toast.error('Lỗi kết nối server');
-    } finally {
-      setSaving(null);
-    }
-  };
-
-  const updateEdit = (id: number, patch: Partial<EditState>) => {
-    setEditMap(prev => ({ ...prev, [id]: { ...prev[id], ...patch } }));
-  };
 
   const filtered = assignments.filter(a => {
     const name = a.hocVien?.HoTen?.toLowerCase() ?? '';
@@ -169,7 +127,6 @@ const TeacherPortal: React.FC<Props> = ({ embedded = false }) => {
 
   return (
     <div className={embedded ? 'tp tp--embedded' : 'tp'}>
-      {/* ── Top bar (standalone only) ─────────────────────────────────────── */}
       {!embedded && (
         <header className="tp__topbar">
           <div className="tp__brand">
@@ -191,7 +148,6 @@ const TeacherPortal: React.FC<Props> = ({ embedded = false }) => {
       )}
 
       <main className="tp__main">
-        {/* ── Welcome ──────────────────────────────────────────────────────── */}
         <div className="tp__welcome">
           <div>
             <h1>Xin chào, {displayName} 👋</h1>
@@ -199,39 +155,25 @@ const TeacherPortal: React.FC<Props> = ({ embedded = false }) => {
           </div>
         </div>
 
-        {/* ── Stats ────────────────────────────────────────────────────────── */}
+        {/* Stats */}
         <div className="tp__stats">
-          <div className="tp__stat-card">
-            <span className="material-icons">groups</span>
-            <div>
-              <p className="tp__stat-val">{stats.total}</p>
-              <p className="tp__stat-label">Tổng học viên</p>
+          {[
+            { icon: 'groups',       val: stats.total,     label: 'Tổng học viên', mod: '' },
+            { icon: 'school',       val: stats.learning,  label: 'Đang học',       mod: '--learning' },
+            { icon: 'task_alt',     val: stats.completed, label: 'Hoàn thành',     mod: '--done' },
+            { icon: 'hourglass_top',val: stats.waiting,   label: 'Chờ bắt đầu',   mod: '--wait' },
+          ].map(s => (
+            <div key={s.label} className={`tp__stat-card${s.mod ? ' tp__stat-card' + s.mod : ''}`}>
+              <span className="material-icons">{s.icon}</span>
+              <div>
+                <p className="tp__stat-val">{s.val}</p>
+                <p className="tp__stat-label">{s.label}</p>
+              </div>
             </div>
-          </div>
-          <div className="tp__stat-card tp__stat-card--learning">
-            <span className="material-icons">school</span>
-            <div>
-              <p className="tp__stat-val">{stats.learning}</p>
-              <p className="tp__stat-label">Đang học</p>
-            </div>
-          </div>
-          <div className="tp__stat-card tp__stat-card--done">
-            <span className="material-icons">task_alt</span>
-            <div>
-              <p className="tp__stat-val">{stats.completed}</p>
-              <p className="tp__stat-label">Hoàn thành</p>
-            </div>
-          </div>
-          <div className="tp__stat-card tp__stat-card--wait">
-            <span className="material-icons">hourglass_top</span>
-            <div>
-              <p className="tp__stat-val">{stats.waiting}</p>
-              <p className="tp__stat-label">Chờ bắt đầu</p>
-            </div>
-          </div>
+          ))}
         </div>
 
-        {/* ── Filters ──────────────────────────────────────────────────────── */}
+        {/* Filters */}
         <div className="tp__filters">
           <div className="tp__search-wrap">
             <span className="material-icons">search</span>
@@ -261,7 +203,7 @@ const TeacherPortal: React.FC<Props> = ({ embedded = false }) => {
           </div>
         </div>
 
-        {/* ── Student list ─────────────────────────────────────────────────── */}
+        {/* Student list */}
         {loading ? (
           <div className="tp__loading">
             <span className="material-icons tp__spin">sync</span>
@@ -276,178 +218,48 @@ const TeacherPortal: React.FC<Props> = ({ embedded = false }) => {
           <div className="tp__list">
             {filtered.map(a => {
               const hv = a.hocVien;
-              const isExpanded = expandedId === a.id;
-              const edit = editMap[a.id];
               return (
-                <div key={a.id} className={`tp__card ${isExpanded ? 'tp__card--open' : ''}`}>
-                  {/* Card header */}
-                  <div className="tp__card-header" onClick={() => handleExpand(a.id, a)}>
-                    <div className="tp__card-avatar">{getInitials(hv.HoTen)}</div>
-                    <div className="tp__card-info">
-                      <div className="tp__card-name-row">
-                        <span className="tp__card-name">{hv.HoTen}</span>
-                        {hv.loaibangthi && (
-                          <span className="tp__badge tp__badge--license">Hạng {hv.loaibangthi}</span>
-                        )}
-                        <span className={`tp__badge tp__badge--${a.status}`}>
-                          {STATUS_LABEL[a.status]}
+                <div
+                  key={a.id}
+                  className="tp__card"
+                  onClick={() => setDetailModal(a)}
+                  role="button"
+                  tabIndex={0}
+                  onKeyDown={e => e.key === 'Enter' && setDetailModal(a)}
+                  aria-label={`Xem chi tiết ${hv.HoTen}`}
+                >
+                  <div className="tp__card-avatar">{getInitials(hv.HoTen)}</div>
+
+                  <div className="tp__card-info">
+                    <div className="tp__card-name-row">
+                      <span className="tp__card-name">{hv.HoTen}</span>
+                      {hv.loaibangthi && (
+                        <span className="tp__badge tp__badge--license">Hạng {hv.loaibangthi}</span>
+                      )}
+                      <span className={`tp__badge tp__badge--${a.status}`}>
+                        {STATUS_LABEL[a.status]}
+                      </span>
+                      {a.hasKQSH && (
+                        <span className="tp__badge tp__badge--kqsh">
+                          <span className="material-icons">verified</span>Đã sát hạch
                         </span>
-                        {a.hasKQSH && (
-                          <button
-                            type="button"
-                            className="tp__btn-kqsh-inline"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setKqshModal({ hocVienId: hv.id, hoTen: hv.HoTen });
-                            }}
-                          >
-                            <span className="material-icons">check_circle</span>
-                            Đã có dữ liệu sát hạch
-                          </button>
-                        )}
-                      </div>
-                      <div className="tp__card-meta">
-                        {hv.phone && <span><span className="material-icons">phone</span>{hv.phone}</span>}
-                        {hv.email && <span><span className="material-icons">email</span>{hv.email}</span>}
-                        <span><span className="material-icons">calendar_today</span>Từ {formatDate(a.createdAt)}</span>
-                      </div>
+                      )}
                     </div>
-                    <div className="tp__card-progress">
-                      <div className="tp__progress-bar">
-                        <div className="tp__progress-fill" style={{ width: `${a.progressPercent}%` }} />
-                      </div>
-                      <span className="tp__progress-pct">{a.progressPercent}%</span>
+                    <div className="tp__card-meta">
+                      {hv.phone && <span><span className="material-icons">phone</span>{hv.phone}</span>}
+                      {hv.SoCCCD && <span><span className="material-icons">badge</span>{hv.SoCCCD}</span>}
+                      <span><span className="material-icons">calendar_today</span>Từ {formatDate(a.createdAt)}</span>
                     </div>
-                    <button className="tp__expand-btn" aria-label="toggle">
-                      <span className="material-icons">{isExpanded ? 'expand_less' : 'expand_more'}</span>
-                    </button>
                   </div>
 
-                  {/* Expanded edit form */}
-                  {isExpanded && edit && (
-                    <div className="tp__card-body">
-                      <div className="tp__detail-grid">
-                        <div className="tp__detail-item">
-                          <span className="tp__detail-label">Ngày sinh</span>
-                          <span>{formatDate(hv.NgaySinh)}</span>
-                        </div>
-                        <div className="tp__detail-item">
-                          <span className="tp__detail-label">CCCD</span>
-                          <span>{hv.SoCCCD || '—'}</span>
-                        </div>
-                        <div className="tp__detail-item">
-                          <span className="tp__detail-label">Trạng thái HV</span>
-                          <span>{HV_STATUS_LABEL[hv.status] ?? hv.status}</span>
-                        </div>
-                        <div className="tp__detail-item">
-                          <span className="tp__detail-label">Địa chỉ</span>
-                          <span>{hv.DiaChi || '—'}</span>
-                        </div>
-                      </div>
-
-                      <div className="tp__edit-section">
-                        <h4 className="tp__edit-title">
-                          <span className="material-icons">edit</span>
-                          Cập nhật tiến độ
-                        </h4>
-                        <div className="tp__edit-grid">
-                          <div className="tp__edit-field">
-                            <label>Tiến độ ({edit.progressPercent}%)</label>
-                            <input
-                              type="range"
-                              min={0}
-                              max={100}
-                              value={edit.progressPercent}
-                              onChange={e => updateEdit(a.id, { progressPercent: +e.target.value })}
-                              className="tp__slider"
-                            />
-                            <div className="tp__slider-track-label">
-                              <span>0%</span><span>50%</span><span>100%</span>
-                            </div>
-                          </div>
-                          <div className="tp__edit-field">
-                            <label>Trạng thái</label>
-                            <select
-                              value={edit.status}
-                              onChange={e => updateEdit(a.id, { status: e.target.value as Assignment['status'] })}
-                              className="tp__select"
-                            >
-                              <option value="waiting">Chờ bắt đầu</option>
-                              <option value="learning">Đang học</option>
-                              <option value="completed">Hoàn thành</option>
-                            </select>
-                          </div>
-                          <div className="tp__edit-field">
-                            <label>Số giờ DAT</label>
-                            <input
-                              type="number"
-                              min={0}
-                              value={edit.datHoursCompleted}
-                              onChange={e => updateEdit(a.id, { datHoursCompleted: +e.target.value })}
-                              className="tp__input"
-                            />
-                          </div>
-                          <div className="tp__edit-field tp__edit-field--full">
-                            <label>Ghi chú</label>
-                            <textarea
-                              value={edit.notes}
-                              onChange={e => updateEdit(a.id, { notes: e.target.value })}
-                              className="tp__textarea"
-                              rows={2}
-                              placeholder="Nhận xét về tiến độ học viên..."
-                            />
-                          </div>
-                        </div>
-                        <div className="tp__edit-actions">
-                          <button
-                            className="tp__btn-cancel"
-                            onClick={() => setExpandedId(null)}
-                          >
-                            Huỷ
-                          </button>
-                          <button
-                            className="tp__btn-save"
-                            onClick={() => handleSave(a.id)}
-                            disabled={saving === a.id}
-                          >
-                            {saving === a.id
-                              ? <><span className="material-icons tp__spin">sync</span>Đang lưu...</>
-                              : <><span className="material-icons">save</span>Lưu tiến độ</>
-                            }
-                          </button>
-                        </div>
-                      </div>
-
-                      <div className="tp__chat-section">
-                        <h4 className="tp__edit-title">
-                          <span className="material-icons">chat</span>
-                          Chat với học viên
-                        </h4>
-                        <ChatPanel
-                          assignmentId={a.id}
-                          label={`Chat với ${hv.HoTen}`}
-                        />
-                      </div>
-
-                      <div className="tp__kqsh-section">
-                        <button
-                          className="tp__btn-kqsh"
-                          onClick={() => setKqshModal({ hocVienId: hv.id, hoTen: hv.HoTen })}
-                        >
-                          <span className="material-icons">assignment</span>
-                          Xem kết quả sát hạch
-                        </button>
-                      </div>
-
-                      <div className="tp__training-section">
-                        <h4 className="tp__edit-title">
-                          <span className="material-icons">route</span>
-                          Tiến độ đào tạo (CCCD)
-                        </h4>
-                        <TrainingProgressBlock mode="staff" cccd={hv.SoCCCD ?? null} compact />
-                      </div>
+                  <div className="tp__card-progress">
+                    <div className="tp__progress-bar">
+                      <div className="tp__progress-fill" style={{ width: `${a.progressPercent}%` }} />
                     </div>
-                  )}
+                    <span className="tp__progress-pct">{a.progressPercent}%</span>
+                  </div>
+
+                  <span className="tp__card-arrow material-icons">chevron_right</span>
                 </div>
               );
             })}
@@ -455,18 +267,250 @@ const TeacherPortal: React.FC<Props> = ({ embedded = false }) => {
         )}
       </main>
 
-      {kqshModal && <KQSHModal hocVienId={kqshModal.hocVienId} hoTen={kqshModal.hoTen} onClose={() => setKqshModal(null)} />}
+      {/* Student detail modal */}
+      {detailModal && (
+        <StudentDetailModal
+          assignment={detailModal}
+          onClose={() => setDetailModal(null)}
+          onSaved={() => { fetchMyStudents(); setDetailModal(null); }}
+          onKqsh={hv => setKqshModal({ hocVienId: hv.id, hoTen: hv.HoTen })}
+        />
+      )}
+
+      {/* KQSH modal */}
+      {kqshModal && (
+        <KQSHModal
+          hocVienId={kqshModal.hocVienId}
+          hoTen={kqshModal.hoTen}
+          onClose={() => setKqshModal(null)}
+        />
+      )}
     </div>
   );
 };
+
+/* ── Student Detail Modal ──────────────────────────────────────────────────── */
+
+type DetailModalProps = {
+  assignment: Assignment;
+  onClose: () => void;
+  onSaved: () => void;
+  onKqsh: (hv: HocVien) => void;
+};
+
+const canEditAssignmentProgressRole = (role: string | null): boolean =>
+  role === 'Admin' || role === 'SupperAdmin';
+
+const StudentDetailModal: React.FC<DetailModalProps> = ({ assignment: a, onClose, onSaved, onKqsh }) => {
+  const { role } = useAuth();
+  const canEditProgress = canEditAssignmentProgressRole(role);
+  const hv = a.hocVien;
+
+  const [edit, setEdit] = useState<EditState>({
+    status: a.status,
+    progressPercent: a.progressPercent,
+    datHoursCompleted: a.datHoursCompleted,
+    notes: a.notes ?? '',
+  });
+  const [saving, setSaving] = useState(false);
+  const [editOpen, setEditOpen] = useState(false);
+  const [chatOpen, setChatOpen] = useState(false);
+
+  const updateEdit = (patch: Partial<EditState>) => setEdit(prev => ({ ...prev, ...patch }));
+
+  const handleSave = async () => {
+    setSaving(true);
+    try {
+      const payload = canEditProgress
+        ? edit
+        : { notes: edit.notes };
+      const res = await axios.put<{ EC: number; EM: string }>(`/api/student-assignment/${a.id}`, payload);
+      if (res.data.EC === 0) {
+        toast.success(canEditProgress ? 'Đã cập nhật tiến độ' : 'Đã lưu ghi chú');
+        onSaved();
+      } else {
+        toast.error(res.data.EM || 'Cập nhật thất bại');
+      }
+    } catch {
+      toast.error('Lỗi kết nối server');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <div className="tp__overlay" onClick={onClose} role="dialog" aria-modal="true">
+      <div className="tp__detail-modal" onClick={e => e.stopPropagation()}>
+        {/* Modal header */}
+        <div className="tp__dm-header">
+          <div className="tp__dm-header-left">
+            <div className="tp__dm-avatar">{getInitials(hv.HoTen)}</div>
+            <div>
+              <div className="tp__dm-name-row">
+                <h2 className="tp__dm-name">{hv.HoTen}</h2>
+                {hv.loaibangthi && (
+                  <span className="tp__badge tp__badge--license">Hạng {hv.loaibangthi}</span>
+                )}
+                <span className={`tp__badge tp__badge--${a.status}`}>{STATUS_LABEL[a.status]}</span>
+              </div>
+              <div className="tp__dm-sub">
+                {hv.SoCCCD && <span><span className="material-icons">badge</span>{hv.SoCCCD}</span>}
+                {hv.phone && <span><span className="material-icons">phone</span>{hv.phone}</span>}
+                {hv.DiaChi && <span><span className="material-icons">location_on</span>{hv.DiaChi}</span>}
+              </div>
+            </div>
+          </div>
+          <div className="tp__dm-header-actions">
+            {a.hasKQSH && (
+              <button
+                className="tp__btn-kqsh"
+                onClick={() => onKqsh(hv)}
+              >
+                <span className="material-icons">assignment</span>
+                Kết quả sát hạch
+              </button>
+            )}
+            <button className="tp__dm-close" onClick={onClose} aria-label="Đóng">
+              <span className="material-icons">close</span>
+            </button>
+          </div>
+        </div>
+
+        {/* Modal scrollable body */}
+        <div className="tp__dm-body">
+          {/* Quick info row */}
+          <div className="tp__dm-info-grid">
+            <div className="tp__dm-info-item">
+              <span className="tp__dm-info-label">Ngày sinh</span>
+              <span className="tp__dm-info-val">{formatDate(hv.NgaySinh)}</span>
+            </div>
+            <div className="tp__dm-info-item">
+              <span className="tp__dm-info-label">Trạng thái HV</span>
+              <span className="tp__dm-info-val">{HV_STATUS_LABEL[hv.status] ?? hv.status}</span>
+            </div>
+            <div className="tp__dm-info-item">
+              <span className="tp__dm-info-label">Tiến độ phân công</span>
+              <span className="tp__dm-info-val">{a.progressPercent}%</span>
+            </div>
+            <div className="tp__dm-info-item">
+              <span className="tp__dm-info-label">Từ ngày</span>
+              <span className="tp__dm-info-val">{formatDate(a.createdAt)}</span>
+            </div>
+          </div>
+
+          <div className="tp__dm-section">
+            <button
+              type="button"
+              className="tp__dm-section-toggle"
+              onClick={() => setEditOpen(o => !o)}
+            >
+              <span className="material-icons">edit_note</span>
+              <span>{canEditProgress ? 'Cập nhật tiến độ' : 'Ghi chú phân công'}</span>
+              <span className="material-icons tp__dm-chevron">{editOpen ? 'expand_less' : 'expand_more'}</span>
+            </button>
+            {editOpen && (
+              <div className="tp__dm-section-body">
+                <div className="tp__edit-grid">
+                  {canEditProgress ? (
+                    <>
+                      <div className="tp__edit-field">
+                        <label>Tiến độ ({edit.progressPercent}%)</label>
+                        <input
+                          type="range" min={0} max={100}
+                          value={edit.progressPercent}
+                          onChange={e => updateEdit({ progressPercent: +e.target.value })}
+                          className="tp__slider"
+                        />
+                        <div className="tp__slider-track-label">
+                          <span>0%</span><span>50%</span><span>100%</span>
+                        </div>
+                      </div>
+                      <div className="tp__edit-field">
+                        <label>Trạng thái</label>
+                        <select
+                          value={edit.status}
+                          onChange={e => updateEdit({ status: e.target.value as Assignment['status'] })}
+                          className="tp__select"
+                        >
+                          <option value="waiting">Chờ bắt đầu</option>
+                          <option value="learning">Đang học</option>
+                          <option value="completed">Hoàn thành</option>
+                        </select>
+                      </div>
+                      <div className="tp__edit-field">
+                        <label>Số giờ DAT</label>
+                        <input
+                          type="number" min={0}
+                          value={edit.datHoursCompleted}
+                          onChange={e => updateEdit({ datHoursCompleted: +e.target.value })}
+                          className="tp__input"
+                        />
+                      </div>
+                    </>
+                  ) : null}
+                  <div className="tp__edit-field tp__edit-field--full">
+                    <label>Ghi chú</label>
+                    <textarea
+                      value={edit.notes}
+                      onChange={e => updateEdit({ notes: e.target.value })}
+                      className="tp__textarea"
+                      rows={canEditProgress ? 2 : 4}
+                      placeholder={canEditProgress ? 'Nhận xét về tiến độ học viên...' : 'Ghi chú về học viên (chỉ Admin mới chỉnh % tiến độ, trạng thái, giờ DAT).'}
+                    />
+                  </div>
+                </div>
+                <div className="tp__edit-actions">
+                  <button type="button" className="tp__btn-cancel" onClick={() => setEditOpen(false)}>Huỷ</button>
+                  <button type="button" className="tp__btn-save" onClick={handleSave} disabled={saving}>
+                    {saving
+                      ? <><span className="material-icons tp__spin">sync</span>Đang lưu...</>
+                      : <><span className="material-icons">save</span>{canEditProgress ? 'Lưu tiến độ' : 'Lưu ghi chú'}</>
+                    }
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Collapsible: Chat */}
+          <div className="tp__dm-section">
+            <button
+              className="tp__dm-section-toggle"
+              onClick={() => setChatOpen(o => !o)}
+            >
+              <span className="material-icons">chat</span>
+              <span>Chat với học viên</span>
+              <span className="material-icons tp__dm-chevron">{chatOpen ? 'expand_less' : 'expand_more'}</span>
+            </button>
+            {chatOpen && (
+              <div className="tp__dm-section-body">
+                <ChatPanel assignmentId={a.id} label={`Chat với ${hv.HoTen}`} />
+              </div>
+            )}
+          </div>
+
+          {/* Training info — always visible, this is the main purpose of the modal */}
+          <div className="tp__dm-training">
+            <div className="tp__dm-training-header">
+              <span className="material-icons">route</span>
+              <span>Tiến độ đào tạo</span>
+            </div>
+            <TrainingProgressBlock mode="staff" cccd={hv.SoCCCD ?? null} compact />
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+/* ── KQSH Modal ─────────────────────────────────────────────────────────────── */
 
 type KQSHModalProps = { hocVienId: number; hoTen: string; onClose: () => void };
 
 const KQSHModal: React.FC<KQSHModalProps> = ({ hocVienId, hoTen, onClose }) => {
   const { data, loading, error } = useKQSHByStudent(hocVienId, 'teacher');
-
   return (
-    <div className="tp__overlay" onClick={onClose}>
+    <div className="tp__overlay tp__overlay--above" onClick={onClose}>
       <div className="tp__kqsh-modal" onClick={e => e.stopPropagation()}>
         <div className="tp__kqsh-modal-header">
           <div>

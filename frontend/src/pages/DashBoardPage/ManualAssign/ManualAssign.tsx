@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useCallback, useMemo } from 'react';
 import useApiService from '../../../services/useApiService';
+import { useAuth } from '../../../features/auth/hooks/useAuth';
 import './ManualAssign.scss';
 
 type Teacher = { id: number; username: string; email: string };
@@ -43,8 +44,13 @@ const formatDate = (raw?: string) => {
   try { return new Date(raw).toLocaleDateString('vi-VN'); } catch { return raw; }
 };
 
+const canEditAssignmentProgressRole = (role: string | null): boolean =>
+  role === 'Admin' || role === 'SupperAdmin';
+
 const ManualAssign: React.FC = () => {
   const { get, post, put } = useApiService();
+  const { role } = useAuth();
+  const canEditProgress = canEditAssignmentProgressRole(role);
 
   const [teachers, setTeachers] = useState<Teacher[]>([]);
   const [students, setStudents] = useState<HocVien[]>([]);
@@ -168,7 +174,7 @@ const ManualAssign: React.FC = () => {
   };
 
   const handleProgressSave = async () => {
-    if (!drawerStudent?.assignment) return;
+    if (!drawerStudent?.assignment || !canEditProgress) return;
     setProgressSaving(true);
     try {
       await put<{ EC: number }>(`/api/student-assignment/${drawerStudent.assignment.id}`, {
@@ -528,7 +534,7 @@ const ManualAssign: React.FC = () => {
               )}
             </div>
 
-            {drawerStudent.assignment && (
+            {drawerStudent.assignment && canEditProgress ? (
               <div className="ma__drawer-section">
                 <h5 className="ma__drawer-section-title">Cập nhật tiến độ</h5>
                 <div className="ma__progress-edit">
@@ -567,6 +573,7 @@ const ManualAssign: React.FC = () => {
                     />
                   </label>
                   <button
+                    type="button"
                     className="ma__btn-save-progress"
                     onClick={handleProgressSave}
                     disabled={progressSaving}
@@ -578,7 +585,7 @@ const ManualAssign: React.FC = () => {
                   </button>
                 </div>
               </div>
-            )}
+            ) : null}
           </div>
         </aside>
       )}
