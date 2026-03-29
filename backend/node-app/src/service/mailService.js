@@ -14,6 +14,16 @@ const createTransporter = () => {
 
 const isConfigured = () => !!(process.env.MAIL_USER && process.env.MAIL_PASS && process.env.MAIL_HOST);
 
+const escapeHtml = (s) =>
+  String(s)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+
+const getContactNotifyTo = () =>
+  process.env.CONTACT_NOTIFY_EMAIL?.trim() || process.env.MAIL_USER?.trim() || '';
+
 // ── Gửi link thiết lập mật khẩu lần đầu ─────────────────────────────────────
 const sendSetupEmail = async ({ toEmail, hoTen, setupLink, role = 'học viên' }) => {
   if (!isConfigured()) {
@@ -124,4 +134,41 @@ const sendResetEmail = async ({ toEmail, hoTen, setupLink }) => {
   }
 };
 
-export default { sendSetupEmail, sendHocVienCredentials, sendResetEmail };
+const sendContactLeadNotification = async ({ name, phone, email }) => {
+  if (!isConfigured()) {
+    console.warn('[mailService] SMTP not configured — skip contact lead email');
+    return { ok: false, reason: 'not_configured' };
+  }
+  const to = getContactNotifyTo();
+  if (!to) {
+    console.warn('[mailService] CONTACT_NOTIFY_EMAIL / MAIL_USER missing — skip contact lead email');
+    return { ok: false, reason: 'no_recipient' };
+  }
+  try {
+    const transporter = createTransporter();
+    const safeName = escapeHtml(name);
+    const safePhone = escapeHtml(phone);
+    const safeEmail = email ? escapeHtml(email) : '';
+    await transporter.sendMail({
+      from: `"DriveHub" <${process.env.MAIL_USER}>`,
+      to,
+      subject: `[DriveHub] New contact: ${String(name).replace(/[\r\n]/g, ' ')}`.slice(0, 200),
+      html: `
+        <div style="font-family:sans-serif;max-width:480px;margin:auto;padding:24px;border:1px solid #e0e0e0;border-radius:8px">
+          <h2 style="color:#00685d;margin-top:0">Website contact form</h2>
+          <p><strong>Name:</strong> ${safeName}</p>
+          <p><strong>Phone:</strong> ${safePhone}</p>
+          ${safeEmail ? `<p><strong>Email:</strong> ${safeEmail}</p>` : ''}
+          <hr style="border:none;border-top:1px solid #e0e0e0;margin:20px 0"/>
+          <p style="font-size:12px;color:#9e9e9e">Sent automatically from DriveHub public contact.</p>
+        </div>
+      `,
+    });
+    return { ok: true };
+  } catch (e) {
+    console.error('[mailService.sendContactLeadNotification]', e.message);
+    return { ok: false, reason: e.message };
+  }
+};
+
+export default { sendSetupEmail, sendHocVienCredentials, sendResetEmail, sendContactLeadNotification };

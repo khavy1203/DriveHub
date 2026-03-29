@@ -1,4 +1,5 @@
 import React from 'react';
+import { getContactTelHref, isMobileDevice } from './contactUtils';
 import './mainpages.scss';
 
 const plans = [
@@ -6,8 +7,8 @@ const plans = [
     name: 'Hạng B2',
     icon: 'directions_car',
     iconClass: '--1',
-    original: '20,000,000 VND',
-    price: '17,000,000',
+    original: '21,000,000 VND',
+    price: '19,000,000',
     features: [
       'Bao gồm tập thiết bị',
       'Học lý thuyết online',
@@ -20,8 +21,8 @@ const plans = [
     name: 'Hạng B11',
     icon: 'directions_bus',
     iconClass: '--2',
-    original: '20,000,000 VND',
-    price: '17,000,000',
+    original: '21,000,000 VND',
+    price: '19,000,000',
     features: [
       'Bao gồm tập thiết bị',
       'Học lý thuyết online',
@@ -31,10 +32,10 @@ const plans = [
     featured: true,
   },
   {
-    name: 'Hạng C',
+    name: 'Hạng C1',
     icon: 'local_shipping',
     iconClass: '--3',
-    original: '24,000,000 VND',
+    original: '23,000,000 VND',
     price: '21,000,000',
     features: [
       'Bao gồm tập thiết bị',
@@ -45,11 +46,11 @@ const plans = [
     featured: false,
   },
   {
-    name: 'Hạng FC',
+    name: 'Hạng CE',
     icon: 'airport_shuttle',
     iconClass: '--4',
-    original: '25,000,000 VND',
-    price: '20,000,000',
+    original: '19,000,000 VND',
+    price: '17,000,000',
     features: [
       'Bao gồm tập thiết bị',
       'Học lý thuyết online',
@@ -61,6 +62,8 @@ const plans = [
 ];
 
 const Pricing: React.FC = () => {
+  const telHref = getContactTelHref();
+
   return (
     <section id="pricing" className="hp-pricing hp-section">
       <div className="hp-container">
@@ -107,7 +110,7 @@ const Pricing: React.FC = () => {
               </ul>
 
               <a
-                href="#contact"
+                href={isMobileDevice() ? telHref : '#contact'}
                 className={`hp-btn${plan.featured ? ' hp-btn--primary' : ' hp-btn--dark'}`}
                 style={{ width: '100%', justifyContent: 'center' }}
               >

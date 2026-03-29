@@ -52,6 +52,7 @@ jobs:
             REACT_APP_MEZON_AUTHORIZE_URL=${{ secrets.REACT_APP_MEZON_AUTHORIZE_URL }}
             REACT_APP_MEZON_SCOPE=openid offline
             REACT_APP_BUILD=production
+            REACT_APP_CONTACT_PHONE=${{ secrets.REACT_APP_CONTACT_PHONE }}
 
   # ─────────────────────────────────────────────
   # JOB 2: Build & push Backend image
@@ -166,6 +167,7 @@ jobs:
                   - MAIL_SECURE=${MAIL_SECURE:-false}
                   - MAIL_USER=${MAIL_USER}
                   - MAIL_PASS=${MAIL_PASS}
+                  - CONTACT_NOTIFY_EMAIL=${CONTACT_NOTIFY_EMAIL}
                 volumes:
                   - backend_upload:/app/build/upload
                 depends_on:
@@ -235,6 +237,7 @@ jobs:
             MAIL_SECURE=${{ secrets.MAIL_SECURE }}
             MAIL_USER=${{ secrets.MAIL_USER }}
             MAIL_PASS=${{ secrets.MAIL_PASS }}
+            CONTACT_NOTIFY_EMAIL=${{ secrets.CONTACT_NOTIFY_EMAIL }}
             ENVEOF
 
             # Stop containers cũ (giải phóng ports trước khi pull)

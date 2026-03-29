@@ -40,6 +40,7 @@ import {
 } from "../controller/permissionController";
 import { getTrainingStudent, getTrainingAvatar, getTrainingSessionDetail } from "../controller/trainingPortalController";
 import { getTrainingStudentCached, triggerSyncAll, getTrainingSyncStatus } from "../controller/trainingSyncController";
+import contactLeadController from "../controller/contactLeadController";
 
 
 const routes = express.Router();
@@ -96,6 +97,7 @@ const initWebRoutes = (app) => {
     routes.post('/gplx/lookup', gplxController.lookupGPLX);
     routes.post('/mezon/exchange', mezonController.exchangeCode);
     routes.get('/public/teachers', teacherProfileController.getPublicTeachers);
+    routes.post('/public/contact-lead', contactLeadController.submitContactLead);
 
     // ── Public routes (không cần đăng nhập) — dùng cho thi ──────────────────
     routes.get("/students", userStatusController.getInfoStudents);
