@@ -1,6 +1,7 @@
 import express from 'express';
 import compression from 'compression';
 import initWebRoutes from './routes/web';
+import { ensureApiEndpointsBootstrapped } from './bootstrap/apiEndpointBootstrap.js';
 import bodyParser from 'body-parser';
 import configCors from './config/cors';
 import cookieParser from 'cookie-parser';
@@ -87,7 +88,15 @@ process.on('unhandledRejection', (reason) => {
 });
 
 const PORT = process.env.PORT || 8080;
-server.listen(PORT, '0.0.0.0', () => {
-    console.log(`[INFO] Server started on port ${PORT} | NODE_ENV=${process.env.NODE_ENV}`);
-    console.log(`[INFO] DB_HOST=${process.env.DB_HOST} DB_DATABASE=${process.env.DB_DATABASE}`);
-});
+
+(async () => {
+    try {
+        await ensureApiEndpointsBootstrapped();
+    } catch (e) {
+        console.error('[api_endpoint] Bootstrap failed:', e?.message || e);
+    }
+    server.listen(PORT, '0.0.0.0', () => {
+        console.log(`[INFO] Server started on port ${PORT} | NODE_ENV=${process.env.NODE_ENV}`);
+        console.log(`[INFO] DB_HOST=${process.env.DB_HOST} DB_DATABASE=${process.env.DB_DATABASE}`);
+    });
+})();

@@ -33,6 +33,7 @@ const ADMIN_NAV_ITEMS: NavItem[] = [
       { label: 'Import bộ ôn tập', icon: 'file_upload', to: '/dashboard/exam-sets-import' },
     ],
   },
+  { label: 'Phân quyền', icon: 'admin_panel_settings', to: '/dashboard/phan-quyen' },
   { label: 'Tra cứu GPLX', icon: 'manage_search', to: '/license-check' },
 ];
 

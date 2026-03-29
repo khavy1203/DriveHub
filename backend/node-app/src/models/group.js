@@ -13,6 +13,12 @@ module.exports = (sequelize, DataTypes) => {
                 through: "group_role",
                 foreignKey: "groupId",
             });
+            group.belongsToMany(models.api_endpoint, {
+                through: models.group_api,
+                foreignKey: 'groupId',
+                otherKey: 'apiEndpointId',
+                as: 'apiEndpoints',
+            });
         }
     }
 

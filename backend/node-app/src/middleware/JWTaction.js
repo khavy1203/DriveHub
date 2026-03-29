@@ -87,29 +87,47 @@ const checkUserJwt = async (req, res, next) => {
     }
 }
 
-const checkUserPermission = (req, res, next) => {
+const checkUserPermission = async (req, res, next) => {
+    if (req.method === 'OPTIONS') return next();
     if (req.method === 'GET') return next();
-    if (nonSecurePaths.includes(req.path) || req.path === "/account") return next();
+    if (nonSecurePaths.includes(req.path) || req.path === '/account') return next();
 
-    if (req.user) {
-        let email = req.user.email;
-        if (email === ADMIN_ACCOUNT.email) return next();
-
-        let roles = req.user.groupWithRoles.Roles;
-        let currentUrl = req.path;
-        
-        if (!roles || roles.length == 0) {
-            return res.status(403).json({ EC: -1, DT: '', EM: 'Bạn chưa được Admin cho phép quyền truy cập' });
-        }
-
-        let canAccess = roles.some(item => item.url === currentUrl || currentUrl.includes(item.url));
-        if (canAccess) {
-            return next();
-        } else {
-            return res.status(403).json({ EC: -1, DT: '', EM: 'Bạn chưa được Admin cho phép quyền truy cập' });
-        }
-    } else {
+    if (!req.user) {
         return res.status(401).json({ EC: -1, DT: '', EM: 'Không thể xác thực người dùng' });
+    }
+
+    if (req.user.email === ADMIN_ACCOUNT.email) return next();
+
+    // SupperAdmin: full access — bypass API registry + group_api (still subject to JWT + route registration).
+    if (req.user.groupWithRoles?.name === 'SupperAdmin') return next();
+
+    const groupId = req.user.groupWithRoles?.id;
+    if (!groupId) {
+        return res.status(403).json({ EC: -1, DT: '', EM: 'Bạn chưa được Admin cho phép quyền truy cập' });
+    }
+
+    try {
+        const db = require('../models');
+        const { getCachedActiveEndpoints, matchEndpoint } = require('./apiEndpointCache.js');
+        const endpoints = await getCachedActiveEndpoints(db);
+        const requestPath = (req.originalUrl || '').split('?')[0];
+        const matched = matchEndpoint(endpoints, req.method, requestPath);
+
+        if (!matched) {
+            return res.status(403).json({ EC: -1, DT: '', EM: 'API chưa được đăng ký trong hệ thống' });
+        }
+
+        if (matched.isPublic === true || matched.isPublic === 1) return next();
+
+        const row = await db.group_api.findOne({
+            where: { groupId, apiEndpointId: matched.id },
+        });
+        if (row) return next();
+
+        return res.status(403).json({ EC: -1, DT: '', EM: 'Bạn không có quyền thực hiện thao tác này' });
+    } catch (err) {
+        console.error('[checkUserPermission] DB error:', err.message);
+        return res.status(500).json({ EC: -1, DT: '', EM: 'Lỗi kiểm tra quyền' });
     }
 };
 

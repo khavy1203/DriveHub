@@ -30,6 +30,14 @@ import reviewSetController from "../controller/reviewSetController";
 import examSetImportController from "../controller/examSetImportController";
 import chatController from "../controller/chatController";
 import { triggerSync, getMyKQSH, testMssqlConnection, getHocVienKQSH, getTeacherStudentKQSH } from "../controller/kqshController";
+import {
+  getGroups, createGroup, updateGroup, deleteGroup,
+  getRoles, createRole, updateRole, deleteRole,
+  getGroupRoles, setGroupRoles,
+  getPermissionUsers, setUserGroup,
+  syncApiEndpoints, getApiEndpoints, updateApiEndpoint,
+  getGroupApiMatrix, setGroupApiPermissions,
+} from "../controller/permissionController";
 
 
 const routes = express.Router();
@@ -170,6 +178,29 @@ const initWebRoutes = (app) => {
     routes.get("/student-portal/ket-qua-sat-hanh", getMyKQSH);
     routes.post("/admin/kqsh/sync", triggerSync);
     routes.get("/admin/kqsh/test-connection", testMssqlConnection);
+
+    // ── Permissions management ────────────────────────────────────────────────
+    routes.get("/admin/permissions/groups", getGroups);
+    routes.post("/admin/permissions/groups", createGroup);
+    routes.put("/admin/permissions/groups/:id", updateGroup);
+    routes.delete("/admin/permissions/groups/:id", deleteGroup);
+
+    routes.get("/admin/permissions/roles", getRoles);
+    routes.post("/admin/permissions/roles", createRole);
+    routes.put("/admin/permissions/roles/:id", updateRole);
+    routes.delete("/admin/permissions/roles/:id", deleteRole);
+
+    routes.get("/admin/permissions/groups/:id/roles", getGroupRoles);
+    routes.put("/admin/permissions/groups/:id/roles", setGroupRoles);
+
+    routes.get("/admin/permissions/users", getPermissionUsers);
+    routes.put("/admin/permissions/users/:id/group", setUserGroup);
+
+    routes.get("/admin/permissions/api-endpoints", getApiEndpoints);
+    routes.post("/admin/permissions/api-endpoints/sync", syncApiEndpoints);
+    routes.put("/admin/permissions/api-endpoints/:id", updateApiEndpoint);
+    routes.get("/admin/permissions/group-api", getGroupApiMatrix);
+    routes.put("/admin/permissions/group-api", setGroupApiPermissions);
 
     //file 
     routes.post("/file/namestandardizationfile", fileController.nameStandardizationFile);

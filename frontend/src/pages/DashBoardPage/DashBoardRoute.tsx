@@ -22,6 +22,7 @@ import ManualAssign from './ManualAssign/ManualAssign';
 import DangKyHocVien from './DangKyHocVien/DangKyHocVien';
 import ChatPage from './ChatPage/ChatPage';
 import KQSHPage from './KQSHPage/KQSHPage';
+import PermissionPage from './PermissionPage/PermissionPage';
 import { StudentsList } from '../../features/student';
 
 const DashBoardRoute: React.FC = () => {
@@ -57,6 +58,9 @@ const DashBoardRoute: React.FC = () => {
 
         {/* Kết quả sát hạch */}
         <Route path="/ket-qua-sat-hanh" element={<KQSHPage />} />
+
+        {/* Phân quyền — Admin/SupperAdmin */}
+        {!isStudent && <Route path="/phan-quyen" element={<PermissionPage />} />}
 
         {/* Chat */}
         <Route path="/chat" element={<ChatPage />} />
