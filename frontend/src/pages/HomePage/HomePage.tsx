@@ -9,12 +9,17 @@ import Pricing from './Pricing';
 import Contact from './Contact';
 import FooterDesc from './FooterDesc';
 
+const DEFAULT_AVATAR = 'https://gravatar.com/avatar/d302cbc4526bf50e64befe198736824c?s=400&d=robohash&r=x';
+
+/*
+ * Helpers for mobile auto Mezon OAuth redirect — keep commented together with
+ * autoLoginTriggeredRef + useEffect inside HomePage to restore the feature.
+ *
 const MOBILE_USER_AGENT_REGEX = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i;
 const OAUTH_STATE_ALPHABET = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
 
 const isMobile = (): boolean => MOBILE_USER_AGENT_REGEX.test(navigator.userAgent || '');
 const hasAuthToken = (): boolean => Boolean(sessionStorage.getItem('auth_token'));
-const DEFAULT_AVATAR = 'https://gravatar.com/avatar/d302cbc4526bf50e64befe198736824c?s=400&d=robohash&r=x';
 
 const buildMezonAuthorizeUrl = (): string | null => {
   const mezonClientId = process.env.REACT_APP_MEZON_CLIENT_ID;
@@ -42,11 +47,13 @@ const buildMezonAuthorizeUrl = (): string | null => {
 
   return `${authorizeUrl}?${params.toString()}`;
 };
+ */
 
 const HomePage: React.FC = () => {
   const [isMenuOpen, setIsMenuOpen] = React.useState(false);
-  const { isAuthenticated, isAuthLoading, displayName, avatarUrl, logout } = useAuth();
-  const autoLoginTriggeredRef = React.useRef<boolean>(false);
+  const { isAuthenticated, displayName, avatarUrl, logout } = useAuth();
+  // Mobile auto Mezon OAuth redirect — disabled; uncomment block below to restore.
+  // const autoLoginTriggeredRef = React.useRef<boolean>(false);
 
   const displayUserName = displayName || 'Nguoi dung';
   const resolvedAvatar = avatarUrl || DEFAULT_AVATAR;
@@ -85,15 +92,15 @@ const HomePage: React.FC = () => {
     window.location.href = '/#/login';
   };
 
-  React.useEffect(() => {
-    if (autoLoginTriggeredRef.current) return;
-    if (isAuthLoading) return;
-    autoLoginTriggeredRef.current = true;
-    if (!isMobile() || isAuthenticated || hasAuthToken()) return;
-    const oauthUrl = buildMezonAuthorizeUrl();
-    if (!oauthUrl) return;
-    window.location.href = oauthUrl;
-  }, [isAuthenticated, isAuthLoading]);
+  // React.useEffect(() => {
+  //   if (autoLoginTriggeredRef.current) return;
+  //   if (isAuthLoading) return;
+  //   autoLoginTriggeredRef.current = true;
+  //   if (!isMobile() || isAuthenticated || hasAuthToken()) return;
+  //   const oauthUrl = buildMezonAuthorizeUrl();
+  //   if (!oauthUrl) return;
+  //   window.location.href = oauthUrl;
+  // }, [isAuthenticated, isAuthLoading]);
 
   return (
     <>
