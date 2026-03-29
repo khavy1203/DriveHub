@@ -39,6 +39,7 @@ export const API_REGISTRY = [
   P('POST', '/api/hocvien/register', 'Học viên', 'Register học viên'),
   P('POST', '/api/hocvien/send-credentials', 'Học viên', 'Send credentials'),
   P('PUT', '/api/hocvien', 'Học viên', 'Update học viên', false, '/api/hocvien/:id'),
+  P('PUT', '/api/hocvien/portal/profile', 'Học viên', 'Student update own profile'),
   P('DELETE', '/api/hocvien', 'Học viên', 'Delete học viên', false, '/api/hocvien/:id'),
 
   P('GET', '/api/student-assignment', 'Phân công', 'List assignments'),
@@ -65,6 +66,7 @@ export const API_REGISTRY = [
   P('GET', '/api/training/session-detail', 'Đào tạo', 'Proxy lộ trình GPS phiên học', false, '/api/training/session-detail'),
   P('GET', '/api/training/student-cached', 'Đào tạo', 'Tiến độ học viên (cached)', false, '/api/training/student-cached'),
   P('POST', '/api/training/sync-all', 'Đào tạo', 'Đồng bộ toàn bộ dữ liệu đào tạo'),
+  P('POST', '/api/training/import-cccd', 'Đào tạo', 'Import học viên theo CCCD từ CSĐT'),
   P('GET', '/api/training/sync-status', 'Đào tạo', 'Trạng thái đồng bộ dữ liệu đào tạo'),
 
   P('POST', '/api/admin/kqsh/sync', 'KQSH', 'Sync KQSH'),

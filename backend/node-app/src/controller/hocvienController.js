@@ -80,4 +80,21 @@ const updateHocVienInfo = async (req, res) => {
   return res.status(result.EC === 0 ? 200 : result.EC === 1 ? 404 : 500).json(result);
 };
 
-export default { registerStudent, listHocVien, deleteHocVien, getPortalData, sendCredentials, uploadAvatar, updateHocVienInfo };
+const resetPassword = async (req, res) => {
+  const { id } = req.params;
+  const { newPassword } = req.body;
+  if (!newPassword || newPassword.length < 4) {
+    return res.status(400).json({ EM: 'Mật khẩu phải có ít nhất 4 ký tự', EC: -1, DT: null });
+  }
+  const result = await hocvienService.adminResetPassword(+id, newPassword);
+  return res.status(result.EC === 0 ? 200 : result.EC === 1 ? 404 : 500).json(result);
+};
+
+const updateOwnProfile = async (req, res) => {
+  const userId = await resolveUserId(req);
+  if (!userId) return res.status(401).json({ EM: 'Chưa đăng nhập', EC: -1, DT: null });
+  const result = await hocvienService.updateOwnProfile(userId, req.body);
+  return res.status(result.EC === 0 ? 200 : 500).json(result);
+};
+
+export default { registerStudent, listHocVien, deleteHocVien, getPortalData, sendCredentials, uploadAvatar, updateHocVienInfo, resetPassword, updateOwnProfile };

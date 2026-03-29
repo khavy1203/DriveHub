@@ -649,6 +649,71 @@
   word-break: break-word;
 }
 
+.hvp__info-item--editable {
+  grid-column: 1 / -1;
+}
+
+.hvp__email-display {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.hvp__edit-email-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--primary);
+  padding: 2px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  transition: background 0.15s;
+
+  .material-icons { font-size: 16px; }
+  &:hover { background: rgba(0, 104, 93, 0.08); }
+}
+
+.hvp__email-edit {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.hvp__email-input {
+  flex: 1;
+  min-width: 160px;
+  padding: 5px 10px;
+  border: 1.5px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  font-family: inherit;
+  font-weight: 600;
+  color: var(--on-surface);
+
+  &:focus { border-color: var(--primary); outline: none; box-shadow: 0 0 0 3px rgba(0, 104, 93, 0.1); }
+}
+
+.hvp__save-btn--sm {
+  padding: 5px 14px;
+  font-size: 0.8rem;
+}
+
+.hvp__cancel-btn {
+  background: none;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  padding: 5px 12px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #64748b;
+  cursor: pointer;
+  font-family: inherit;
+
+  &:hover { background: #f1f5f9; }
+}
+
 .hvp__info-notice {
   grid-column: 1 / -1;
   display: flex;

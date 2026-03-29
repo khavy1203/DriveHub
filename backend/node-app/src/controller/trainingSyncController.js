@@ -3,6 +3,7 @@ import { verifyToken } from '../middleware/JWTaction.js';
 import {
   syncOneStudent,
   syncAllIncomplete,
+  importAndSyncByCccdList,
   getSnapshotByCccd,
   isSnapshotStale,
   getSyncStats,
@@ -133,6 +134,51 @@ export const triggerSyncAll = async (req, res) => {
     return res.json({ EC: 0, EM: 'Đồng bộ đã bắt đầu', DT: null });
   } catch (err) {
     console.error('[training/sync-all] Error:', err.message);
+    return res.status(500).json({ EC: -1, EM: 'Lỗi server', DT: null });
+  }
+};
+
+/**
+ * POST /api/training/import-cccd
+ * Admin only — import & sync a list of CCCDs from the external training system.
+ * Body: { cccdList: string[] }
+ */
+export const importByCccdList = async (req, res) => {
+  try {
+    const decoded = resolveTokenContext(req);
+    if (!decoded) {
+      return res.status(401).json({ EC: -1, EM: 'Chưa đăng nhập', DT: null });
+    }
+    const groupName = decoded.groupWithRoles?.name;
+    if (!groupName || !ADMIN_GROUPS.has(groupName)) {
+      return res.status(403).json({ EC: -1, EM: 'Chỉ Admin có quyền thực hiện', DT: null });
+    }
+
+    const { cccdList } = req.body;
+    if (!Array.isArray(cccdList) || cccdList.length === 0) {
+      return res.status(400).json({ EC: -1, EM: 'Danh sách CCCD không hợp lệ', DT: null });
+    }
+    if (cccdList.length > 100) {
+      return res.status(400).json({ EC: -1, EM: 'Tối đa 100 CCCD mỗi lần', DT: null });
+    }
+
+    const result = await importAndSyncByCccdList(cccdList);
+
+    if (result.error) {
+      return res.status(503).json({ EC: -1, EM: result.error, DT: null });
+    }
+
+    const created = result.results.filter(r => r.ok && r.created).length;
+    const updated = result.results.filter(r => r.ok && !r.created).length;
+    const failed = result.results.filter(r => !r.ok).length;
+
+    return res.json({
+      EC: 0,
+      EM: `Import xong: ${created} tạo mới, ${updated} cập nhật, ${failed} lỗi`,
+      DT: result.results,
+    });
+  } catch (err) {
+    console.error('[training/import-cccd] Error:', err.message);
     return res.status(500).json({ EC: -1, EM: 'Lỗi server', DT: null });
   }
 };

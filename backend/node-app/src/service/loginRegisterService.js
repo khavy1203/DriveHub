@@ -86,62 +86,89 @@ const registerNewUser = async (rawUserData) => {
         }
     }
 }
+/** National ID: digits only, 8-20 chars (login with CCCD same as import default account). */
+const looksLikeNationalId = (s) => /^\d{8,20}$/.test(s);
+
+const findUserRowByCccd = async (cccd) => {
+    const hv = await db.hoc_vien.findOne({
+        where: { SoCCCD: cccd },
+        attributes: ['userId'],
+        raw: true,
+    });
+    if (!hv?.userId) return null;
+    return db.user.findByPk(hv.userId, { raw: true });
+};
+
 const loginUserService = async (rawUserAccount) => {
     try {
-        let user = await db.user.findOne({
-            where: {
-                [Op.or]: [
-                    { email: rawUserAccount.userEmail },
-                    { phone: rawUserAccount.userEmail }
-                ]
-            },
-            raw: true
-        });
-        if (user) {
-            console.log("found user", user);
-            let isCorrectPassword = compareUserPassword(rawUserAccount.password, user.password);
-            // console.log('check rawUserAccount.password', rawUserAccount.password)
-            // console.log('check user.password', user.password)
-            // console.log('check isCorrectPassword', isCorrectPassword)
-            if (isCorrectPassword === true) {
-                //test roles
-                let groupWithRoles = await getGroupWithRole(user);
-                let payload = {
-                    email: user.email,
-                    username: user.username,
-                    avatarUrl: resolveAvatarUrl(user),
-                    groupWithRoles,
-                }
-                console.log("check payload :>>>", payload);
-                let token = createJWT(payload);
-                return {
-                    EM: 'ok',
-                    EC: 0,
-                    DT: {
-                        userId: user.id,
-                        access_token: token,
-                        groupWithRoles: groupWithRoles,
-                        email: user.userEmail,
-                        username: user.userName,
-                        avatarUrl: resolveAvatarUrl(user)
-                    }
-                }
-            }
+        const loginId = String(rawUserAccount.userEmail ?? '').trim();
+        if (!loginId || !rawUserAccount.password) {
+            return {
+                EM: 'Your email/CCCD or password is incorrect',
+                EC: 1,
+                DT: '',
+            };
         }
+
+        let user = null;
+        if (looksLikeNationalId(loginId)) {
+            user = await findUserRowByCccd(loginId);
+        }
+        if (!user) {
+            user = await db.user.findOne({
+                where: {
+                    [Op.or]: [{ email: loginId }, { phone: loginId }],
+                },
+                raw: true,
+            });
+        }
+
+        if (!user) {
+            return {
+                EM: 'Your email/CCCD or password is incorrect',
+                EC: 1,
+                DT: '',
+            };
+        }
+
+        const isCorrectPassword = compareUserPassword(rawUserAccount.password, user.password);
+        if (!isCorrectPassword) {
+            return {
+                EM: 'Your email/CCCD or password is incorrect',
+                EC: 1,
+                DT: '',
+            };
+        }
+
+        const groupWithRoles = await getGroupWithRole(user);
+        const payload = {
+            email: user.email,
+            username: user.username,
+            avatarUrl: resolveAvatarUrl(user),
+            groupWithRoles,
+        };
+        const token = createJWT(payload);
         return {
-            EM: 'Your email/phone number or password is incorrect',
-            EC: '1',
-            DT: ''
-        }
+            EM: 'ok',
+            EC: 0,
+            DT: {
+                userId: user.id,
+                access_token: token,
+                groupWithRoles,
+                email: user.email,
+                username: user.username,
+                avatarUrl: resolveAvatarUrl(user),
+            },
+        };
     } catch (e) {
-        console.log("error from service : >>>", e);
+        console.error('[loginUserService]', e);
         return {
             EM: 'Something wrong ...',
-            EC: '-2',
-            DT: ''
-        }
+            EC: -2,
+            DT: '',
+        };
     }
-}
+};
 module.exports = {
     registerNewUser,
     loginUserService,

@@ -32,10 +32,11 @@ const ChatPanel: React.FC<Props> = ({ assignmentId, label }) => {
   };
 
   const handleKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
-      handleSend();
-    }
+    if (e.key !== 'Enter' || e.shiftKey) return;
+    // Do not send while IME is composing Vietnamese (Telex/VNI/etc.) — avoids losing diacritics.
+    if (e.nativeEvent.isComposing || e.keyCode === 229) return;
+    e.preventDefault();
+    handleSend();
   };
 
   const formatTime = (iso: string) => {

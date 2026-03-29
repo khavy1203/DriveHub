@@ -86,10 +86,10 @@ const ChatInputBar = memo(({ status, onSend }: ChatInputBarProps) => {
   };
 
   const handleKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
-    if (e.key === 'Enter' && !e.shiftKey && !e.nativeEvent.isComposing) {
-      e.preventDefault();
-      handleSend();
-    }
+    if (e.key !== 'Enter' || e.shiftKey) return;
+    if (e.nativeEvent.isComposing || e.keyCode === 229) return;
+    e.preventDefault();
+    handleSend();
   };
 
   return (

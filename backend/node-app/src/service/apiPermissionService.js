@@ -59,10 +59,10 @@ function shouldSeedGiaoVien(ep) {
 
 function shouldSeedHocVien(ep) {
   if (ep.isPublic) return false;
-  const { path } = ep;
+  const { path, method } = ep;
   if (path.startsWith('/api/hocvien/portal')) return true;
   if (path.startsWith('/api/student-portal')) return true;
-  if (path.startsWith('/api/training')) return true;
+  if (method === 'GET' && path.startsWith('/api/training')) return true;
   return false;
 }
 

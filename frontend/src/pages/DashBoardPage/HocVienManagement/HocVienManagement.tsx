@@ -83,6 +83,13 @@ const HocVienManagement: React.FC = () => {
   const [syncing, setSyncing] = useState(false);
   const [syncResult, setSyncResult] = useState<string | null>(null);
 
+  // Import CCCD modal
+  const [importOpen, setImportOpen] = useState(false);
+  const [importCccdText, setImportCccdText] = useState('');
+  const [importing, setImporting] = useState(false);
+  type ImportResult = { cccd: string; ok: boolean; hoTen?: string; created?: boolean; pct?: number; error?: string };
+  const [importResults, setImportResults] = useState<ImportResult[]>([]);
+
   // Assign modal
   const [assignTarget, setAssignTarget] = useState<HocVien | null>(null);
   const [assignTeacherId, setAssignTeacherId] = useState<number | ''>('');
@@ -179,6 +186,30 @@ const HocVienManagement: React.FC = () => {
     }
   };
 
+  const handleImportCccd = async () => {
+    const cccdList = importCccdText
+      .split(/[\n,;]+/)
+      .map(s => s.trim())
+      .filter(Boolean);
+    if (cccdList.length === 0) return;
+    setImporting(true);
+    setImportResults([]);
+    try {
+      const res = await post<{ EC: number; EM: string; DT: ImportResult[] }>('/api/training/import-cccd', { cccdList });
+      if (res.EC === 0) {
+        setImportResults(res.DT ?? []);
+        toast.success(res.EM);
+        await fetchData();
+      } else {
+        toast.error(res.EM || 'Lỗi import');
+      }
+    } catch {
+      // httpClient handles toast
+    } finally {
+      setImporting(false);
+    }
+  };
+
   return (
     <div className="hvm">
       {/* Header */}
@@ -200,6 +231,14 @@ const HocVienManagement: React.FC = () => {
               {syncing ? 'sync' : 'cloud_download'}
             </span>
             {syncing ? 'Đang đồng bộ...' : 'Đồng bộ CSĐT'}
+          </button>
+          <button
+            className="hvm__btn-sync"
+            onClick={() => { setImportOpen(true); setImportResults([]); setImportCccdText(''); }}
+            title="Import học viên từ CCCD hệ thống CSĐT"
+          >
+            <span className="material-icons">upload_file</span>
+            Import CCCD
           </button>
           <button className="hvm__btn-add" onClick={() => navigate('/dashboard/dang-ky-hoc-vien')}>
             <span className="material-icons">person_add</span>
@@ -425,6 +464,66 @@ const HocVienManagement: React.FC = () => {
           </div>
         </div>
       )}
+
+      {/* Import CCCD Modal */}
+      {importOpen && (
+        <div className="hvm__overlay hvm__overlay--above" onClick={() => setImportOpen(false)}>
+          <div className="hvm__modal hvm__modal--wide" onClick={e => e.stopPropagation()}>
+            <div className="hvm__modal-header">
+              <div>
+                <h3>Import học viên từ CCCD</h3>
+                <p className="hvm__modal-subtitle">
+                  Nhập danh sách CCCD (mỗi dòng 1 số hoặc ngăn cách bằng dấu phẩy).
+                  Hệ thống sẽ tra cứu CSĐT, tạo tài khoản (CCCD = mật khẩu) và đồng bộ dữ liệu.
+                </p>
+              </div>
+              <button className="hvm__modal-close" onClick={() => setImportOpen(false)}>
+                <span className="material-icons">close</span>
+              </button>
+            </div>
+            <div className="hvm__modal-body">
+              <textarea
+                className="hvm__edit-textarea"
+                rows={6}
+                placeholder={'064080013405\n052096004431\n...'}
+                value={importCccdText}
+                onChange={e => setImportCccdText(e.target.value)}
+                disabled={importing}
+              />
+              {importResults.length > 0 && (
+                <div className="hvm__import-results">
+                  <div className="hvm__import-results-title">Kết quả import</div>
+                  <div className="hvm__import-results-list">
+                    {importResults.map((r, i) => (
+                      <div key={i} className={`hvm__import-row hvm__import-row--${r.ok ? 'ok' : 'fail'}`}>
+                        <span className="material-icons">{r.ok ? 'check_circle' : 'error'}</span>
+                        <span className="hvm__import-cccd">{r.cccd}</span>
+                        {r.ok
+                          ? <span>{r.hoTen} — {r.created ? 'Tạo mới' : 'Cập nhật'} — {r.pct}%</span>
+                          : <span className="hvm__import-err">{r.error}</span>
+                        }
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+            <div className="hvm__modal-footer">
+              <button className="hvm__btn-ghost" onClick={() => setImportOpen(false)}>Đóng</button>
+              <button
+                className="hvm__btn-primary"
+                onClick={handleImportCccd}
+                disabled={importing || !importCccdText.trim()}
+              >
+                {importing
+                  ? <><span className="material-icons hvm__spin">sync</span>Đang import...</>
+                  : <><span className="material-icons">cloud_download</span>Import &amp; Đồng bộ</>
+                }
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
@@ -451,6 +550,10 @@ const HocVienModal: React.FC<HocVienModalProps> = ({
   const [editingInfo, setEditingInfo] = useState(false);
   const [editFields, setEditFields] = useState<Partial<HocVien>>({});
   const [savingInfo, setSavingInfo] = useState(false);
+
+  const [resetPwOpen, setResetPwOpen] = useState(false);
+  const [newPassword, setNewPassword] = useState('');
+  const [resettingPw, setResettingPw] = useState(false);
 
   const [progressOpen, setProgressOpen] = useState(false);
   const [editProgress, setEditProgress] = useState(initialItem.assignment?.progressPercent ?? 0);
@@ -529,6 +632,28 @@ const HocVienModal: React.FC<HocVienModalProps> = ({
     }
   };
 
+  const handleResetPassword = async () => {
+    if (!newPassword || newPassword.length < 4) {
+      toast.error('Mật khẩu phải có ít nhất 4 ký tự');
+      return;
+    }
+    setResettingPw(true);
+    try {
+      const res = await put<{ EC: number; EM: string }>(`/api/hocvien/${item.id}/reset-password`, { newPassword });
+      if (res.EC === 0) {
+        toast.success('Đặt lại mật khẩu thành công!');
+        setResetPwOpen(false);
+        setNewPassword('');
+      } else {
+        toast.error(res.EM || 'Lỗi khi đặt lại mật khẩu');
+      }
+    } catch {
+      // httpClient handles toast
+    } finally {
+      setResettingPw(false);
+    }
+  };
+
   const a = item.assignment;
   const tName = a?.teacher?.username ?? teachers.find(t => t.id === a?.teacherId)?.username;
 
@@ -597,6 +722,15 @@ const HocVienModal: React.FC<HocVienModalProps> = ({
             )}
             <button
               type="button"
+              className="hvm__dm-btn hvm__dm-btn--ghost"
+              onClick={() => { setResetPwOpen(o => !o); setNewPassword(''); }}
+              title="Đặt lại mật khẩu"
+            >
+              <span className="material-icons">lock_reset</span>
+              Đặt lại MK
+            </button>
+            <button
+              type="button"
               className="hvm__dm-btn hvm__dm-btn--danger"
               onClick={e => { onDelete(item, e); onClose(); }}
               title="Xoá học viên"
@@ -605,6 +739,29 @@ const HocVienModal: React.FC<HocVienModalProps> = ({
               Xoá học viên
             </button>
           </div>
+          {resetPwOpen && (
+            <div className="hvm__dm-reset-pw">
+              <input
+                type="text"
+                className="hvm__dm-inline-input hvm__dm-reset-pw-input"
+                placeholder="Nhập mật khẩu mới (tối thiểu 4 ký tự)"
+                value={newPassword}
+                onChange={e => setNewPassword(e.target.value)}
+                autoFocus
+              />
+              <button
+                type="button"
+                className="hvm__dm-btn hvm__dm-btn--save hvm__dm-btn--sm"
+                onClick={handleResetPassword}
+                disabled={resettingPw || newPassword.length < 4}
+              >
+                {resettingPw
+                  ? <><span className="material-icons hvm__spin">sync</span>Đang lưu</>
+                  : <><span className="material-icons">check</span>Xác nhận</>
+                }
+              </button>
+            </div>
+          )}
         </header>
 
         <div className="hvm__dm-body" ref={bodyRef}>

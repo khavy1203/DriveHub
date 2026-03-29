@@ -217,6 +217,125 @@ const updateHocVienInfo = async (id, fields) => {
   }
 };
 
+// ── Admin reset password ──────────────────────────────────────────────────────
+const adminResetPassword = async (hocVienId, newPassword) => {
+  try {
+    const hocVien = await db.hoc_vien.findByPk(hocVienId);
+    if (!hocVien) return { EM: 'Không tìm thấy học viên', EC: 1, DT: null };
+    if (!hocVien.userId) return { EM: 'Học viên chưa có tài khoản', EC: -1, DT: null };
+
+    const user = await db.user.findByPk(hocVien.userId);
+    if (!user) return { EM: 'Tài khoản không tồn tại', EC: -1, DT: null };
+
+    const hashed = hashUserPassword(newPassword);
+    await user.update({ password: hashed });
+    console.log(`[hocvienService.adminResetPassword] OK hocVienId=${hocVienId} userId=${user.id}`);
+    return { EM: 'Đặt lại mật khẩu thành công', EC: 0, DT: null };
+  } catch (e) {
+    console.error('[hocvienService.adminResetPassword]', e.message);
+    return { EM: 'Lỗi server', EC: -1, DT: null };
+  }
+};
+
+/**
+ * CSĐT returns maKhoaHoc (e.g. 52001K25B0114) which may not exist in local `khoahoc`.
+ * FK hoc_vien.IDKhoaHoc → khoahoc.IDKhoaHoc — only set when the row exists.
+ */
+const resolveIdKhoaHocForFk = async (maKhoaHoc, transaction) => {
+  const id = maKhoaHoc != null ? String(maKhoaHoc).trim() : '';
+  if (!id) return null;
+  const row = await db.khoahoc.findByPk(id, { transaction });
+  return row ? id : null;
+};
+
+// ── Import học viên từ CCCD qua Training API ─────────────────────────────────
+const importFromCccd = async (cccd, upstreamDT) => {
+  const t = await db.sequelize.transaction();
+  try {
+    const hv = upstreamDT.hocVien || {};
+    const hoTen = hv.hoTen || `HV_${cccd}`;
+    const ngaySinh = hv.ngaySinh ? hv.ngaySinh.split('T')[0] : null;
+    const diaChi = hv.diaChi || null;
+    const hangDaoTao = hv.hangDaoTao || null;
+    const maKhoaHocFromApi = hv.maKhoaHoc || null;
+
+    const idKhoaHocFk = await resolveIdKhoaHocForFk(maKhoaHocFromApi, t);
+
+    const email = `${cccd}@drivehub.local`;
+    const hashed = hashUserPassword(cccd);
+
+    const existingUser = await db.user.findOne({ where: { email }, transaction: t });
+    let user;
+    if (existingUser) {
+      user = existingUser;
+    } else {
+      user = await db.user.create({
+        email, password: hashed, username: hoTen,
+        phone: null, address: diaChi,
+        groupId: HOC_VIEN_GROUP_ID, active: 1, thisinhId: null,
+      }, { transaction: t });
+    }
+
+    const existingHv = await db.hoc_vien.findOne({ where: { SoCCCD: cccd }, transaction: t });
+    let hocVien;
+    if (existingHv) {
+      const updatePayload = {
+        HoTen: hoTen,
+        NgaySinh: ngaySinh,
+        DiaChi: diaChi,
+        loaibangthi: hangDaoTao,
+        userId: user.id,
+      };
+      if (idKhoaHocFk !== null) {
+        updatePayload.IDKhoaHoc = idKhoaHocFk;
+      }
+      await existingHv.update(updatePayload, { transaction: t });
+      hocVien = existingHv;
+    } else {
+      hocVien = await db.hoc_vien.create({
+        HoTen: hoTen,
+        NgaySinh: ngaySinh,
+        GioiTinh: null,
+        SoCCCD: cccd,
+        phone: null, email: null,
+        DiaChi: diaChi,
+        loaibangthi: hangDaoTao,
+        IDKhoaHoc: idKhoaHocFk,
+        userId: user.id,
+        status: 'registered',
+      }, { transaction: t });
+    }
+
+    await t.commit();
+    return { ok: true, hocVienId: hocVien.id, userId: user.id, hoTen, created: !existingHv };
+  } catch (e) {
+    await t.rollback();
+    console.error(`[hocvienService.importFromCccd] cccd=${cccd}`, e.message);
+    return { ok: false, error: e.message };
+  }
+};
+
+// ── Student portal: update own email ─────────────────────────────────────────
+const updateOwnProfile = async (userId, fields) => {
+  try {
+    const hocVien = await db.hoc_vien.findOne({ where: { userId } });
+    if (!hocVien) return { EM: 'Không tìm thấy hồ sơ học viên', EC: 1, DT: null };
+
+    const updates = {};
+    if (fields.email !== undefined) updates.email = fields.email || null;
+
+    if (Object.keys(updates).length === 0) {
+      return { EM: 'Không có thay đổi', EC: 0, DT: null };
+    }
+
+    await hocVien.update(updates);
+    return { EM: 'Cập nhật thành công', EC: 0, DT: hocVien.get({ plain: true }) };
+  } catch (e) {
+    console.error('[hocvienService.updateOwnProfile]', e.message);
+    return { EM: 'Lỗi server', EC: -1, DT: null };
+  }
+};
+
 // ── Student avatar upload ─────────────────────────────────────────────────────
 const updateAvatar = async (userId, avatarUrl) => {
   try {
@@ -230,4 +349,4 @@ const updateAvatar = async (userId, avatarUrl) => {
   }
 };
 
-export default { registerStudent, listByKhoaHoc, deleteHocVien, getPortalData, updateAvatar, updateHocVienInfo };
+export default { registerStudent, listByKhoaHoc, deleteHocVien, getPortalData, updateAvatar, updateHocVienInfo, adminResetPassword, importFromCccd, updateOwnProfile };

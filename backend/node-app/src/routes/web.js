@@ -39,7 +39,7 @@ import {
   getGroupApiMatrix, setGroupApiPermissions,
 } from "../controller/permissionController";
 import { getTrainingStudent, getTrainingAvatar, getTrainingSessionDetail } from "../controller/trainingPortalController";
-import { getTrainingStudentCached, triggerSyncAll, getTrainingSyncStatus } from "../controller/trainingSyncController";
+import { getTrainingStudentCached, triggerSyncAll, getTrainingSyncStatus, importByCccdList } from "../controller/trainingSyncController";
 import contactLeadController from "../controller/contactLeadController";
 
 
@@ -168,8 +168,10 @@ const initWebRoutes = (app) => {
     routes.post("/hocvien/register", hocvienController.registerStudent);
     routes.post("/hocvien/send-credentials", hocvienController.sendCredentials);
     routes.put("/hocvien/:id", hocvienController.updateHocVienInfo);
+    routes.put("/hocvien/:id/reset-password", hocvienController.resetPassword);
     routes.delete("/hocvien/:id", hocvienController.deleteHocVien);
     routes.get("/hocvien/portal/me", hocvienController.getPortalData);
+    routes.put("/hocvien/portal/profile", hocvienController.updateOwnProfile);
     routes.post("/hocvien/portal/avatar", uploadStudentAvatar.single('avatar'), hocvienController.uploadAvatar);
 
     routes.get("/student-assignment", studentAssignmentController.getAssignments);
@@ -211,6 +213,7 @@ const initWebRoutes = (app) => {
     routes.get("/training/avatar", getTrainingAvatar);
     routes.get("/training/session-detail", getTrainingSessionDetail);
     routes.post("/training/sync-all", triggerSyncAll);
+    routes.post("/training/import-cccd", importByCccdList);
     routes.get("/training/sync-status", getTrainingSyncStatus);
 
     //file 

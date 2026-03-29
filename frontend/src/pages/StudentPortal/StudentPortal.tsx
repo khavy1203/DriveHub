@@ -112,6 +112,9 @@ const StudentPortal: React.FC = () => {
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const avatarInputRef = useRef<HTMLInputElement>(null);
+  const [editingEmail, setEditingEmail] = useState(false);
+  const [emailDraft, setEmailDraft] = useState('');
+  const [savingEmail, setSavingEmail] = useState(false);
 
   // Section refs for scroll-to
   const trainingRef = useRef<HTMLElement>(null);
@@ -221,6 +224,24 @@ const StudentPortal: React.FC = () => {
     }
   };
 
+  const handleSaveEmail = async () => {
+    setSavingEmail(true);
+    try {
+      const res = await axios.put<{ EC: number; EM: string }>('/api/hocvien/portal/profile', { email: emailDraft });
+      if (res.data.EC === 0) {
+        toast.success('Cập nhật email thành công');
+        setEditingEmail(false);
+        fetchProfile();
+      } else {
+        toast.error(res.data.EM || 'Cập nhật thất bại');
+      }
+    } catch {
+      toast.error('Lỗi kết nối server');
+    } finally {
+      setSavingEmail(false);
+    }
+  };
+
   const handleSubmitRating = async () => {
     if (!selectedStar) { toast.error('Vui lòng chọn số sao'); return; }
     setSubmittingRating(true);
@@ -313,13 +334,12 @@ const StudentPortal: React.FC = () => {
             )}
           </div>
 
-          {/* Info read-only */}
+          {/* Info with editable email */}
           {profile && (
             <div className="hvp__profile-info-grid">
               {[
                 { icon: 'badge',          label: 'Số CCCD / CMND',  val: profile.SoCCCD },
                 { icon: 'phone',          label: 'Số điện thoại',   val: profile.phone },
-                { icon: 'mail_outline',   label: 'Email',           val: profile.email },
                 { icon: 'cake',           label: 'Ngày sinh',       val: profile.NgaySinh },
                 { icon: 'directions_car', label: 'Loại bằng thi',   val: profile.loaibangthi },
                 { icon: 'location_on',    label: 'Địa chỉ',         val: profile.DiaChi },
@@ -332,6 +352,42 @@ const StudentPortal: React.FC = () => {
                   </div>
                 </div>
               ) : null)}
+
+              {/* Editable email */}
+              <div className="hvp__info-item hvp__info-item--editable">
+                <span className="material-icons hvp__info-icon">mail_outline</span>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <p className="hvp__info-label">Email</p>
+                  {editingEmail ? (
+                    <div className="hvp__email-edit">
+                      <input
+                        type="email"
+                        className="hvp__email-input"
+                        value={emailDraft}
+                        onChange={e => setEmailDraft(e.target.value)}
+                        placeholder="Nhập email cá nhân..."
+                        autoFocus
+                      />
+                      <button type="button" className="hvp__save-btn hvp__save-btn--sm" onClick={handleSaveEmail} disabled={savingEmail}>
+                        {savingEmail ? 'Đang lưu...' : 'Lưu'}
+                      </button>
+                      <button type="button" className="hvp__cancel-btn" onClick={() => setEditingEmail(false)}>Huỷ</button>
+                    </div>
+                  ) : (
+                    <div className="hvp__email-display">
+                      <p className="hvp__info-val">{profile.email || '—'}</p>
+                      <button
+                        type="button"
+                        className="hvp__edit-email-btn"
+                        onClick={() => { setEmailDraft(profile.email || ''); setEditingEmail(true); }}
+                        title="Chỉnh sửa email"
+                      >
+                        <span className="material-icons">edit</span>
+                      </button>
+                    </div>
+                  )}
+                </div>
+              </div>
 
               <div className="hvp__info-notice">
                 <span className="material-icons">info_outline</span>

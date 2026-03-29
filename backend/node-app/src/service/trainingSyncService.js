@@ -2,6 +2,7 @@ import db from '../models/index';
 import { Op } from 'sequelize';
 import { isAxiosError } from 'axios';
 import { fetchPublicStudent, isTrainingApiConfigured } from './trainingPortalService';
+import hocvienService from './hocvienService';
 
 const SYNC_DELAY_MS = 500;
 const STALE_HOURS = 3;
@@ -249,6 +250,72 @@ export const syncAllIncomplete = async () => {
   const elapsed = Date.now() - start;
   console.log(`[TrainingSync] Complete: ${success} ok, ${error} fail, ${skipped} skip, ${elapsed}ms`);
   return { success, error, skipped, elapsed };
+};
+
+/**
+ * Import + sync danh sách CCCD: tra cứu API → tạo hoc_vien/user nếu chưa có → sync training data.
+ */
+export const importAndSyncByCccdList = async (cccdList) => {
+  if (!isTrainingApiConfigured()) {
+    return { results: [], error: 'TRAINING_API_BASE_URL not configured' };
+  }
+
+  const results = [];
+
+  for (const rawCccd of cccdList) {
+    const cccd = String(rawCccd).trim();
+    if (!cccd) continue;
+
+    try {
+      const upstream = await fetchPublicStudent(cccd);
+      const data = upstream.data;
+
+      if (!isRecord(data) || data.EC !== 0 || !isRecord(data.DT)) {
+        results.push({ cccd, ok: false, error: (isRecord(data) && data.EM) || 'Không tìm thấy trên CSĐT' });
+        await sleep(SYNC_DELAY_MS);
+        continue;
+      }
+
+      const dt = data.DT;
+      const importResult = await hocvienService.importFromCccd(cccd, dt);
+      if (!importResult.ok) {
+        results.push({ cccd, ok: false, error: importResult.error });
+        await sleep(SYNC_DELAY_MS);
+        continue;
+      }
+
+      const pct = computeProgressFromDT(dt);
+      await db.training_snapshot.upsert({
+        hocVienId: importResult.hocVienId,
+        cccd,
+        rawJson: JSON.stringify(dt),
+        courseProgressPct: pct,
+        syncStatus: 'success',
+        syncError: null,
+        lastSyncAt: new Date(),
+      });
+
+      const assignment = await db.student_assignment.findOne({ where: { hocVienId: importResult.hocVienId } });
+      if (assignment) {
+        await assignment.update({ progressPercent: pct });
+      }
+
+      results.push({
+        cccd,
+        ok: true,
+        hoTen: importResult.hoTen,
+        hocVienId: importResult.hocVienId,
+        created: importResult.created,
+        pct,
+      });
+    } catch (err) {
+      results.push({ cccd, ok: false, error: err.message || 'Unknown error' });
+    }
+
+    await sleep(SYNC_DELAY_MS);
+  }
+
+  return { results };
 };
 
 export const getSnapshotByCccd = async (cccd) => {
