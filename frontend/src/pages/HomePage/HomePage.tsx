@@ -140,7 +140,8 @@ const HomePage: React.FC = () => {
 
             <div className="tc-mobile-menu-links">
               <a href="/" onClick={() => setIsMenuOpen(false)}>Trang chủ</a>
-              <a href="/#/teststudent" onClick={() => setIsMenuOpen(false)}>Thi-Thử-Thật</a>
+              <a href="/#/teststudent" onClick={() => setIsMenuOpen(false)}>Thi thử</a>
+              <a href="/#/review" onClick={() => setIsMenuOpen(false)}>Ôn tập</a>
               <a href="/#/license-check" onClick={() => setIsMenuOpen(false)}>Tra cứu GPLX</a>
               <a href="/#/traffic-check" onClick={() => setIsMenuOpen(false)}>Tra cứu phạt nguội</a>
               <a href="/#/dashboard" onClick={() => setIsMenuOpen(false)}>DashBoard</a>
