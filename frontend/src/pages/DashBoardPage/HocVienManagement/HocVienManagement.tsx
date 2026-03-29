@@ -2,6 +2,7 @@ import React, { useEffect, useState, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import useApiService from '../../../services/useApiService';
 import { KQSHDrawerSection, KetQuaBadge } from '../../../features/kqsh';
+import { TrainingProgressBlock } from '../../../features/trainingPortal';
 import './HocVienManagement.scss';
 
 type Teacher = { id: number; username: string; email: string; phone?: string };
@@ -543,6 +544,11 @@ const HocVienManagement: React.FC = () => {
                 </div>
               </div>
             )}
+
+            <div className="hvm__drawer-section">
+              <h5 className="hvm__drawer-section-title">Tiến độ đào tạo (CCCD)</h5>
+              <TrainingProgressBlock mode="staff" cccd={drawerItem.SoCCCD ?? null} compact />
+            </div>
 
             <div className="hvm__drawer-section">
               <h5 className="hvm__drawer-section-title">Kết quả sát hạch</h5>

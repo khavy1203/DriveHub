@@ -1,0 +1,50 @@
+.tpb {
+  --tpb-text: var(--text-primary, #1a1a1a);
+  --tpb-muted: var(--text-muted, #6b7280);
+  --tpb-border: var(--border-color, #e5e7eb);
+  --tpb-surface: var(--surface-subtle, #f9fafb);
+  --tpb-error: #b91c1c;
+
+  color: var(--tpb-text);
+  font-size: 0.9rem;
+}
+
+.tpb__loading {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  color: var(--tpb-muted);
+}
+
+.tpb__spin {
+  animation: tpb-spin 0.9s linear infinite;
+}
+
+@keyframes tpb-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.tpb__muted {
+  margin: 0;
+  color: var(--tpb-muted);
+}
+
+.tpb__error {
+  margin: 0 0 0.5rem;
+  color: var(--tpb-error);
+}
+
+.tpb__retry {
+  padding: 0.35rem 0.75rem;
+  border: 1px solid var(--tpb-border);
+  border-radius: 6px;
+  background: var(--tpb-surface);
+  cursor: pointer;
+  font-size: 0.85rem;
+}
+
+.tpb__retry:hover {
+  filter: brightness(0.97);
+}

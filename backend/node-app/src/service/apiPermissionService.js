@@ -51,6 +51,7 @@ function shouldSeedGiaoVien(ep) {
   if (path === '/api/teacher/my-students') return true;
   if (path.startsWith('/api/teacher/students')) return true;
   if (path.startsWith('/api/chat')) return true;
+  if (path.startsWith('/api/training')) return true;
   if (method === 'GET' && path === '/api/hocvien') return true;
   if (method === 'PUT' && (path === '/api/hocvien' || path.startsWith('/api/hocvien/'))) return true;
   return false;
@@ -61,6 +62,7 @@ function shouldSeedHocVien(ep) {
   const { path } = ep;
   if (path.startsWith('/api/hocvien/portal')) return true;
   if (path.startsWith('/api/student-portal')) return true;
+  if (path.startsWith('/api/training')) return true;
   return false;
 }
 

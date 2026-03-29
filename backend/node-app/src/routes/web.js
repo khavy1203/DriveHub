@@ -38,6 +38,7 @@ import {
   syncApiEndpoints, getApiEndpoints, updateApiEndpoint,
   getGroupApiMatrix, setGroupApiPermissions,
 } from "../controller/permissionController";
+import { getTrainingStudent, getTrainingAvatar, getTrainingSessionDetail } from "../controller/trainingPortalController";
 
 
 const routes = express.Router();
@@ -201,6 +202,10 @@ const initWebRoutes = (app) => {
     routes.put("/admin/permissions/api-endpoints/:id", updateApiEndpoint);
     routes.get("/admin/permissions/group-api", getGroupApiMatrix);
     routes.put("/admin/permissions/group-api", setGroupApiPermissions);
+
+    routes.get("/training/student", getTrainingStudent);
+    routes.get("/training/avatar", getTrainingAvatar);
+    routes.get("/training/session-detail", getTrainingSessionDetail);
 
     //file 
     routes.post("/file/namestandardizationfile", fileController.nameStandardizationFile);

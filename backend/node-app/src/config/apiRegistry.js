@@ -60,6 +60,10 @@ export const API_REGISTRY = [
   P('POST', '/api/student-portal/rate', 'Portal HV', 'Rate teacher'),
   P('GET', '/api/student-portal/ket-qua-sat-hanh', 'Portal HV', 'My KQSH'),
 
+  P('GET', '/api/training/student', 'Đào tạo', 'Proxy tiến độ học viên (CCCD)', false, '/api/training/student'),
+  P('GET', '/api/training/avatar', 'Đào tạo', 'Proxy ảnh học viên hệ đào tạo', false, '/api/training/avatar'),
+  P('GET', '/api/training/session-detail', 'Đào tạo', 'Proxy lộ trình GPS phiên học', false, '/api/training/session-detail'),
+
   P('POST', '/api/admin/kqsh/sync', 'KQSH', 'Sync KQSH'),
   P('GET', '/api/admin/kqsh/test-connection', 'KQSH', 'Test MSSQL'),
 

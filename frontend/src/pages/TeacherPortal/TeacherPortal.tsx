@@ -5,6 +5,7 @@ import { useAuth } from '../../features/auth/hooks/useAuth';
 import { ChatPanel } from '../../features/chat';
 import { useKQSHByStudent, KQSHCardList } from '../../features/kqsh';
 import axios from '../../axios';
+import { TrainingProgressBlock } from '../../features/trainingPortal';
 import './TeacherPortal.scss';
 
 type HocVien = {
@@ -436,6 +437,14 @@ const TeacherPortal: React.FC<Props> = ({ embedded = false }) => {
                           <span className="material-icons">assignment</span>
                           Xem kết quả sát hạch
                         </button>
+                      </div>
+
+                      <div className="tp__training-section">
+                        <h4 className="tp__edit-title">
+                          <span className="material-icons">route</span>
+                          Tiến độ đào tạo (CCCD)
+                        </h4>
+                        <TrainingProgressBlock mode="staff" cccd={hv.SoCCCD ?? null} compact />
                       </div>
                     </div>
                   )}

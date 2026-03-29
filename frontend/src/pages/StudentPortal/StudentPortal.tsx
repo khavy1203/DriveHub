@@ -3,6 +3,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { useAuth } from '../../features/auth/hooks/useAuth';
 import axios from '../../axios';
+import { TrainingProgressBlock } from '../../features/trainingPortal';
 import './StudentPortal.scss';
 
 // ── Types ──────────────────────────────────────────────────────────────────────
@@ -84,7 +85,7 @@ type HocVienProfile = {
   avatarUrl: string | null;
 };
 
-type NavKey = 'progress' | 'myteacher' | 'teachers' | 'rate' | 'profile';
+type NavKey = 'training' | 'myteacher' | 'teachers' | 'rate' | 'profile';
 
 // ── Component ─────────────────────────────────────────────────────────────────
 
@@ -113,14 +114,14 @@ const StudentPortal: React.FC = () => {
   const avatarInputRef = useRef<HTMLInputElement>(null);
 
   // Section refs for scroll-to
-  const progressRef = useRef<HTMLElement>(null);
+  const trainingRef = useRef<HTMLElement>(null);
   const myteacherRef = useRef<HTMLElement>(null);
   const teachersRef = useRef<HTMLElement>(null);
   const rateRef = useRef<HTMLElement>(null);
   const profileRef = useRef<HTMLElement>(null);
 
   const refMap: Record<NavKey, React.RefObject<HTMLElement | null>> = {
-    progress: progressRef,
+    training: trainingRef,
     myteacher: myteacherRef,
     teachers: teachersRef,
     rate: rateRef,
@@ -246,8 +247,6 @@ const StudentPortal: React.FC = () => {
     !teacherSearch || t.username.toLowerCase().includes(teacherSearch.toLowerCase())
   );
 
-  const pct = myProgress?.assignment?.progressPercent ?? 0;
-  const datHours = myProgress?.assignment?.datHoursCompleted ?? 0;
   const teacher = myProgress?.assignment?.teacher ?? null;
   const assignment = myProgress?.assignment ?? null;
 
@@ -263,7 +262,7 @@ const StudentPortal: React.FC = () => {
   return (
     <div className="hvp">
 
-      {/* Thông tin cá nhân — đặt trên tiến độ */}
+      {/* Thông tin cá nhân */}
       <section ref={profileRef} className="hvp__section">
         <h2 className="hvp__section-title">Thông tin cá nhân</h2>
         <div className="hvp__profile-card">
@@ -343,86 +342,13 @@ const StudentPortal: React.FC = () => {
         </div>
       </section>
 
-      {/* Tiến độ học tập */}
-      <section ref={progressRef} className="hvp__section">
-        <h2 className="hvp__section-title">Tiến độ học tập</h2>
-        <div className="hvp__progress-grid">
-          {/* Main progress card */}
-          <div className="hvp__card hvp__card--progress">
-            <div className="hvp__progress-header">
-              <div>
-                <p className="hvp__progress-label">Tổng quan khóa học</p>
-                <h3 className="hvp__progress-pct">
-                  {pct}%{' '}
-                  <span className="hvp__progress-pct-sub">Hoàn thành</span>
-                </h3>
-              </div>
-              {assignment && (
-                <span className={`hvp__status-badge hvp__status-badge--${assignment.status}`}>
-                  {assignment.status === 'completed' ? 'Hoàn thành' :
-                   assignment.status === 'learning' ? 'Đang học' : 'Chờ bắt đầu'}
-                </span>
-              )}
-            </div>
-            <div className="hvp__progress-bar-track">
-              <div className="hvp__progress-bar-fill" style={{ width: `${pct}%` }} />
-            </div>
-            <div className="hvp__progress-stats">
-              <div className="hvp__stat-box">
-                <span className="hvp__stat-box-label">Giờ thực hành</span>
-                <span className="hvp__stat-box-value">{datHours} / 24 giờ</span>
-              </div>
-              <div className="hvp__stat-box">
-                <span className="hvp__stat-box-label">Trạng thái hồ sơ</span>
-                <span className="hvp__stat-box-value">{myProgress?.hocVien?.status ?? '—'}</span>
-              </div>
-            </div>
-            {assignment?.notes && (
-              <p className="hvp__progress-notes">
-                <span className="material-icons">notes</span>
-                {assignment.notes}
-              </p>
-            )}
-          </div>
-
-          {/* Mini teacher card */}
-          {teacher && (
-            <div className="hvp__card hvp__card--mini-teacher">
-              <p className="hvp__mini-label">Giáo viên hiện tại</p>
-              <div className="hvp__mini-teacher-info">
-                <div className="hvp__mini-avatar">
-                  {teacher.profile?.avatarUrl
-                    ? <img src={teacher.profile.avatarUrl} alt={teacher.username} />
-                    : <span>{getInitials(teacher.username)}</span>
-                  }
-                </div>
-                <div>
-                  <p className="hvp__mini-name">Thầy/Cô {teacher.username}</p>
-                  {teacher.profile?.licenseTypes && (
-                    <p className="hvp__mini-sub">Chuyên gia {teacher.profile.licenseTypes}</p>
-                  )}
-                  {renderStars(teacher.avgStars, 'sm')}
-                </div>
-              </div>
-              <button
-                className="hvp__contact-quick-btn"
-                onClick={() => scrollToSection('myteacher')}
-              >
-                <span className="material-icons">chat_bubble</span>
-                Xem thông tin liên hệ
-              </button>
-            </div>
-          )}
-
-          {!teacher && !loadingProgress && (
-            <div className="hvp__card hvp__card--mini-teacher hvp__card--no-teacher">
-              <p className="hvp__mini-label">Giáo viên hiện tại</p>
-              <div className="hvp__no-teacher-placeholder">
-                <span className="material-icons">person_search</span>
-                <p>Chưa được phân công giáo viên</p>
-              </div>
-            </div>
-          )}
+      <section ref={trainingRef} className="hvp__section">
+        <h2 className="hvp__section-title">Tiến độ thực hành (hệ thống đào tạo)</h2>
+        <p className="hvp__section-sub hvp__section-sub--spaced">
+          Dữ liệu từ trung tâm đào tạo — chỉ hiển thị khi hồ sơ của bạn có số CCCD và máy chủ đã được cấu hình.
+        </p>
+        <div className="hvp__card">
+          <TrainingProgressBlock mode="student" compact />
         </div>
       </section>
 

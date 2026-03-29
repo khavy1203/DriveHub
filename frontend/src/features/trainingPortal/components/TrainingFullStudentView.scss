@@ -1,0 +1,958 @@
+/* Tokens aligned with UI-TEST/inofFullStudent (ScholarDrive / M3 teal) */
+.tfs {
+  --tfs-primary: #00685d;
+  --tfs-on-primary: #ffffff;
+  --tfs-on-surface: #191c1d;
+  --tfs-on-surface-variant: #3d4946;
+  --tfs-surface: #f8fafa;
+  --tfs-surface-low: #f2f4f4;
+  --tfs-surface-lowest: #ffffff;
+  --tfs-surface-high: #e6e8e8;
+  --tfs-primary-container: #008376;
+  --tfs-on-primary-container: #f4fffb;
+  --tfs-secondary-container: #c3ebe2;
+  --tfs-on-secondary-container: #476b64;
+  --tfs-secondary: #41655f;
+  --tfs-primary-fixed: #8ef5e3;
+  --tfs-primary-fixed-dim: #71d8c7;
+  --tfs-tertiary: #91462c;
+  --tfs-tertiary-fixed: #ffdbd0;
+  --tfs-on-tertiary-fixed: #390c00;
+  --tfs-inverse-surface: #2e3131;
+  --tfs-inverse-on-surface: #eff1f1;
+  --tfs-outline-variant: #bdc9c5;
+  --tfs-font-headline: 'Manrope', sans-serif;
+  --tfs-font-body: 'Inter', sans-serif;
+  --tfs-radius-lg: 0.75rem;
+  --tfs-radius-xl: 1rem;
+  --tfs-shadow-card: 0 12px 32px -4px rgba(0, 32, 28, 0.08);
+  --tfs-meta-instructor-bg: #dff6f2;
+  --tfs-meta-instructor-border: #9dd9ce;
+  --tfs-meta-instructor-text: #063d36;
+  --tfs-meta-instructor-muted: #2d5c54;
+  --tfs-meta-instructor-icon-bg: rgba(0, 104, 93, 0.14);
+  --tfs-meta-vehicle-bg: #eef2f9;
+  --tfs-meta-vehicle-border: #c5d0e3;
+  --tfs-meta-vehicle-text: #1a2332;
+  --tfs-meta-vehicle-muted: #4a5568;
+  --tfs-meta-vehicle-icon-bg: rgba(30, 58, 95, 0.12);
+
+  font-family: var(--tfs-font-body);
+  color: var(--tfs-on-surface);
+}
+
+.tfs__crumbs {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.875rem;
+  color: var(--tfs-on-surface-variant);
+  margin-bottom: 1.5rem;
+}
+
+.tfs__crumbs-sep {
+  font-size: 1rem !important;
+  opacity: 0.6;
+}
+
+.tfs__crumbs-current {
+  font-weight: 600;
+  color: var(--tfs-primary);
+}
+
+.tfs__icon {
+  font-size: 1.25rem;
+  line-height: 1;
+  vertical-align: middle;
+}
+
+.tfs__bento {
+  display: grid;
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+
+  @media (min-width: 1024px) {
+    grid-template-columns: 5fr 7fr;
+    align-items: start;
+  }
+}
+
+/* Profile card — no avatar */
+.tfs__profile-card {
+  background: var(--tfs-surface-lowest);
+  border-radius: var(--tfs-radius-xl);
+  padding: 2rem;
+  box-shadow: var(--tfs-shadow-card);
+}
+
+.tfs__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 0.35rem;
+}
+
+.tfs__chip {
+  padding: 0.15rem 0.5rem;
+  border-radius: 999px;
+  font-size: 0.625rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.tfs__chip--primary {
+  background: var(--tfs-primary-container);
+  color: var(--tfs-on-primary-container);
+}
+
+.tfs__chip--secondary {
+  background: var(--tfs-secondary-container);
+  color: var(--tfs-on-secondary-container);
+}
+
+.tfs__chip--sm {
+  font-size: 0.55rem;
+  padding: 0.1rem 0.35rem;
+}
+
+.tfs__name {
+  font-family: var(--tfs-font-headline);
+  font-size: 1.875rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+  margin: 0 0 0.25rem;
+}
+
+.tfs__ms {
+  margin: 0 0 1rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--tfs-on-surface-variant);
+}
+
+.tfs__facts {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--tfs-surface-high);
+}
+
+.tfs__fact {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+}
+
+.tfs__fact-icon {
+  color: var(--tfs-primary);
+  opacity: 0.75;
+  font-size: 1.25rem !important;
+  margin-top: 0.1rem;
+}
+
+.tfs__fact-label {
+  margin: 0;
+  font-size: 0.625rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--tfs-on-surface-variant);
+  line-height: 1.2;
+}
+
+.tfs__fact-value {
+  margin: 0.15rem 0 0;
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+/* Summary column */
+.tfs__summary {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  min-width: 0;
+}
+
+.tfs__course-progress {
+  background: var(--tfs-surface-lowest);
+  border-radius: var(--tfs-radius-xl);
+  padding: 1.25rem 1.5rem;
+  box-shadow: var(--tfs-shadow-card);
+  border: 1px solid var(--tfs-surface-high);
+}
+
+.tfs__course-progress-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 0.65rem;
+}
+
+.tfs__course-progress-label {
+  font-family: var(--tfs-font-headline);
+  font-size: 0.9375rem;
+  font-weight: 700;
+  color: var(--tfs-on-surface);
+}
+
+.tfs__course-progress-pct {
+  font-family: var(--tfs-font-headline);
+  font-size: 1.375rem;
+  font-weight: 800;
+  color: var(--tfs-primary);
+  letter-spacing: -0.02em;
+}
+
+.tfs__course-progress-track {
+  height: 0.55rem;
+  border-radius: 999px;
+  background: var(--tfs-primary-fixed-dim);
+  overflow: hidden;
+}
+
+.tfs__course-progress-fill {
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #008f7a 0%, var(--tfs-primary) 100%);
+  transition: width 0.45s ease;
+}
+
+/* Summary grid */
+.tfs__summary-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.5rem;
+
+  @media (min-width: 640px) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.tfs__card {
+  background: var(--tfs-surface-lowest);
+  border-radius: var(--tfs-radius-xl);
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  overflow: hidden;
+  box-shadow: var(--tfs-shadow-card);
+}
+
+.tfs__card--dat {
+  min-height: 8.5rem;
+}
+
+.tfs__card-dat-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 1rem;
+  position: relative;
+  z-index: 1;
+}
+
+.tfs__card-watermark {
+  font-size: 1.75rem;
+  font-weight: 900;
+  color: rgba(0, 104, 93, 0.12);
+  line-height: 1;
+  user-select: none;
+}
+
+.tfs__card-icon-wrap {
+  padding: 0.5rem;
+  border-radius: var(--tfs-radius-lg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.tfs__card-icon-wrap--primary {
+  background: var(--tfs-primary-fixed);
+  color: var(--tfs-primary);
+}
+
+.tfs__card-icon-wrap--secondary {
+  background: var(--tfs-secondary-container);
+  color: var(--tfs-secondary);
+}
+
+.tfs__card-title {
+  font-family: var(--tfs-font-headline);
+  font-size: 1.125rem;
+  font-weight: 700;
+  margin: 0 0 0.35rem;
+  position: relative;
+  z-index: 1;
+}
+
+.tfs__card-dat-metrics {
+  display: flex;
+  align-items: baseline;
+  gap: 0.25rem;
+  margin-bottom: 1rem;
+  position: relative;
+  z-index: 1;
+}
+
+.tfs__card-dat-num {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: var(--tfs-primary);
+}
+
+.tfs__card-footer {
+  margin-top: auto;
+  padding-top: 0.75rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  position: relative;
+  z-index: 1;
+}
+
+.tfs__card-footer--bordered {
+  border-top: 1px solid var(--tfs-surface-high);
+}
+
+.tfs__card-meta {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--tfs-on-surface-variant);
+}
+
+.tfs__pill {
+  font-size: 0.65rem;
+  font-weight: 800;
+  padding: 0.2rem 0.45rem;
+  border-radius: 0.25rem;
+}
+
+.tfs__pill--done {
+  background: rgba(0, 104, 93, 0.1);
+  color: var(--tfs-primary);
+}
+
+.tfs__pill--active {
+  background: var(--tfs-surface-high);
+  color: var(--tfs-on-surface-variant);
+}
+
+/* Theory card */
+.tfs__card-theory-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 1rem;
+}
+
+.tfs__card-theory-score {
+  text-align: right;
+}
+
+.tfs__card-theory-score-label {
+  margin: 0;
+  font-size: 0.625rem;
+  font-weight: 800;
+  color: var(--tfs-on-surface-variant);
+}
+
+.tfs__card-theory-score-val {
+  margin: 0;
+  font-size: 1.125rem;
+  font-weight: 900;
+  color: var(--tfs-secondary);
+}
+
+.tfs__theory-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.5rem;
+}
+
+.tfs__theory-item {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.6875rem;
+  font-weight: 600;
+}
+
+.tfs__theory-check {
+  font-size: 1rem !important;
+  color: var(--tfs-outline-variant);
+}
+
+.tfs__theory-check--on {
+  color: var(--tfs-primary);
+}
+
+/* Accent cards: cabin, caotoc, docs */
+.tfs__card--accent {
+  flex-direction: row;
+  align-items: center;
+  gap: 1rem;
+  border-left: 4px solid var(--tfs-primary);
+}
+
+.tfs__card--caotoc {
+  border-left-color: #1a6b9a;
+}
+
+.tfs__card--docs {
+  border-left-color: var(--tfs-tertiary);
+}
+
+.tfs__card-accent-icon {
+  flex-shrink: 0;
+  width: 3rem;
+  height: 3rem;
+  border-radius: 999px;
+  background: var(--tfs-surface-high);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--tfs-primary);
+}
+
+.tfs__card-accent-icon--tertiary {
+  color: var(--tfs-tertiary);
+}
+
+.tfs__card-accent-icon--doc {
+  color: var(--tfs-tertiary);
+}
+
+.tfs__card-accent-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.tfs__card-accent-label {
+  margin: 0;
+  font-size: 0.625rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--tfs-on-surface-variant);
+}
+
+.tfs__card-accent-value {
+  margin: 0.15rem 0 0;
+  font-size: 1.25rem;
+  font-weight: 800;
+  font-family: var(--tfs-font-headline);
+}
+
+.tfs__card-accent-sub {
+  margin: 0.1rem 0 0;
+  font-size: 0.75rem;
+  color: var(--tfs-on-surface-variant);
+  font-weight: 500;
+}
+
+.tfs__badge-solid {
+  display: inline-block;
+  margin-top: 0.35rem;
+  padding: 0.15rem 0.45rem;
+  background: var(--tfs-primary);
+  color: var(--tfs-on-primary);
+  font-size: 0.625rem;
+  font-weight: 800;
+  border-radius: 0.25rem;
+}
+
+.tfs__badge-outline {
+  display: inline-block;
+  margin-top: 0.35rem;
+  padding: 0.15rem 0.45rem;
+  background: transparent;
+  border: 1px solid var(--tfs-outline-variant);
+  color: var(--tfs-on-surface-variant);
+  font-size: 0.625rem;
+  font-weight: 800;
+  border-radius: 0.25rem;
+}
+
+.tfs__doc-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin-top: 0.35rem;
+}
+
+.tfs__doc-tag {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  padding: 0.15rem 0.35rem;
+  border-radius: 0.25rem;
+  background: var(--tfs-tertiary-fixed);
+  color: var(--tfs-on-tertiary-fixed);
+}
+
+/* Instructor & Vehicle row */
+.tfs__meta-row {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+
+  @media (min-width: 768px) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.tfs__meta-card {
+  border-radius: var(--tfs-radius-xl);
+  padding: 1.35rem 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  box-shadow: var(--tfs-shadow-card);
+}
+
+.tfs__meta-card--instructor {
+  background: var(--tfs-meta-instructor-bg);
+  border: 1px solid var(--tfs-meta-instructor-border);
+  color: var(--tfs-meta-instructor-text);
+}
+
+.tfs__meta-card--vehicle {
+  background: var(--tfs-meta-vehicle-bg);
+  border: 1px solid var(--tfs-meta-vehicle-border);
+  color: var(--tfs-meta-vehicle-text);
+}
+
+.tfs__meta-inner {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  min-width: 0;
+}
+
+.tfs__meta-card--instructor .tfs__meta-icon {
+  font-size: 2.25rem !important;
+  color: var(--tfs-primary);
+  opacity: 1;
+  padding: 0.5rem;
+  border-radius: var(--tfs-radius-lg);
+  background: var(--tfs-meta-instructor-icon-bg);
+}
+
+.tfs__meta-card--vehicle .tfs__meta-icon {
+  font-size: 2.25rem !important;
+  color: #2c5282;
+  opacity: 1;
+  padding: 0.5rem;
+  border-radius: var(--tfs-radius-lg);
+  background: var(--tfs-meta-vehicle-icon-bg);
+}
+
+.tfs__meta-label {
+  margin: 0;
+  font-size: 0.6875rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.tfs__meta-card--instructor .tfs__meta-label {
+  color: var(--tfs-meta-instructor-muted);
+}
+
+.tfs__meta-card--vehicle .tfs__meta-label {
+  color: var(--tfs-meta-vehicle-muted);
+}
+
+.tfs__meta-value {
+  margin: 0.2rem 0 0;
+  font-size: 1.2rem;
+  font-weight: 800;
+  font-family: var(--tfs-font-headline);
+  letter-spacing: -0.02em;
+}
+
+.tfs__meta-card--instructor .tfs__meta-value {
+  color: var(--tfs-meta-instructor-text);
+}
+
+.tfs__meta-card--vehicle .tfs__meta-value {
+  color: var(--tfs-meta-vehicle-text);
+}
+
+.tfs__vehicle-class {
+  flex-shrink: 0;
+  padding: 0.35rem 0.75rem;
+  border-radius: var(--tfs-radius-lg);
+  background: #fff;
+  border: 1px solid var(--tfs-meta-vehicle-border);
+  color: var(--tfs-meta-vehicle-text);
+  font-size: 0.8125rem;
+  font-weight: 700;
+  font-family: ui-monospace, monospace;
+  letter-spacing: 0.06em;
+}
+
+/* History & tables */
+.tfs__history-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.tfs__history {
+  background: var(--tfs-surface-lowest);
+  border-radius: var(--tfs-radius-xl);
+  overflow: hidden;
+  box-shadow: var(--tfs-shadow-card);
+  margin-bottom: 1.5rem;
+}
+
+.tfs__history-head {
+  padding: 1.5rem;
+  border-bottom: 1px solid var(--tfs-surface-high);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.tfs__table-hint {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.75rem;
+  color: var(--tfs-on-surface-variant);
+  font-style: italic;
+  margin: 0;
+
+  .material-icons { font-size: 14px; color: var(--tfs-primary); }
+}
+
+.tfs__history-title-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.tfs__history-accent {
+  width: 0.25rem;
+  height: 2rem;
+  border-radius: 999px;
+  background: var(--tfs-primary);
+}
+
+.tfs__history-accent--secondary {
+  background: var(--tfs-secondary);
+}
+
+.tfs__history-title {
+  margin: 0;
+  font-family: var(--tfs-font-headline);
+  font-size: 1.25rem;
+  font-weight: 700;
+}
+
+.tfs__table-wrap {
+  overflow-x: auto;
+}
+
+.tfs__table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+}
+
+.tfs__table thead tr {
+  background: var(--tfs-surface-low);
+  color: var(--tfs-on-surface-variant);
+}
+
+.tfs__table th {
+  text-align: left;
+  padding: 1rem 1.5rem;
+  font-size: 0.6875rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.tfs__th-center {
+  text-align: center;
+}
+
+.tfs__th-right {
+  text-align: right;
+}
+
+.tfs__table tbody tr {
+  border-top: 1px solid var(--tfs-surface-high);
+}
+
+.tfs__table tbody tr:hover {
+  background: rgba(142, 245, 227, 0.15);
+}
+
+.tfs__tr--clickable {
+  cursor: pointer;
+
+  &:hover {
+    background: rgba(0, 104, 93, 0.07);
+  }
+}
+
+.tfs__route-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  border: none;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--tfs-primary);
+  cursor: pointer;
+  transition: background 0.15s;
+
+  &:hover {
+    background: var(--tfs-secondary-container);
+  }
+
+  .material-icons { font-size: 1.1rem; }
+}
+
+.tfs__table td {
+  padding: 1.15rem 1.5rem;
+  vertical-align: middle;
+}
+
+.tfs__table-empty {
+  text-align: center;
+  font-style: italic;
+  color: var(--tfs-on-surface-variant);
+  font-size: 0.8125rem;
+}
+
+.tfs__td-strong {
+  font-weight: 700;
+}
+
+.tfs__td-muted {
+  color: var(--tfs-on-surface-variant);
+  font-weight: 500;
+}
+
+.tfs__td-center {
+  text-align: center;
+}
+
+.tfs__td-right {
+  text-align: right;
+}
+
+.tfs__td-mono {
+  font-family: ui-monospace, monospace;
+  font-weight: 700;
+  color: var(--tfs-primary);
+}
+
+.tfs__pill-data {
+  display: inline-block;
+  padding: 0.2rem 0.45rem;
+  border-radius: 0.25rem;
+  background: var(--tfs-surface-low);
+  color: var(--tfs-primary);
+  font-weight: 700;
+  font-size: 0.8125rem;
+  font-family: ui-monospace, monospace;
+}
+
+.tfs__plate-cell {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.tfs__plate-dot {
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 50%;
+  background: var(--tfs-primary);
+  flex-shrink: 0;
+}
+
+.tfs__state-ok {
+  color: var(--tfs-primary);
+  font-size: 1.35rem !important;
+}
+
+.tfs__state-wait {
+  color: var(--tfs-on-surface-variant);
+  opacity: 0.5;
+  font-size: 1.35rem !important;
+}
+
+/* ── Thiếu / đủ panel ─────────────────────────────────────────────────────── */
+.tfs__thieudo {
+  background: var(--tfs-surface-lowest);
+  border-radius: var(--tfs-radius-xl);
+  overflow: hidden;
+  box-shadow: var(--tfs-shadow-card);
+  margin-bottom: 1.5rem;
+}
+
+.tfs__thieudo-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 1.5rem;
+  border-bottom: 1px solid var(--tfs-surface-high);
+}
+
+.tfs__verdict {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.8125rem;
+  font-weight: 800;
+  padding: 0.35rem 0.75rem;
+  border-radius: var(--tfs-radius-lg);
+}
+
+.tfs__verdict--ok {
+  background: rgba(0, 104, 93, 0.1);
+  color: var(--tfs-primary);
+}
+
+.tfs__verdict--fail {
+  background: rgba(180, 56, 0, 0.1);
+  color: #b43800;
+}
+
+.tfs__thieudo-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1px;
+  background: var(--tfs-surface-high);
+
+  @media (min-width: 640px) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  @media (min-width: 1024px) {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+.tfs__td-card {
+  background: var(--tfs-surface-lowest);
+  padding: 1.25rem 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.tfs__td-card--thieu {
+  border-top: 3px solid #e05e00;
+}
+
+.tfs__td-card--du {
+  border-top: 3px solid var(--tfs-primary);
+}
+
+.tfs__td-card--na {
+  border-top: 3px solid var(--tfs-outline-variant);
+  opacity: 0.65;
+}
+
+.tfs__td-card-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.tfs__td-card-label {
+  font-size: 0.75rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--tfs-on-surface-variant);
+}
+
+.tfs__pill--warn {
+  background: rgba(224, 94, 0, 0.12);
+  color: #c25000;
+}
+
+.tfs__pill--na {
+  background: var(--tfs-surface-high);
+  color: var(--tfs-on-surface-variant);
+}
+
+.tfs__td-card-numbers {
+  display: flex;
+  align-items: baseline;
+  gap: 0.35rem;
+}
+
+.tfs__td-card-actual {
+  font-family: var(--tfs-font-headline);
+  font-size: 1.375rem;
+  font-weight: 800;
+  color: var(--tfs-on-surface);
+  letter-spacing: -0.02em;
+}
+
+.tfs__td-card-sep {
+  font-size: 0.875rem;
+  color: var(--tfs-outline-variant);
+}
+
+.tfs__td-card-threshold {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--tfs-on-surface-variant);
+}
+
+.tfs__td-progress-track {
+  height: 0.375rem;
+  border-radius: 999px;
+  background: var(--tfs-surface-high);
+  overflow: hidden;
+}
+
+.tfs__td-progress-fill {
+  height: 100%;
+  border-radius: 999px;
+  transition: width 0.4s ease;
+}
+
+.tfs__td-progress-fill--du {
+  background: var(--tfs-primary);
+}
+
+.tfs__td-progress-fill--thieu {
+  background: #e05e00;
+}
+
+.tfs__td-progress-fill--na {
+  background: var(--tfs-outline-variant);
+}
+
+.tfs__td-card-note {
+  margin: 0;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #c25000;
+}

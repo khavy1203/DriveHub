@@ -56,7 +56,7 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed }) => {
     {
       label: 'Cổng học viên', icon: 'school',
       children: [
-        { label: 'Tiến độ học',         icon: 'leaderboard',  to: '/dashboard/home?section=progress'  },
+        { label: 'Tiến độ đào tạo',     icon: 'leaderboard',  to: '/dashboard/home?section=training'  },
         { label: 'Giáo viên của tôi',   icon: 'person',       to: '/dashboard/home?section=myteacher' },
         { label: 'Danh sách giáo viên', icon: 'group',        to: '/dashboard/home?section=teachers'  },
         { label: 'Tin nhắn',            icon: 'chat',         to: '/dashboard/chat'                   },
