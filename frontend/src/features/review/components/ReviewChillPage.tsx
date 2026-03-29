@@ -8,6 +8,12 @@ type OptionVariant = 'idle' | 'correct' | 'wrong';
 
 const OPTION_LABELS = ['1', '2', '3', '4', '5'] as const;
 
+const toOptionNumber = (value: unknown): number | null => {
+  if (value === undefined || value === null) return null;
+  const n = Number(value);
+  return Number.isFinite(n) ? n : null;
+};
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const loadQuestionImage = (number: number | undefined): string | null => {
   if (!number) return null;
@@ -59,7 +65,14 @@ const ReviewChillPage: React.FC = () => {
   const isAnswered = answers[currentIndex] !== undefined;
 
   const correctCount = useMemo(
-    () => questions.filter((q, i) => answers[i] === q.answer).length,
+    () =>
+      questions.reduce((acc, q, i) => {
+        const chosen = answers[i];
+        if (chosen === undefined) return acc;
+        const ca = toOptionNumber(q.answer);
+        if (ca === null) return acc;
+        return acc + (Number(chosen) === ca ? 1 : 0);
+      }, 0),
     [questions, answers],
   );
   useEffect(() => {
@@ -75,20 +88,17 @@ const ReviewChillPage: React.FC = () => {
     (opt: number): OptionVariant => {
       const selected = answers[currentIndex];
       if (selected === undefined) return 'idle';
-      if (opt === currentQuestion?.answer) return 'correct';
-      if (opt === selected) return 'wrong';
-      return 'idle';
+      if (Number(opt) !== Number(selected)) return 'idle';
+      const correctKey = toOptionNumber(currentQuestion?.answer);
+      if (correctKey === null) return 'wrong';
+      return Number(selected) === correctKey ? 'correct' : 'wrong';
     },
     [answers, currentIndex, currentQuestion],
   );
 
-  const handleSelectOption = useCallback(
-    (opt: number) => {
-      if (answers[currentIndex] !== undefined) return;
-      setAnswers((prev) => ({ ...prev, [currentIndex]: opt }));
-    },
-    [answers, currentIndex],
-  );
+  const handleSelectOption = useCallback((opt: number) => {
+    setAnswers((prev) => ({ ...prev, [currentIndex]: opt }));
+  }, [currentIndex]);
 
   const handleNavigate = useCallback((index: number) => {
     setCurrentIndex(index);
@@ -101,8 +111,9 @@ const ReviewChillPage: React.FC = () => {
       // Ignore when user is typing in an input
       if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
 
-      const optNum = parseInt(e.key);
-      if (!isNaN(optNum) && optNum >= 1 && optNum <= 5) {
+      const maxOpt = currentQuestion?.totalOptions ?? 4;
+      const optNum = parseInt(e.key, 10);
+      if (!isNaN(optNum) && optNum >= 1 && optNum <= maxOpt) {
         handleSelectOption(optNum);
         return;
       }
@@ -126,13 +137,15 @@ const ReviewChillPage: React.FC = () => {
 
     window.addEventListener('keydown', onKeyDown);
     return () => window.removeEventListener('keydown', onKeyDown);
-  }, [handleSelectOption, totalQuestions]);
+  }, [handleSelectOption, totalQuestions, currentQuestion?.totalOptions]);
 
   const getNavBtnState = (index: number): 'active' | 'correct' | 'wrong' | 'idle' => {
     if (index === currentIndex) return 'active';
     const chosen = answers[index];
     if (chosen === undefined) return 'idle';
-    return chosen === questions[index]?.answer ? 'correct' : 'wrong';
+    const ca = toOptionNumber(questions[index]?.answer);
+    if (ca === null) return 'idle';
+    return Number(chosen) === ca ? 'correct' : 'wrong';
   };
 
   if (loading) {
@@ -157,10 +170,13 @@ const ReviewChillPage: React.FC = () => {
   }
 
   const imageSrc = loadQuestionImage(currentQuestion?.number);
-  const isCorrect = isAnswered && answers[currentIndex] === currentQuestion?.answer;
+  const selectedNum = isAnswered ? Number(answers[currentIndex]) : null;
+  const correctKey = toOptionNumber(currentQuestion?.answer);
+  const isCorrect = selectedNum !== null && correctKey !== null && selectedNum === correctKey;
   const showHints = isAnswered && !isCorrect;
-  const tip    = showHints ? currentQuestion?.tip    : null;
+  const tip = showHints ? currentQuestion?.tip : null;
   const reason = showHints ? currentQuestion?.reason : null;
+  const correctLabelIdx = correctKey !== null ? Math.min(Math.max(correctKey - 1, 0), OPTION_LABELS.length - 1) : 0;
 
   return (
     <div className="chill-page">
@@ -244,9 +260,10 @@ const ReviewChillPage: React.FC = () => {
                 return (
                   <button
                     key={opt}
+                    type="button"
                     className={`chill-option chill-option--${variant}`}
                     onClick={() => handleSelectOption(opt)}
-                    disabled={isAnswered}
+                    aria-pressed={isAnswered && answers[currentIndex] === opt}
                   >
                     <span className="chill-option__badge">{OPTION_LABELS[i]}</span>
                     <span className="chill-option__label">Đáp án {OPTION_LABELS[i]}</span>
@@ -261,43 +278,36 @@ const ReviewChillPage: React.FC = () => {
               })}
             </div>
 
-            {/* Result feedback */}
-            {isAnswered && (
-              <div className={`chill-feedback chill-feedback--${isCorrect ? 'correct' : 'wrong'}`}>
-                <span className="material-icons">
-                  {isCorrect ? 'check_circle' : 'highlight_off'}
-                </span>
-                <span>
-                  {isCorrect
-                    ? 'Chính xác!'
-                    : `Sai — Đáp án đúng là ${OPTION_LABELS[(currentQuestion?.answer ?? 1) - 1]}`}
-                </span>
-              </div>
-            )}
+            {isAnswered && !isCorrect ? (
+                <div className="chill-feedback chill-feedback--wrong">
+                  <span className="material-icons chill-feedback__icon">gavel</span>
+                  <div className="chill-feedback__content">
+                    <div className="chill-feedback__title">Lý do theo luật</div>
+                    {reason ? (
+                      <p className="chill-feedback__law">{reason}</p>
+                    ) : (
+                      <p className="chill-feedback__law chill-feedback__law--fallback">
+                        {correctKey !== null
+                          ? `Đáp án đúng là đáp án ${OPTION_LABELS[correctLabelIdx]}. Dữ liệu chưa có phần giải thích luật cho câu này.`
+                          : 'Không xác định được đáp án đúng trong dữ liệu. Bạn vẫn có thể chọn đáp án khác.'}
+                      </p>
+                    )}
+                    <p className="chill-feedback__retry">Bạn có thể chọn lại đáp án khác.</p>
+                  </div>
+                </div>
+            ) : null}
 
-            {/* Tip + Reason — shown only when wrong */}
-            {(tip || reason) && (
+            {showHints && tip ? (
               <div className="chill-hints">
-                {tip && (
-                  <div className="chill-tip">
-                    <div className="chill-tip__header">
-                      <span className="material-icons">lightbulb</span>
-                      <span>Mẹo nhớ nhanh</span>
-                    </div>
-                    <p className="chill-tip__body">{tip}</p>
+                <div className="chill-tip">
+                  <div className="chill-tip__header">
+                    <span className="material-icons">lightbulb</span>
+                    <span>Mẹo nhớ nhanh</span>
                   </div>
-                )}
-                {reason && (
-                  <div className="chill-reason">
-                    <div className="chill-reason__header">
-                      <span className="material-icons">gavel</span>
-                      <span>Lý do / Luật</span>
-                    </div>
-                    <p className="chill-reason__body">{reason}</p>
-                  </div>
-                )}
+                  <p className="chill-tip__body">{tip}</p>
+                </div>
               </div>
-            )}
+            ) : null}
           </div>
 
           {/* Navigation */}
@@ -356,7 +366,10 @@ const ReviewChillPage: React.FC = () => {
 
             <div className="chill-sidebar__note">
               <span className="material-icons">info</span>
-              <p>Chọn sai sẽ hiện mẹo ghi nhớ — không giới hạn thời gian.</p>
+              <p>
+                Một đáp án đang chọn; có thể đổi lại bất cứ lúc nào. Chọn sai sẽ hiện lý do theo luật — không giới hạn
+                thời gian.
+              </p>
             </div>
           </div>
         </aside>

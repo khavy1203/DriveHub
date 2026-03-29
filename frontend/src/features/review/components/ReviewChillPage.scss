@@ -18,7 +18,10 @@
   --shadow-teal:            rgba(0, 32, 28, 0.08);
   --topbar-height:          68px;
 
+  box-sizing: border-box;
   min-height: 100vh;
+  max-width: 100%;
+  overflow-x: clip;
   background: var(--color-surface);
   color: var(--color-on-surface);
   font-family: 'Inter', 'Be Vietnam Pro', sans-serif;
@@ -68,6 +71,7 @@
   position: sticky;
   top: 0;
   z-index: 40;
+  max-width: 100%;
   background: rgba(248, 250, 250, 0.85);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
@@ -75,7 +79,9 @@
   height: var(--topbar-height);
 
   &__inner {
+    box-sizing: border-box;
     max-width: 1280px;
+    width: 100%;
     margin: 0 auto;
     padding: 0 24px;
     height: 100%;
@@ -83,6 +89,12 @@
     align-items: center;
     justify-content: space-between;
     gap: 16px;
+    min-width: 0;
+
+    @media (max-width: 640px) {
+      padding: 0 12px;
+      gap: 10px;
+    }
   }
 
   &__left {
@@ -179,26 +191,44 @@
 
 // ─── Layout ───────────────────────────────────────────────────────────────────
 .chill-layout {
+  box-sizing: border-box;
   max-width: 1280px;
+  width: 100%;
+  min-width: 0;
   margin: 0 auto;
   padding: 32px 0px 60px;
   display: grid;
-  grid-template-columns: 1fr 320px;
+  grid-template-columns: minmax(0, 1fr) 320px;
   gap: 24px;
   align-items: start;
 
   @media (max-width: 960px) {
-    grid-template-columns: 1fr;
-    padding: 20px 16px 48px;
+    grid-template-columns: minmax(0, 1fr);
+    padding: 16px 12px 40px;
   }
+}
+
+.chill-main {
+  min-width: 0;
+  max-width: 100%;
+  width: 100%;
 }
 
 // ─── Question Card ────────────────────────────────────────────────────────────
 .chill-question-card {
+  box-sizing: border-box;
   background: var(--color-surface-card);
   border-radius: 16px;
   padding: 28px;
   box-shadow: 0 2px 16px var(--shadow-teal);
+  min-width: 0;
+  max-width: 100%;
+  width: 100%;
+
+  @media (max-width: 640px) {
+    padding: 14px 10px;
+    border-radius: 12px;
+  }
 
   &__meta {
     display: flex;
@@ -222,22 +252,38 @@
   }
 
   &__image-wrap {
+    box-sizing: border-box;
     width: 100%;
+    max-width: 100%;
+    min-width: 0;
     border-radius: 12px;
     overflow: hidden;
     background: var(--color-surface-low);
     margin-bottom: 24px;
-    aspect-ratio: 16 / 9;
     display: flex;
     align-items: center;
     justify-content: center;
     position: relative;
+    min-height: 360px;
+    aspect-ratio: 16 / 10;
+
+    @media (max-width: 960px) {
+      min-height: 300px;
+      aspect-ratio: 4 / 3;
+    }
+
+    @media (max-width: 480px) {
+      min-height: min(72vh, 420px);
+      aspect-ratio: 1 / 1;
+    }
   }
 
   &__image {
     width: 100%;
     height: 100%;
+    min-height: inherit;
     object-fit: contain;
+    object-position: center;
     display: block;
   }
 
@@ -292,20 +338,27 @@
 // ─── Options ──────────────────────────────────────────────────────────────────
 .chill-options {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 10px;
   margin-bottom: 20px;
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
 }
 
 .chill-option {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 16px 18px;
+  gap: 10px;
+  padding: 14px 12px;
   border-radius: 12px;
-  border: 2px solid #d0d8d6;
-  background: #f0f4f3;
+  border: 2px solid #e5e7eb;
+  background: #ffffff;
   cursor: pointer;
+  min-width: 0;
+  max-width: 100%;
+  width: 100%;
+  box-sizing: border-box;
   font-size: 14px;
   font-weight: 600;
   color: var(--color-on-surface);
@@ -313,16 +366,20 @@
   transition: border-color 0.15s, background 0.15s, transform 0.1s, box-shadow 0.15s;
   box-shadow: 0 1px 4px rgba(0, 32, 28, 0.06);
 
-  &:not(:disabled):hover {
+  &--idle:not(:disabled):hover {
     border-color: var(--color-primary);
-    background: #c8ede7;
-    box-shadow: 0 4px 12px rgba(0, 104, 93, 0.15);
+    background: #f0faf8;
+    box-shadow: 0 4px 12px rgba(0, 104, 93, 0.12);
     transform: translateY(-1px);
   }
 
   &:not(:disabled):active { transform: scale(0.98); }
 
-  &:disabled { cursor: default; }
+  &--correct:not(:disabled):hover,
+  &--wrong:not(:disabled):hover {
+    transform: translateY(-1px);
+    filter: brightness(1.02);
+  }
 
   &__badge {
     width: 34px;
@@ -340,15 +397,19 @@
 
   &__label {
     flex: 1;
+    min-width: 0;
     font-size: 14px;
     font-weight: 600;
     color: var(--color-on-surface-muted);
+    overflow-wrap: break-word;
+    word-break: break-word;
   }
 
   &__result-icon {
     margin-left: auto;
-    font-size: 22px;
+    font-size: 20px;
     flex-shrink: 0;
+    align-self: center;
   }
 
   // ── Variants ──
@@ -392,24 +453,72 @@
 
 // ─── Feedback Banner ──────────────────────────────────────────────────────────
 .chill-feedback {
+  box-sizing: border-box;
   display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 12px 16px;
-  border-radius: 10px;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 14px 16px;
+  border-radius: 12px;
   font-size: 14px;
   font-weight: 600;
+  max-width: 100%;
+  min-width: 0;
 
   .material-icons { font-size: 20px; }
+
+  &__icon {
+    flex-shrink: 0;
+    margin-top: 2px;
+    font-size: 22px;
+  }
+
+  &__content {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  &__title {
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+    color: inherit;
+    opacity: 0.95;
+  }
+
+  &__law {
+    font-size: 14px;
+    font-weight: 500;
+    line-height: 1.65;
+    margin: 0;
+    white-space: pre-wrap;
+    word-break: break-word;
+
+    &--fallback {
+      font-weight: 600;
+    }
+  }
+
+  &__retry {
+    font-size: 12px;
+    font-weight: 600;
+    margin: 0;
+    opacity: 0.9;
+  }
 
   &--correct {
     background: var(--color-success-tint);
     color: var(--color-primary-dark);
+    align-items: center;
   }
 
   &--wrong {
     background: var(--color-danger-tint);
     color: var(--color-danger);
+    border: 1px solid rgba(186, 26, 26, 0.28);
   }
 }
 
@@ -420,6 +529,13 @@
   flex-direction: column;
   gap: 10px;
   animation: chill-tip-in 0.25s ease;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+
+  .chill-tip {
+    margin-top: 0;
+  }
 }
 
 // ─── Tip (Mẹo nhớ nhanh) ─────────────────────────────────────────────────────
@@ -458,6 +574,10 @@
   border: 1px solid #b8c8f0;
   border-radius: 12px;
 
+  &--primary {
+    box-shadow: 0 2px 12px rgba(26, 58, 138, 0.12);
+  }
+
   &__header {
     display: flex;
     align-items: center;
@@ -492,6 +612,10 @@
   justify-content: space-between;
   align-items: center;
   margin-top: 20px;
+  min-width: 0;
+  max-width: 100%;
+  gap: 8px;
+  flex-wrap: wrap;
 
   &__btn {
     display: flex;
@@ -534,16 +658,20 @@
 .chill-sidebar {
   position: sticky;
   top: calc(var(--topbar-height) + 16px);
+  min-width: 0;
+  max-width: 100%;
 
   @media (max-width: 960px) {
     position: static;
   }
 
   &__card {
+    box-sizing: border-box;
     background: var(--color-surface-card);
     border-radius: 16px;
     padding: 5px;
     box-shadow: 0 2px 16px var(--shadow-teal);
+    max-width: 100%;
   }
 
   &__header {
@@ -630,13 +758,15 @@
 
   &__grid {
     display: grid;
-    grid-template-columns: repeat(5, 1fr);
+    grid-template-columns: repeat(5, minmax(0, 1fr));
     gap: 6px;
     margin-bottom: 20px;
+    min-width: 0;
   }
 
   &__btn {
     aspect-ratio: 1;
+    min-width: 0;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -706,15 +836,20 @@
     &__chip span:last-child { display: none; }
   }
 
-  .chill-option {
-    padding: 12px 14px;
-    gap: 10px;
+  .chill-options {
+    grid-template-columns: minmax(0, 1fr);
+  }
 
-    &__badge { width: 30px; height: 30px; font-size: 13px; }
+  .chill-option {
+    padding: 12px 10px;
+    gap: 8px;
+
+    &__badge { width: 30px; height: 30px; font-size: 13px; flex-shrink: 0; }
     &__label  { font-size: 13px; }
+    &__result-icon { font-size: 18px; }
   }
 
   .chill-nav__label { display: none; }
 
-  .chill-sidebar__grid { grid-template-columns: repeat(6, 1fr); }
+  .chill-sidebar__grid { grid-template-columns: repeat(6, minmax(0, 1fr)); }
 }
