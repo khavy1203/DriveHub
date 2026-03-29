@@ -5,6 +5,8 @@ import { useAuth } from "../../features/auth/hooks/useAuth";
 interface DashHeaderProps {
   onToggle: () => void;
   collapsed: boolean;
+  mobileNavOpen: boolean;
+  isMobile: boolean;
 }
 
 const BREADCRUMB_MAP: Record<string, string> = {
@@ -15,7 +17,12 @@ const BREADCRUMB_MAP: Record<string, string> = {
   '/dashboard':              'Dashboard',
 };
 
-const Header: React.FC<DashHeaderProps> = ({ onToggle, collapsed }) => {
+const Header: React.FC<DashHeaderProps> = ({
+  onToggle,
+  collapsed,
+  mobileNavOpen,
+  isMobile,
+}) => {
   const navigate  = useNavigate();
   const location  = useLocation();
   const { displayName, role, avatarUrl, logout } = useAuth();
@@ -39,8 +46,23 @@ const Header: React.FC<DashHeaderProps> = ({ onToggle, collapsed }) => {
   return (
     <header className="db-header">
       <div className="db-header-left">
-        <button className="db-toggle-btn" onClick={onToggle} title={collapsed ? 'Mở rộng' : 'Thu gọn'}>
-          <i className="material-icons">{collapsed ? 'menu_open' : 'menu'}</i>
+        <button
+          className="db-toggle-btn"
+          onClick={onToggle}
+          title={
+            isMobile
+              ? mobileNavOpen
+                ? 'Đóng menu'
+                : 'Mở menu'
+              : collapsed
+                ? 'Mở rộng'
+                : 'Thu gọn'
+          }
+          aria-expanded={isMobile ? mobileNavOpen : undefined}
+        >
+          <i className="material-icons">
+            {isMobile ? (mobileNavOpen ? 'close' : 'menu') : collapsed ? 'menu_open' : 'menu'}
+          </i>
         </button>
         <div className="db-breadcrumb">
           <span className="db-breadcrumb-root">Dashboard</span>

@@ -5,7 +5,6 @@ import { ApiResponse } from "../../../interfaces";
 import { toast } from 'react-toastify';
 import * as XLSX from 'xlsx';
 import { saveAs } from 'file-saver';
-import { Course } from 'src/interfaces';
 // =====================
 // Types
 // =====================
@@ -318,8 +317,8 @@ const QrScannerPage: React.FC = () => {
   }, [get]);
 
   useEffect(() => {
-    fetchCourses();
-  }, []);
+    void fetchCourses();
+  }, [fetchCourses]);
 
   // Lấy danh sách đã ghi danh của khóa học từ server (không giữ cache client)
   const fetchEnrolled = useCallback(async () => {
@@ -354,12 +353,11 @@ const QrScannerPage: React.FC = () => {
       console.error("Lỗi khi gọi API:", e);
       setEntries([]);
     }
-  }, [selectedCourse]);
+  }, [selectedCourse, get]);
 
-  // FIX: Thêm dependency `selectedCourse` vào mảng dependency để gọi lại khi khóa học thay đổi.
   useEffect(() => {
-    fetchEnrolled();
-  }, [selectedCourse]);
+    void fetchEnrolled();
+  }, [fetchEnrolled]);
 
 
   const handleAdd = async (data: StudentFormData, avatarBase64: string | null) => {
@@ -374,6 +372,9 @@ const QrScannerPage: React.FC = () => {
       });
       if (response.EC === 0) {
         toast.success(`Đã thêm ${data.name} (CCCD ${data.id}) vào khóa học!`);
+        if (avatarBase64) {
+          setAvatars((prev) => ({ ...prev, [data.CCCD]: avatarBase64 }));
+        }
         fetchEnrolled();
       } else {
         toast.error(response.EM || 'Thêm vào khóa học thất bại');

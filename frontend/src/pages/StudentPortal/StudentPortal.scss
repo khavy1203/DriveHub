@@ -20,7 +20,12 @@
   font-family: 'Inter', sans-serif;
   color: var(--on-surface);
   padding: 1.5rem 2rem 4rem;
-  @media (max-width: 768px) { padding: 1rem 1rem 4rem; }
+  min-width: 0;
+  max-width: 100%;
+
+  @media (max-width: 768px) {
+    padding: 0.75rem 0.625rem 3rem;
+  }
 
   h1, h2, h3 { font-family: 'Manrope', sans-serif; }
   * { box-sizing: border-box; }
@@ -79,6 +84,10 @@
   border-radius: 0.75rem;
   padding: 2rem;
   box-shadow: 0 2px 12px rgba(0, 32, 28, 0.05);
+
+  @media (max-width: 480px) {
+    padding: 1.25rem 1rem;
+  }
 }
 
 // ── Full teacher card ─────────────────────────────────────────────────────────
@@ -92,6 +101,11 @@
   gap: 2rem;
   box-shadow: 0 2px 12px rgba(0, 32, 28, 0.05);
   @media (min-width: 640px) { flex-direction: row; }
+
+  @media (max-width: 480px) {
+    padding: 1.25rem 1rem;
+    gap: 1.25rem;
+  }
 }
 
 .hvp__teacher-photo { flex-shrink: 0; }

@@ -2,6 +2,12 @@
   padding: 28px;
   max-width: 1200px;
   font-family: 'Inter', sans-serif;
+  min-width: 0;
+
+  @media (max-width: 768px) {
+    padding: 12px 10px;
+    max-width: 100%;
+  }
 
   // ── Header ──────────────────────────────────────────────
   &__header {
@@ -148,6 +154,13 @@
     border-radius: 16px;
     overflow: hidden;
     box-shadow: 0 1px 4px rgba(0, 32, 28, 0.06);
+    max-width: 100%;
+
+    @media (max-width: 768px) {
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      border-radius: 12px;
+    }
   }
 
   &__table {

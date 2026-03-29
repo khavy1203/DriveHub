@@ -2,6 +2,12 @@
   padding: 28px;
   max-width: 1280px;
   font-family: 'Inter', sans-serif;
+  min-width: 0;
+
+  @media (max-width: 768px) {
+    padding: 12px 10px;
+    max-width: 100%;
+  }
 
   // ── Header ───────────────────────────────────────────────
   &__header {
@@ -184,6 +190,13 @@
     border-radius: 16px;
     overflow: hidden;
     box-shadow: 0 1px 4px rgba(0, 32, 28, 0.06);
+    max-width: 100%;
+
+    @media (max-width: 768px) {
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      border-radius: 12px;
+    }
   }
 
   &__table {
@@ -202,6 +215,10 @@
       letter-spacing: 0.07em;
       color: #3d4946;
       white-space: nowrap;
+
+      @media (max-width: 768px) {
+        padding: 10px 12px;
+      }
     }
 
     td {
@@ -209,6 +226,10 @@
       border-top: 1px solid #eceeee;
       color: #191c1d;
       vertical-align: middle;
+
+      @media (max-width: 768px) {
+        padding: 12px 12px;
+      }
     }
 
     tbody tr {

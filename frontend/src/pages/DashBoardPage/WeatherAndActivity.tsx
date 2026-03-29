@@ -63,15 +63,15 @@ const WeatherAndActivity: React.FC = () => {
                     <i className="mdi mdi-dots-horizontal"></i>
                   </span>
                   <span className="dropdown-menu" aria-labelledby="dropdownMenuButton1">
-                    <a className="dropdown-item" href="#">
+                    <button type="button" className="dropdown-item">
                       Contact
-                    </a>
-                    <a className="dropdown-item" href="#">
+                    </button>
+                    <button type="button" className="dropdown-item">
                       Helpdesk
-                    </a>
-                    <a className="dropdown-item" href="#">
+                    </button>
+                    <button type="button" className="dropdown-item">
                       Chat with us
-                    </a>
+                    </button>
                   </span>
                 </span>
               </span>
@@ -103,9 +103,9 @@ const WeatherAndActivity: React.FC = () => {
                 <p className="text-muted">2h ago</p>
               </li>
             </ul>
-            <a className="text-black mt-3 mb-0 d-block h6" href="#">
+            <button type="button" className="text-black mt-3 mb-0 d-block h6 btn btn-link p-0 text-start text-decoration-none border-0 bg-transparent">
               View all <i className="mdi mdi-chevron-right"></i>
-            </a>
+            </button>
           </div>
         </div>
       </div>

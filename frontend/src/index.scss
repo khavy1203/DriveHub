@@ -3,10 +3,38 @@
 @tailwind utilities; */
 
 html {
-    margin: 0;
-    padding: 0;
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  -webkit-text-size-adjust: 100%;
 }
 
-body, * {
-    font-family: 'Be Vietnam Pro', sans-serif;
+*,
+*::before,
+*::after {
+  box-sizing: inherit;
+}
+
+body {
+  margin: 0;
+  overflow-x: clip;
+  font-family: 'Be Vietnam Pro', sans-serif;
+}
+
+body *,
+.main-content {
+  font-family: 'Be Vietnam Pro', sans-serif;
+}
+
+img,
+video,
+canvas,
+svg {
+  max-width: 100%;
+  height: auto;
+}
+
+.main-content {
+  min-width: 0;
+  max-width: 100%;
 }

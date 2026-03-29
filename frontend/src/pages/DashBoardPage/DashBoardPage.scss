@@ -18,9 +18,19 @@ $shadow-md:           0 4px 16px rgba(0,0,0,0.10);
 $transition:          0.22s ease;
 
 // ─── Shell layout ─────────────────────────────────────────────────────────────
+.dashboard-layout {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  min-width: 0;
+  max-width: 100%;
+}
+
 .db-shell {
   display: flex;
   min-height: 100vh;
+  min-width: 0;
+  max-width: 100%;
   background: $bg;
   font-family: 'Segoe UI', Arial, sans-serif;
 
@@ -212,6 +222,8 @@ $transition:          0.22s ease;
   flex: 1;
   margin-left: $sidebar-width;
   min-height: 100vh;
+  min-width: 0;
+  max-width: 100%;
   display: flex;
   flex-direction: column;
   transition: margin-left $transition;
@@ -233,6 +245,12 @@ $transition:          0.22s ease;
   z-index: 100;
   box-shadow: $shadow-sm;
   flex-shrink: 0;
+  min-width: 0;
+  gap: 8px;
+
+  @media (max-width: 768px) {
+    padding: 0 10px 0 8px;
+  }
 }
 
 .db-header-left {
@@ -427,8 +445,12 @@ $transition:          0.22s ease;
   flex: 1;
   padding: 24px;
   min-height: 0;
+  min-width: 0;
+  max-width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
 
-  @media (max-width: 640px) { padding: 14px 12px; }
+  @media (max-width: 640px) { padding: 12px 10px; }
 }
 
 // ─── Legacy / Compat (keep existing child page styles working) ────────────────
@@ -537,17 +559,52 @@ $transition:          0.22s ease;
   padding: 10px 0;
 }
 
-// ─── Responsive sidebar on mobile ────────────────────────────────────────────
-@media (max-width: 768px) {
-  .db-sidebar {
-    transform: translateX(-100%);
-    transition: transform $transition, width $transition;
+// ─── Responsive sidebar on mobile (drawer + backdrop) ───────────────────────
+.db-mobile-backdrop {
+  display: none;
+}
 
-    .db-shell:not(.db-collapsed) & { transform: translateX(0); }
+@media (max-width: 768px) {
+  .db-mobile-backdrop {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 199;
+    margin: 0;
+    padding: 0;
+    border: none;
+    background: rgba(15, 23, 42, 0.5);
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+
+    .db-shell.db-mobile-nav-open & {
+      display: block;
+    }
+  }
+
+  .db-sidebar {
+    width: min(280px, 88vw);
+    transition: transform $transition, box-shadow $transition;
+    transform: translateX(-100%);
+    box-shadow: none;
+
+    .db-shell.db-mobile-nav-open & {
+      transform: translateX(0);
+      box-shadow: 8px 0 32px rgba(0, 0, 0, 0.25);
+    }
+
+    // Ignore desktop collapsed width on small screens
+    .db-collapsed & {
+      width: min(280px, 88vw);
+    }
   }
 
   .db-body {
     margin-left: 0 !important;
+  }
+
+  .db-header {
+    z-index: 150;
   }
 }
 
@@ -558,6 +615,13 @@ $transition:          0.22s ease;
   box-shadow: 0 4px 24px rgba(0,0,0,0.07);
   overflow: hidden;
   margin-top: 16px;
+  max-width: 100%;
+
+  @media (max-width: 768px) {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    border-radius: 12px;
+  }
 }
 
 table.exam-table {

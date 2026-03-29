@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState, useCallback, KeyboardEvent, memo } 
 import { useAuth } from '../../../features/auth/hooks/useAuth';
 import { useChatSocket } from '../../../features/chat/hooks/useChatSocket';
 import axios from '../../../axios';
+import { useDashboardIsMobile } from '../useDashboardMedia';
 import './ChatPage.scss';
 
 // ── Types ──────────────────────────────────────────────────────────────────
@@ -127,9 +128,15 @@ type ChatAreaProps = {
   assignmentId: number | null;
   contactName: string;
   contactAvatar?: string;
+  onMobileBack?: () => void;
 };
 
-const ChatArea: React.FC<ChatAreaProps> = ({ assignmentId, contactName, contactAvatar }) => {
+const ChatArea: React.FC<ChatAreaProps> = ({
+  assignmentId,
+  contactName,
+  contactAvatar,
+  onMobileBack,
+}) => {
   const { status, myUserId, messages, hasMore, sendMessage, markRead, loadMore } =
     useChatSocket(assignmentId);
   const bottomRef = useRef<HTMLDivElement>(null);
@@ -155,6 +162,18 @@ const ChatArea: React.FC<ChatAreaProps> = ({ assignmentId, contactName, contactA
     <div className="chp__chat">
       {/* Chat header */}
       <div className="chp__chat-header">
+        {onMobileBack && (
+          <button
+            type="button"
+            className="chp__chat-back"
+            onClick={onMobileBack}
+            aria-label="Quay lại danh sách"
+          >
+            <span className="material-icons" aria-hidden="true">
+              arrow_back
+            </span>
+          </button>
+        )}
         <div className="chp__chat-avatar">
           {contactAvatar
             ? <img src={contactAvatar} alt={contactName} />
@@ -252,15 +271,20 @@ const ChatArea: React.FC<ChatAreaProps> = ({ assignmentId, contactName, contactA
 
 // ── ChatPage ───────────────────────────────────────────────────────────────
 
+type MobileChatPanel = 'list' | 'chat';
+
 const ChatPage: React.FC = () => {
   const { role, isAuthLoading } = useAuth();
   const isStudent = role === 'HocVien';
   const isTeacher = role === 'GiaoVien';
+  const isMobile = useDashboardIsMobile();
 
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
+  const [mobilePanel, setMobilePanel] = useState<MobileChatPanel>('list');
+  const prevLoadingConversations = useRef(true);
 
   const loadConversations = useCallback(async () => {
     if (isAuthLoading) return;
@@ -304,14 +328,34 @@ const ChatPage: React.FC = () => {
     loadConversations();
   }, [loadConversations]);
 
+  useEffect(() => {
+    if (!isMobile) return;
+    const wasLoading = prevLoadingConversations.current;
+    prevLoadingConversations.current = loading;
+    if (wasLoading && !loading && conversations.length === 1 && selectedId != null) {
+      setMobilePanel('chat');
+    }
+  }, [isMobile, loading, conversations.length, selectedId]);
+
+  useEffect(() => {
+    if (!isMobile) setMobilePanel('list');
+  }, [isMobile]);
+
   const selected = conversations.find((c) => c.assignmentId === selectedId) ?? null;
 
   const filtered = conversations.filter(
     (c) => !search || c.name.toLowerCase().includes(search.toLowerCase()),
   );
 
+  const mobileModeClass = isMobile ? `chp--mobile chp--mobile-${mobilePanel}` : '';
+
+  const handlePickContact = (id: number): void => {
+    setSelectedId(id);
+    if (isMobile) setMobilePanel('chat');
+  };
+
   return (
-    <div className="chp">
+    <div className={`chp ${mobileModeClass}`.trim()}>
       {/* ── Contact list ── */}
       <div className="chp__contacts">
         <div className="chp__contacts-header">
@@ -343,8 +387,9 @@ const ChatPage: React.FC = () => {
           {filtered.map((c) => (
             <button
               key={c.assignmentId}
+              type="button"
               className={`chp__contact-item ${selectedId === c.assignmentId ? 'chp__contact-item--active' : ''}`}
-              onClick={() => setSelectedId(c.assignmentId)}
+              onClick={() => handlePickContact(c.assignmentId)}
             >
               <div className="chp__contact-av">
                 {c.avatarUrl
@@ -369,6 +414,7 @@ const ChatPage: React.FC = () => {
         assignmentId={selectedId}
         contactName={selected?.name ?? ''}
         contactAvatar={selected?.avatarUrl}
+        onMobileBack={isMobile ? () => setMobilePanel('list') : undefined}
       />
     </div>
   );

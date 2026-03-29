@@ -16,6 +16,13 @@
   overflow: hidden;
   background: #fff;
   height: 420px;
+  min-height: 0;
+  min-width: 0;
+
+  @media (max-width: 768px) {
+    height: min(420px, 52vh);
+    max-height: min(420px, 60vh);
+  }
 
   &--empty {
     height: auto;
@@ -63,11 +70,14 @@
   &__messages {
     flex: 1;
     overflow-y: auto;
+    overflow-x: hidden;
     padding: 0.75rem 1rem;
     display: flex;
     flex-direction: column;
     gap: 4px;
     scroll-behavior: smooth;
+    min-height: 0;
+    min-width: 0;
   }
 
   &__load-more {
@@ -130,6 +140,8 @@
     align-items: flex-end;
     gap: 6px;
     margin-bottom: 2px;
+    min-width: 0;
+    max-width: 100%;
 
     &--mine {
       flex-direction: row-reverse;
@@ -184,7 +196,10 @@
     font-size: 0.875rem;
     line-height: 1.4;
     word-break: break-word;
+    overflow-wrap: anywhere;
     white-space: pre-wrap;
+    max-width: 100%;
+    box-sizing: border-box;
   }
 
   &__msg-time {
@@ -210,10 +225,12 @@
     padding: 0.625rem 0.75rem;
     border-top: 1px solid var(--cp-border);
     background: #fff;
+    min-width: 0;
   }
 
   &__input {
     flex: 1;
+    min-width: 0;
     resize: none;
     border: 1px solid var(--cp-border);
     border-radius: 8px;
