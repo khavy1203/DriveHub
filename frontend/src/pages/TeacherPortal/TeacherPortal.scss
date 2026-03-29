@@ -243,14 +243,38 @@
     align-items: center;
     gap: 16px;
     cursor: pointer;
-    transition: box-shadow 0.18s, transform 0.12s;
+    transition: box-shadow 0.22s ease, transform 0.18s ease, border-color 0.18s ease, background 0.18s ease;
     border: 1.5px solid transparent;
+    border-left: 3px solid transparent;
     outline: none;
+    position: relative;
 
     &:hover {
-      box-shadow: var(--tp-shadow-md);
-      border-color: var(--tp-teal-light);
-      transform: translateY(-1px);
+      box-shadow: 0 6px 24px rgba(0, 104, 93, 0.12);
+      border-color: rgba(0, 104, 93, 0.15);
+      border-left-color: var(--tp-teal);
+      background: #f8fdfb;
+      transform: translateY(-2px);
+
+      .tp__card-avatar {
+        background: var(--tp-teal);
+        color: #fff;
+        box-shadow: 0 3px 10px rgba(0, 104, 93, 0.3);
+      }
+
+      .tp__card-arrow {
+        color: var(--tp-teal);
+        transform: translateX(3px);
+      }
+
+      .tp__progress-fill {
+        filter: brightness(1.1);
+      }
+    }
+
+    &:active {
+      transform: translateY(0);
+      box-shadow: var(--tp-shadow);
     }
 
     &:focus-visible {
@@ -273,6 +297,7 @@
     font-weight: 700;
     font-size: 1rem;
     flex-shrink: 0;
+    transition: background 0.22s ease, color 0.22s ease, box-shadow 0.22s ease;
   }
 
   &__card-info { flex: 1; min-width: 0; }
@@ -334,8 +359,7 @@
     color: var(--tp-muted);
     font-size: 20px;
     flex-shrink: 0;
-    transition: color 0.15s;
-    .tp__card:hover & { color: var(--tp-teal); }
+    transition: color 0.18s ease, transform 0.22s ease;
   }
 
   // ── Badge ─────────────────────────────────────────────────────────────
@@ -674,7 +698,7 @@
   > span:nth-child(2) { flex: 1; }
 }
 
-.tp__dm-chevron { color: #94a3b8; font-size: 20px !important; }
+.tp__dm-section-toggle .tp__dm-chevron { color: #94a3b8; font-size: 20px; }
 
 .tp__dm-section-body {
   padding: 4px 20px 20px;
