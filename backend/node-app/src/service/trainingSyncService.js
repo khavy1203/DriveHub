@@ -105,7 +105,13 @@ const computeProgressFromDT = (dt) => {
   if (cabinRaw) weights.push(cabinRaw.hoanThanh ? 1 : 0);
 
   const caoTocRaw = isRecord(dt.caoToc) ? dt.caoToc : (tk && isRecord(tk.caoToc) ? tk.caoToc : null);
-  if (caoTocRaw) weights.push(caoTocRaw.hoanThanh ? 1 : 0);
+  if (caoTocRaw) {
+    const gioNum = parseFloat(String(caoTocRaw.tongGio ?? '0')) || 0;
+    const kmNum = parseFloat(String(caoTocRaw.tongKm ?? '0')) || 0;
+    const vanTocNum = parseFloat(String(caoTocRaw.vanTocTB ?? '0')) || 0;
+    const caoTocPass = gioNum > 3600 && kmNum > 60 && vanTocNum > 60;
+    weights.push(caoTocPass ? 1 : 0);
+  }
 
   if (weights.length === 0) return 0;
   return Math.round((weights.reduce((a, b) => a + b, 0) / weights.length) * 100);

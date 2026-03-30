@@ -319,11 +319,24 @@ export function parseTrainingDisplay(dt: Record<string, unknown>): TrainingFullD
   const caoTocRaw = isRecord(dt.caoToc) ? dt.caoToc : (tk && isRecord(tk.caoToc) ? tk.caoToc : null);
   let caoToc: TrainingFullDisplay['caoToc'] = null;
   if (caoTocRaw) {
+    const ctGio = String(caoTocRaw.tongGio ?? '0');
+    const ctKm = String(caoTocRaw.tongKm ?? '0');
+    const ctVanToc = String(caoTocRaw.vanTocTB ?? '0');
+
+    // Local pass criteria: time > 3600s, distance > 60km, avg speed > 60km/h
+    const MIN_SECONDS = 3600;
+    const MIN_KM = 60;
+    const MIN_SPEED = 60;
+    const gioNum = parseFloat(ctGio) || 0;
+    const kmNum = parseFloat(ctKm) || 0;
+    const vanTocNum = parseFloat(ctVanToc) || 0;
+    const localPass = gioNum > MIN_SECONDS && kmNum > MIN_KM && vanTocNum > MIN_SPEED;
+
     caoToc = {
-      tongGio: String(caoTocRaw.tongGio ?? '0'),
-      tongKm: String(caoTocRaw.tongKm ?? '0'),
-      vanTocTB: String(caoTocRaw.vanTocTB ?? '0'),
-      hoanThanh: Boolean(caoTocRaw.hoanThanh),
+      tongGio: ctGio,
+      tongKm: ctKm,
+      vanTocTB: ctVanToc,
+      hoanThanh: localPass,
       ghiChu: typeof caoTocRaw.ghiChu === 'string' ? caoTocRaw.ghiChu.trim() : '',
     };
   }
