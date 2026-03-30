@@ -143,6 +143,69 @@ const getPublicTeacherDetail = async (req, res) => {
 
 // ── Authenticated endpoints ──────────────────────────────────────────────────
 
+const getMyFullProfile = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const user = await db.user.findOne({
+      where: { id: userId },
+      attributes: ['id', 'username', 'email', 'phone', 'address', 'genderId'],
+      include: [{ model: db.teacher_profile, as: 'teacherProfile', required: false }],
+    });
+
+    if (!user) {
+      return res.status(404).json({ EM: 'Không tìm thấy người dùng', EC: -1, DT: null });
+    }
+
+    return res.status(200).json({ EM: 'ok', EC: 0, DT: user.get({ plain: true }) });
+  } catch (e) {
+    console.error('[teacherProfileController.getMyFullProfile]', e);
+    return res.status(500).json({ EM: 'Lỗi server', EC: -1, DT: null });
+  }
+};
+
+const updateMyProfile = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { username, email, phone, address, genderId, bio, licenseTypes, locationName, yearsExp, avatarUrl } = req.body;
+
+    await db.user.update(
+      {
+        username: username ?? undefined,
+        email: email ?? undefined,
+        phone: phone !== undefined ? phone : undefined,
+        address: address !== undefined ? address : undefined,
+        genderId: genderId !== undefined ? genderId : undefined,
+      },
+      { where: { id: userId } }
+    );
+
+    let profile = await db.teacher_profile.findOne({ where: { userId } });
+    if (profile) {
+      await profile.update({
+        bio: bio !== undefined ? bio : profile.bio,
+        licenseTypes: licenseTypes !== undefined ? licenseTypes : profile.licenseTypes,
+        locationName: locationName !== undefined ? locationName : profile.locationName,
+        yearsExp: yearsExp !== undefined ? (yearsExp ? parseInt(yearsExp) : null) : profile.yearsExp,
+        avatarUrl: avatarUrl !== undefined ? (avatarUrl || null) : profile.avatarUrl,
+      });
+    } else {
+      profile = await db.teacher_profile.create({
+        userId,
+        bio: bio || null,
+        licenseTypes: licenseTypes || null,
+        locationName: locationName || null,
+        yearsExp: yearsExp ? parseInt(yearsExp) : null,
+        avatarUrl: avatarUrl || null,
+      });
+    }
+
+    return res.status(200).json({ EM: 'Cập nhật thành công', EC: 0, DT: null });
+  } catch (e) {
+    console.error('[teacherProfileController.updateMyProfile]', e);
+    return res.status(500).json({ EM: 'Lỗi server', EC: -1, DT: null });
+  }
+};
+
 const getProfile = async (req, res) => {
   try {
     const userId = parseInt(req.params.userId);
@@ -213,4 +276,4 @@ const uploadAvatar = async (req, res) => {
   }
 };
 
-export default { getPublicTeachers, getPublicTeacherDetail, getProfile, upsertProfile, uploadAvatar };
+export default { getPublicTeachers, getPublicTeacherDetail, getMyFullProfile, updateMyProfile, getProfile, upsertProfile, uploadAvatar };
