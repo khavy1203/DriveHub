@@ -167,6 +167,7 @@ const exchangeCode = async (req, res) => {
 
         const groupWithRoles = await getGroupWithRole(user);
         const payload = {
+            id: user.id,
             email: user.email,
             username: user.username,
             avatarUrl: mezonUser.avatarUrl,

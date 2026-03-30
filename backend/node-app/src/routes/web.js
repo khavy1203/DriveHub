@@ -97,6 +97,7 @@ const initWebRoutes = (app) => {
     routes.post('/gplx/lookup', gplxController.lookupGPLX);
     routes.post('/mezon/exchange', mezonController.exchangeCode);
     routes.get('/public/teachers', teacherProfileController.getPublicTeachers);
+    routes.get('/public/teachers/:id', teacherProfileController.getPublicTeacherDetail);
     routes.post('/public/contact-lead', contactLeadController.submitContactLead);
 
     // ── Public routes (không cần đăng nhập) — dùng cho thi ──────────────────
@@ -157,6 +158,8 @@ const initWebRoutes = (app) => {
     routes.post("/users", userController.createFunc);
     routes.put("/users", userController.updateFunc);
     routes.delete("/users", userController.deleteFunc);
+    routes.get('/teacher-profile/me/full', teacherProfileController.getMyFullProfile);
+    routes.put('/teacher-profile/me', teacherProfileController.updateMyProfile);
     routes.get('/teacher-profile/:userId', teacherProfileController.getProfile);
     routes.put('/teacher-profile/:userId', teacherProfileController.upsertProfile);
     routes.post('/teacher-avatar/:userId', uploadTeacherAvatar.single('avatar'), teacherProfileController.uploadAvatar);

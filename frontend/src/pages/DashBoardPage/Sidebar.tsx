@@ -43,6 +43,7 @@ const ADMIN_NAV_ITEMS: NavItem[] = [
 
 const TEACHER_NAV_ITEMS: NavItem[] = [
   { label: 'Học viên của tôi', icon: 'school', to: '/dashboard/home' },
+  { label: 'Thông tin cá nhân', icon: 'manage_accounts', to: '/dashboard/my-profile' },
   { label: 'Tin nhắn', icon: 'chat', to: '/dashboard/chat' },
   { label: 'Tra cứu GPLX', icon: 'manage_search', to: '/license-check' },
 ];

@@ -15,6 +15,7 @@ import ReviewSetManager from '../../features/dashboard/components/ReviewSetManag
 import ExamSetImporter from '../../features/dashboard/components/ExamSetImporter/ExamSetImporter';
 import DashboardHome from './DashboardHome/DashboardHome';
 import TeacherPortal from '../TeacherPortal/TeacherPortal';
+import TeacherProfileEdit from '../TeacherPortal/TeacherProfileEdit';
 import StudentPortal from '../StudentPortal/StudentPortal';
 import TeacherManagement from './TeacherManagement/TeacherManagement';
 import HocVienManagement from './HocVienManagement/HocVienManagement';
@@ -48,6 +49,7 @@ const DashBoardRoute: React.FC = () => {
         <Route path="/dang-ky-hoc-vien" element={<DangKyHocVien />} />
 
         <Route path="/teachers" element={<TeacherManagement />} />
+        {isTeacher && <Route path="/my-profile" element={<TeacherProfileEdit />} />}
 
         {/* Cài đặt */}
         <Route path="/setting" element={<Setting />} />

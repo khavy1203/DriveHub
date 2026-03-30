@@ -142,6 +142,7 @@ const loginUserService = async (rawUserAccount) => {
 
         const groupWithRoles = await getGroupWithRole(user);
         const payload = {
+            id: user.id,
             email: user.email,
             username: user.username,
             avatarUrl: resolveAvatarUrl(user),

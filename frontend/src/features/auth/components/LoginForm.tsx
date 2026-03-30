@@ -183,7 +183,7 @@ export const LoginForm: React.FC = () => {
         toast.success('Đăng nhập thành công!');
         const token = response.DT.access_token;
         const role = response.DT.groupWithRoles.name || 'User';
-        setAuth(token, role, response.DT.username, response.DT.avatarUrl || null);
+        setAuth(token, role, response.DT.username, response.DT.avatarUrl || null, response.DT.userId ?? null);
         navigate('/dashboard');
       } else {
         toast.error(response.EM || 'Đăng nhập thất bại!');

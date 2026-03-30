@@ -653,7 +653,9 @@ button:hover {
     top: 0;
     left: 0;
     width: 100vh;
+    width: 100dvh;
     height: 100vw;
+    height: 100dvw;
     transform-origin: top left;
     transform: rotate(90deg) translateY(-100%);
     z-index: 9999;
@@ -757,7 +759,9 @@ button:hover {
 
 .exam-rotate-wrapper.fake-landscape .sidebar-section {
     padding: 1px 0;
+    padding-bottom: env(safe-area-inset-right, 0px);
     height: 100vh;
+    height: 100dvh;
     display: flex;
     flex-direction: column;
     justify-content: space-between;
@@ -917,8 +921,8 @@ button:hover {
 
 .exam-rotate-wrapper.fake-landscape .end-exam-btn {
     position: fixed;
-    
     bottom: 0;
+    bottom: env(safe-area-inset-right, 0px);
     right: 0;
     z-index: 999;
     width: var(--fake-right-exam-width);
@@ -928,6 +932,7 @@ button:hover {
     margin: 0;
     border-radius: 0;
     padding: 8px 6px;
+    padding-bottom: calc(8px + env(safe-area-inset-right, 0px));
     font-size: 11px;
     box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.18);
     background-color: #d32f2f !important;

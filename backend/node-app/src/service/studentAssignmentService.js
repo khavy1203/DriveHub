@@ -68,10 +68,18 @@ const updateAssignment = async (id, { status, progressPercent, datHoursCompleted
     if (progressPercent !== undefined) row.progressPercent = progressPercent;
     if (datHoursCompleted !== undefined) row.datHoursCompleted = datHoursCompleted;
     if (notes !== undefined) row.notes = notes;
+
+    // Auto-complete: when progress reaches 100%, set status to completed
+    if (row.progressPercent >= 100 && row.status !== 'completed') {
+      row.status = 'completed';
+    }
+
     await row.save();
 
-    if (status !== undefined) {
-      const hvStatus = status === 'completed' ? 'dat_completed' : 'learning';
+    // Sync hoc_vien status when assignment status changed
+    const finalStatus = row.status;
+    if (status !== undefined || row.progressPercent >= 100) {
+      const hvStatus = finalStatus === 'completed' ? 'dat_completed' : 'learning';
       await db.hoc_vien.update({ status: hvStatus }, { where: { id: row.hocVienId } });
     }
 

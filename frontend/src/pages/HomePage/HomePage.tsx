@@ -165,8 +165,8 @@ const HomePage: React.FC = () => {
       </div>
 
       <Mainbanner />
-      <Services />
       <Portfolio />
+      <Services />
       <MezonSection />
       <Pricing />
       <Contact />

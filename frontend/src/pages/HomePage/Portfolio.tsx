@@ -1,5 +1,6 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import axios from '../../axios';
+import { TeacherProfileModal } from '../../shared/components/TeacherProfileModal';
 import './mainpages.scss';
 
 type TeacherPublic = {
@@ -39,6 +40,8 @@ const renderStars = (avgStr: string) => {
 const Portfolio: React.FC = () => {
   const [teachers, setTeachers] = useState<TeacherPublic[]>([]);
   const [loading, setLoading] = useState(true);
+  const [selectedTeacherId, setSelectedTeacherId] = useState<number | null>(null);
+  const closeModal = useCallback(() => setSelectedTeacherId(null), []);
 
   useEffect(() => {
     axios.get<{ EC: number; DT: TeacherPublic[] }>('/api/public/teachers')
@@ -68,7 +71,7 @@ const Portfolio: React.FC = () => {
 
         <div className="hp-instructors-scroll">
           {teachers.map(t => (
-            <div className="hp-instructor-card" key={t.id}>
+            <div className="hp-instructor-card" key={t.id} onClick={() => setSelectedTeacherId(t.id)} style={{ cursor: 'pointer' }}>
               <div className="hp-instructor-img">
                 <img
                   src={t.profile?.avatarUrl || DEFAULT_AVATAR}
@@ -118,6 +121,10 @@ const Portfolio: React.FC = () => {
           ))}
         </div>
       </div>
+
+      {selectedTeacherId != null && (
+        <TeacherProfileModal teacherId={selectedTeacherId} onClose={closeModal} />
+      )}
     </section>
   );
 };

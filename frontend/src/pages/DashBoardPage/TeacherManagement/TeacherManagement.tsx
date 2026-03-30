@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useCallback, useRef } from 'react';
 import useApiService from '../../../services/useApiService';
 import axios from '../../../axios';
+import { TeacherProfileModal } from '../../../shared/components/TeacherProfileModal';
 import './TeacherManagement.scss';
 
 type Rank = { id: number; name: string };
@@ -50,6 +51,7 @@ const TeacherManagement: React.FC = () => {
   const [form, setForm] = useState<FormState>(EMPTY_FORM);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<{ text: string; ok: boolean } | null>(null);
+  const [viewTeacherId, setViewTeacherId] = useState<number | null>(null);
 
   // Ranks
   const [ranks, setRanks] = useState<Rank[]>([]);
@@ -269,7 +271,7 @@ const TeacherManagement: React.FC = () => {
                     <div className="tm__teacher-cell">
                       <div className="tm__avatar">{getInitials(t.username)}</div>
                       <div>
-                        <div className="tm__teacher-name">{t.username}</div>
+                        <div className="tm__teacher-name" onClick={() => setViewTeacherId(t.id)} style={{ cursor: 'pointer', color: '#00685d' }}>{t.username}</div>
                         <div className="tm__teacher-id">
                           <span className="material-icons">verified</span>
                           GV-{String(t.id).padStart(3, '0')} · {t.email}
@@ -482,6 +484,9 @@ const TeacherManagement: React.FC = () => {
             </div>
           </div>
         </div>
+      )}
+      {viewTeacherId != null && (
+        <TeacherProfileModal teacherId={viewTeacherId} onClose={() => setViewTeacherId(null)} />
       )}
     </div>
   );

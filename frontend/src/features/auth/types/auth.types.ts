@@ -6,10 +6,11 @@
 export interface AuthContextType {
   isAuthenticated: boolean;
   isAuthLoading: boolean;
+  userId: number | null;
   role: string | null;
   displayName: string | null;
   avatarUrl: string | null;
-  setAuth: (token: string, role: string, displayName?: string, avatarUrl?: string | null) => void;
+  setAuth: (token: string, role: string, displayName?: string, avatarUrl?: string | null, userId?: number | null) => void;
   logout: () => void;
   getToken: () => string | null;
 }
@@ -21,6 +22,7 @@ export interface LoginCredentials {
 
 export interface LoginResponse {
   access_token: string;
+  userId?: number | null;
   groupWithRoles: {
     id: number;
     name: string;
@@ -29,6 +31,7 @@ export interface LoginResponse {
   };
   email: string;
   username: string;
+  avatarUrl?: string | null;
 }
 
 export interface AuthState {

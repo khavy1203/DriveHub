@@ -47,6 +47,8 @@ export const API_REGISTRY = [
   P('PUT', '/api/student-assignment', 'Phân công', 'Update assignment', false, '/api/student-assignment/:id'),
   P('DELETE', '/api/student-assignment', 'Phân công', 'Delete assignment', false, '/api/student-assignment/:id'),
 
+  P('GET', '/api/teacher-profile/me/full', 'Giáo viên', 'Get my full profile'),
+  P('PUT', '/api/teacher-profile/me', 'Giáo viên', 'Update my profile'),
   P('GET', '/api/teacher-profile', 'Giáo viên', 'Get teacher profile', false, '/api/teacher-profile/:userId'),
   P('PUT', '/api/teacher-profile', 'Giáo viên', 'Update teacher profile', false, '/api/teacher-profile/:userId'),
   P('POST', '/api/teacher-avatar', 'Giáo viên', 'Upload teacher avatar', false, '/api/teacher-avatar/:userId'),
@@ -54,6 +56,7 @@ export const API_REGISTRY = [
   P('POST', '/api/teacher-course', 'Giáo viên', 'Set teacher courses'),
   P('GET', '/api/teacher/my-students', 'Giáo viên', 'My students'),
   P('GET', '/api/public/teachers', 'Giáo viên', 'Public teachers', true),
+  P('GET', '/api/public/teachers/:id', 'Giáo viên', 'Public teacher detail', true),
   P('GET', '/api/teacher/students', 'KQSH', 'Teacher student KQSH', false, '/api/teacher/students/:hocVienId/kqsh'),
 
   P('GET', '/api/student-portal/my-progress', 'Portal HV', 'My progress'),

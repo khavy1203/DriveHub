@@ -14,6 +14,7 @@ const AUTH_SESSION_KEYS = {
   role: 'auth_role',
   displayName: 'auth_display_name',
   avatarUrl: 'auth_avatar_url',
+  userId: 'auth_user_id',
 } as const;
 
 const clearLegacyAuthStorage = (): void => {
@@ -33,6 +34,7 @@ interface AuthProviderProps {
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const [isAuthLoading, setIsAuthLoading] = useState<boolean>(true);
+  const [userId, setUserId] = useState<number | null>(null);
   const [role, setRole] = useState<string | null>(null);
   const [displayName, setDisplayName] = useState<string | null>(null);
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
@@ -57,6 +59,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
         if (!response.ok) {
           setIsAuthenticated(false);
+          setUserId(null);
           setRole(null);
           setDisplayName(null);
           setAvatarUrl(null);
@@ -68,17 +71,24 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         const payload = await response.json();
         if (payload?.EC === 0 && payload?.DT?.access_token) {
           const nextToken = payload?.DT?.access_token || sessionToken;
+          const nextUserId = payload?.DT?.userId ? Number(payload.DT.userId) : null;
           const nextRole = payload?.DT?.groupWithRoles?.name || 'User';
           const nextDisplayName = payload?.DT?.username || null;
           const nextAvatarUrl = payload?.DT?.avatarUrl || null;
 
           setIsAuthenticated(true);
+          setUserId(nextUserId);
           setRole(nextRole);
           setDisplayName(nextDisplayName);
           setAvatarUrl(nextAvatarUrl);
           setToken(nextToken);
           if (nextToken) {
             sessionStorage.setItem(AUTH_SESSION_KEYS.token, nextToken);
+          }
+          if (nextUserId != null) {
+            sessionStorage.setItem(AUTH_SESSION_KEYS.userId, String(nextUserId));
+          } else {
+            sessionStorage.removeItem(AUTH_SESSION_KEYS.userId);
           }
           sessionStorage.setItem(AUTH_SESSION_KEYS.role, nextRole);
           if (nextDisplayName) {
@@ -96,10 +106,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         }
 
         sessionStorage.removeItem(AUTH_SESSION_KEYS.token);
+        sessionStorage.removeItem(AUTH_SESSION_KEYS.userId);
         sessionStorage.removeItem(AUTH_SESSION_KEYS.role);
         sessionStorage.removeItem(AUTH_SESSION_KEYS.displayName);
         sessionStorage.removeItem(AUTH_SESSION_KEYS.avatarUrl);
         setIsAuthenticated(false);
+        setUserId(null);
         setRole(null);
         setDisplayName(null);
         setAvatarUrl(null);
@@ -107,10 +119,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         setIsAuthLoading(false);
       } catch (e) {
         sessionStorage.removeItem(AUTH_SESSION_KEYS.token);
+        sessionStorage.removeItem(AUTH_SESSION_KEYS.userId);
         sessionStorage.removeItem(AUTH_SESSION_KEYS.role);
         sessionStorage.removeItem(AUTH_SESSION_KEYS.displayName);
         sessionStorage.removeItem(AUTH_SESSION_KEYS.avatarUrl);
         setIsAuthenticated(false);
+        setUserId(null);
         setRole(null);
         setDisplayName(null);
         setAvatarUrl(null);
@@ -122,10 +136,15 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     hydrateAuth();
   }, []);
 
-  const setAuth = (token: string, role: string, nextDisplayName?: string, nextAvatarUrl?: string | null): void => {
+  const setAuth = (token: string, role: string, nextDisplayName?: string, nextAvatarUrl?: string | null, nextUserId?: number | null): void => {
     clearLegacyAuthStorage();
     sessionStorage.setItem(AUTH_SESSION_KEYS.token, token);
     sessionStorage.setItem(AUTH_SESSION_KEYS.role, role);
+    if (nextUserId != null) {
+      sessionStorage.setItem(AUTH_SESSION_KEYS.userId, String(nextUserId));
+    } else {
+      sessionStorage.removeItem(AUTH_SESSION_KEYS.userId);
+    }
     if (nextDisplayName) {
       sessionStorage.setItem(AUTH_SESSION_KEYS.displayName, nextDisplayName);
     } else {
@@ -138,6 +157,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
     setIsAuthLoading(false);
     setIsAuthenticated(true);
+    setUserId(nextUserId ?? null);
     setToken(token);
     setRole(role);
     setDisplayName(nextDisplayName || null);
@@ -153,11 +173,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
     clearLegacyAuthStorage();
     sessionStorage.removeItem(AUTH_SESSION_KEYS.token);
+    sessionStorage.removeItem(AUTH_SESSION_KEYS.userId);
     sessionStorage.removeItem(AUTH_SESSION_KEYS.role);
     sessionStorage.removeItem(AUTH_SESSION_KEYS.displayName);
     sessionStorage.removeItem(AUTH_SESSION_KEYS.avatarUrl);
     setIsAuthLoading(false);
     setIsAuthenticated(false);
+    setUserId(null);
     setToken(null);
     setRole(null);
     setDisplayName(null);
@@ -167,7 +189,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const getToken = (): string | null => token;
 
   return (
-    <AuthContext.Provider value={{ isAuthenticated, isAuthLoading, role, displayName, avatarUrl, setAuth, logout, getToken }}>
+    <AuthContext.Provider value={{ isAuthenticated, isAuthLoading, userId, role, displayName, avatarUrl, setAuth, logout, getToken }}>
       {children}
     </AuthContext.Provider>
   );

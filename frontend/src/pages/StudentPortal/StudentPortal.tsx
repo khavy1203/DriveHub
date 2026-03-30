@@ -4,6 +4,7 @@ import { toast } from 'react-toastify';
 import { useAuth } from '../../features/auth/hooks/useAuth';
 import axios from '../../axios';
 import { TrainingProgressBlock } from '../../features/trainingPortal';
+import { TeacherProfileModal } from '../../shared/components/TeacherProfileModal';
 import './StudentPortal.scss';
 
 // ── Types ──────────────────────────────────────────────────────────────────────
@@ -99,6 +100,9 @@ const StudentPortal: React.FC = () => {
   const [loadingProgress, setLoadingProgress] = useState(true);
   const [loadingTeachers, setLoadingTeachers] = useState(true);
   const [teacherSearch, setTeacherSearch] = useState('');
+
+  // Teacher profile modal
+  const [viewTeacherId, setViewTeacherId] = useState<number | null>(null);
 
   // Rating state
   const [hoverStar, setHoverStar] = useState(0);
@@ -430,7 +434,7 @@ const StudentPortal: React.FC = () => {
             </div>
             <div className="hvp__teacher-details">
               <div>
-                <h3 className="hvp__teacher-name">{teacher.username}</h3>
+                <h3 className="hvp__teacher-name" onClick={() => setViewTeacherId(teacher.id)} style={{ cursor: 'pointer' }}>{teacher.username}</h3>
                 <p className="hvp__teacher-tagline">
                   {teacher.profile?.yearsExp ? `${teacher.profile.yearsExp} năm kinh nghiệm` : ''}
                   {teacher.profile?.licenseTypes ? ` — Hạng ${teacher.profile.licenseTypes}` : ''}
@@ -538,6 +542,8 @@ const StudentPortal: React.FC = () => {
               <div
                 key={t.id}
                 className={`hvp__teacher-list-card ${t.isMyTeacher ? 'hvp__teacher-list-card--mine' : ''}`}
+                onClick={() => setViewTeacherId(t.id)}
+                style={{ cursor: 'pointer' }}
               >
                 {t.isMyTeacher && (
                   <span className="hvp__my-badge">ĐANG HỌC</span>
@@ -698,6 +704,9 @@ const StudentPortal: React.FC = () => {
         )}
       </section>
 
+      {viewTeacherId != null && (
+        <TeacherProfileModal teacherId={viewTeacherId} onClose={() => setViewTeacherId(null)} />
+      )}
     </div>
   );
 };

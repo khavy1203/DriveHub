@@ -61,6 +61,7 @@ const setupPassword = async (req, res) => {
 
     const groupWithRoles = await getGroupWithRole(user.get({ plain: true }));
     const token_jwt = createJWT({
+      id: user.id,
       email: user.email,
       username: user.username,
       avatarUrl: null,

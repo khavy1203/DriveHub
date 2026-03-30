@@ -1,0 +1,288 @@
+/* ── TeacherProfileEdit ─────────────────────────────────────────────────────── */
+
+.tpe {
+  --tpe-primary: #00685d;
+  --tpe-primary-dark: #004d45;
+  --tpe-primary-container: #c3ebe2;
+  --tpe-surface: #f8fafa;
+  --tpe-surface-low: #f2f4f4;
+  --tpe-on-surface: #191c1d;
+  --tpe-on-surface-variant: #3d4946;
+  --tpe-outline: #6d7a77;
+  --tpe-outline-variant: #bdc9c5;
+  --tpe-error: #ba1a1a;
+  --tpe-radius: 1rem;
+  --tpe-radius-sm: 0.625rem;
+
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 1.5rem 1rem 3rem;
+}
+
+/* ── Header ────────────────────────────────────────────────────────────────── */
+.tpe__header {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  margin-bottom: 1.75rem;
+}
+
+.tpe__header-icon {
+  font-size: 2rem;
+  color: var(--tpe-primary);
+  background: var(--tpe-primary-container);
+  padding: 0.65rem;
+  border-radius: var(--tpe-radius-sm);
+}
+
+.tpe__title {
+  font-family: Manrope, sans-serif;
+  font-size: 1.35rem;
+  font-weight: 800;
+  color: var(--tpe-on-surface);
+  margin: 0;
+}
+
+.tpe__subtitle {
+  font-size: 0.82rem;
+  color: var(--tpe-on-surface-variant);
+  margin: 0.1rem 0 0;
+}
+
+/* ── Loading / Error ───────────────────────────────────────────────────────── */
+.tpe__loading,
+.tpe__error {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  padding: 5rem 2rem;
+  color: var(--tpe-on-surface-variant);
+  font-size: 0.9rem;
+}
+
+.tpe__error {
+  color: var(--tpe-error);
+
+  .material-icons { font-size: 2.5rem; }
+}
+
+.tpe__spinner {
+  width: 32px;
+  height: 32px;
+  border: 3px solid var(--tpe-primary-container);
+  border-top-color: var(--tpe-primary);
+  border-radius: 50%;
+  animation: tpe-spin 0.7s linear infinite;
+
+  &--sm {
+    width: 18px;
+    height: 18px;
+    border-width: 2px;
+  }
+
+  &--white {
+    border-color: rgba(255, 255, 255, 0.3);
+    border-top-color: #fff;
+  }
+}
+
+@keyframes tpe-spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ── Form sections ─────────────────────────────────────────────────────────── */
+.tpe__form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.tpe__section {
+  background: #fff;
+  border: 1px solid var(--tpe-outline-variant);
+  border-radius: var(--tpe-radius);
+  padding: 1.25rem;
+}
+
+.tpe__section-title {
+  font-family: Manrope, sans-serif;
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: var(--tpe-on-surface);
+  margin: 0 0 1rem;
+  padding-bottom: 0.65rem;
+  border-bottom: 1px solid var(--tpe-outline-variant);
+}
+
+/* ── Grid ──────────────────────────────────────────────────────────────────── */
+.tpe__grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.tpe__field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+
+  &--full {
+    grid-column: 1 / -1;
+  }
+}
+
+.tpe__label {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--tpe-on-surface-variant);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.tpe__input {
+  padding: 0.6rem 0.8rem;
+  border: 1px solid var(--tpe-outline-variant);
+  border-radius: var(--tpe-radius-sm);
+  font-size: 0.9rem;
+  color: var(--tpe-on-surface);
+  background: var(--tpe-surface);
+  transition: border-color 0.15s, box-shadow 0.15s;
+  outline: none;
+  font-family: inherit;
+
+  &:focus {
+    border-color: var(--tpe-primary);
+    box-shadow: 0 0 0 3px rgba(0, 104, 93, 0.1);
+  }
+
+  &::placeholder {
+    color: var(--tpe-outline);
+  }
+}
+
+.tpe__select {
+  cursor: pointer;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath d='M2 4l4 4 4-4' fill='none' stroke='%236d7a77' stroke-width='1.5' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.7rem center;
+  padding-right: 2rem;
+}
+
+.tpe__textarea {
+  resize: vertical;
+  min-height: 80px;
+}
+
+/* ── Avatar ────────────────────────────────────────────────────────────────── */
+.tpe__avatar-row {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+}
+
+.tpe__avatar-wrap {
+  position: relative;
+  flex-shrink: 0;
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 3px solid var(--tpe-primary-container);
+}
+
+.tpe__avatar-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.tpe__avatar-uploading {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.7);
+}
+
+.tpe__avatar-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.tpe__avatar-hint {
+  font-size: 0.72rem;
+  color: var(--tpe-outline);
+  margin: 0;
+}
+
+/* ── Buttons ───────────────────────────────────────────────────────────────── */
+.tpe__btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.55rem 1rem;
+  border-radius: var(--tpe-radius-sm);
+  font-size: 0.85rem;
+  font-weight: 700;
+  border: none;
+  cursor: pointer;
+  transition: background 0.15s, box-shadow 0.15s;
+
+  .material-icons { font-size: 1.1rem; }
+
+  &--primary {
+    background: var(--tpe-primary);
+    color: #fff;
+
+    &:hover:not(:disabled) {
+      background: var(--tpe-primary-dark);
+    }
+
+    &:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+  }
+
+  &--outline {
+    background: transparent;
+    border: 1px solid var(--tpe-outline-variant);
+    color: var(--tpe-on-surface);
+
+    &:hover {
+      background: var(--tpe-surface-low);
+    }
+  }
+}
+
+/* ── Actions bar ───────────────────────────────────────────────────────────── */
+.tpe__actions {
+  display: flex;
+  justify-content: flex-end;
+  padding-top: 0.5rem;
+}
+
+/* ── Responsive ────────────────────────────────────────────────────────────── */
+@media (max-width: 600px) {
+  .tpe {
+    padding: 1rem 0.75rem 2rem;
+  }
+
+  .tpe__grid {
+    grid-template-columns: 1fr;
+  }
+
+  .tpe__field--full {
+    grid-column: 1;
+  }
+
+  .tpe__avatar-row {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}

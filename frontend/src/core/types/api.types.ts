@@ -14,6 +14,7 @@ export interface ApiResponseLogin {
   EM: string;
   DT: {
     access_token: string;
+    userId?: number | null;
     groupWithRoles: GroupWithRoles;
     email: string;
     username: string;
