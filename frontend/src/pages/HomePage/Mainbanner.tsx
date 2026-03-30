@@ -34,7 +34,7 @@ const slides: Array<{
     highlight: 'Mezon',
     desc: 'Tra cứu GPLX, thi thử 600 câu hỏi sát hạch, xem vi phạm phạt nguội – tất cả trong một nền tảng duy nhất, hoàn toàn miễn phí.',
     cta1: { text: 'Thi thử ngay', href: '/#/teststudent', icon: 'quiz' },
-    cta2: { text: 'Tra cứu GPLX', href: '/#/license-check', icon: 'search' },
+    cta2: { text: 'Tra cứu', href: '/#/lookup', icon: 'search' },
   },
 ];
 

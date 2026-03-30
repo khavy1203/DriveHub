@@ -653,9 +653,7 @@ button:hover {
     top: 0;
     left: 0;
     width: 100vh;
-    width: 100dvh;
     height: 100vw;
-    height: 100dvw;
     transform-origin: top left;
     transform: rotate(90deg) translateY(-100%);
     z-index: 9999;
@@ -759,9 +757,7 @@ button:hover {
 
 .exam-rotate-wrapper.fake-landscape .sidebar-section {
     padding: 1px 0;
-    padding-bottom: env(safe-area-inset-right, 0px);
     height: 100vh;
-    height: 100dvh;
     display: flex;
     flex-direction: column;
     justify-content: space-between;
@@ -798,33 +794,26 @@ button:hover {
 }
 
 .exam-rotate-wrapper.fake-landscape .question-nav-container {
-    display: flex;
-    flex-direction: row;
-    flex-wrap: nowrap;
-    gap: 4px;
+    display: grid;
+    grid-template-columns: repeat(var(--question-column-count, 1), max-content);
+    column-gap: 4px;
+    row-gap: 0;
     margin: 0 1px;
-    padding: 4px 1px 4px 1px;
+    padding: 2px 1px;
     flex: 1 1 auto;
     min-height: 0;
     max-width: 100%;
-    overflow-y: hidden;
-    overflow-x: auto !important;
-    justify-content: flex-start;
-    scrollbar-width: thin;
-    -ms-overflow-style: auto;
-    scroll-behavior: smooth;
+    overflow-y: auto;
+    overflow-x: auto;
+    overscroll-behavior: contain;
+    justify-content: center;
+    scrollbar-width: none;
     -webkit-overflow-scrolling: touch;
     box-sizing: border-box;
 }
 
 .exam-rotate-wrapper.fake-landscape .question-nav-container::-webkit-scrollbar {
-    width: 4px;
-    height: 4px;
-}
-
-.exam-rotate-wrapper.fake-landscape .question-nav-container::-webkit-scrollbar-thumb {
-    background: #c2c2c2;
-    border-radius: 2px;
+    display: none;
 }
 
 .exam-rotate-wrapper.fake-landscape .question-nav {
@@ -921,8 +910,8 @@ button:hover {
 
 .exam-rotate-wrapper.fake-landscape .end-exam-btn {
     position: fixed;
+
     bottom: 0;
-    bottom: env(safe-area-inset-right, 0px);
     right: 0;
     z-index: 999;
     width: var(--fake-right-exam-width);

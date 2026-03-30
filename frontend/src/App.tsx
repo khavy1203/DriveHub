@@ -27,8 +27,7 @@ import DashBoardRoute from './pages/DashBoardPage/DashBoardRoute';
 import LoginTestStudent from './features/exam/components/LoginTestStudent/LoginTestStudent';
 import { FinalExamForm } from './features/exam';
 import QrScannerPage from './pages/HomePage/QRScanner/QrScanner';
-import TrafficCheck from './features/traffic-check/components/TrafficCheck';
-import LicenseCheck from './features/license-check/components/LicenseCheck';
+import { LookupPage } from './features/shared-lookup';
 import { ReviewPage, ReviewChillPage } from './features/review';
 import StudentPortal from './pages/StudentPortal/StudentPortal';
 import SetupPassword from './pages/SetupPassword/SetupPassword';
@@ -104,10 +103,11 @@ const App: React.FC = () => {
                   element={isLocal ? <LoginTestStudent /> : <HomePage />} 
                 />
                 <Route path="teststudent" element={<LoginTestStudent />} />
-                <Route path="license-check" element={<LicenseCheck />} />
+                <Route path="lookup" element={<LookupPage />} />
+                <Route path="license-check" element={<Navigate to="/lookup" replace />} />
+                <Route path="traffic-check" element={<Navigate to="/lookup" replace />} />
                 <Route path="review" element={<ReviewPage />} />
                 <Route path="review/chill/:setId" element={<ReviewChillPage />} />
-                <Route path="traffic-check" element={<TrafficCheck />} />
                 <Route path="students" element={<StudentsList />} />
                 <Route path="login" element={<LoginForm />} />
                 <Route path="mezon-callback" element={<MezonCallback />} />

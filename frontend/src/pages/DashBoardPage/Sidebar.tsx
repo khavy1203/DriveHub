@@ -23,7 +23,7 @@ const ADMIN_NAV_ITEMS: NavItem[] = [
       { label: 'Kết quả thi',      icon: 'fact_check',      to: '/dashboard/exam-results' },
       { label: 'Học viên',         icon: 'school',          to: '/dashboard/hoc-vien' },
       { label: 'Đăng ký học viên', icon: 'person_add',      to: '/dashboard/dang-ky-hoc-vien' },
-
+      { label: 'Phân công',        icon: 'assignment_ind',  to: '/dashboard/manual-assign' },
       { label: 'Giáo viên',        icon: 'manage_accounts', to: '/dashboard/teachers' },
     ],
   },
@@ -38,14 +38,13 @@ const ADMIN_NAV_ITEMS: NavItem[] = [
     ],
   },
   { label: 'Phân quyền', icon: 'admin_panel_settings', to: '/dashboard/phan-quyen' },
-  { label: 'Tra cứu GPLX', icon: 'manage_search', to: '/license-check' },
+  { label: 'Tra cứu', icon: 'manage_search', to: '/lookup' },
 ];
 
 const TEACHER_NAV_ITEMS: NavItem[] = [
   { label: 'Học viên của tôi', icon: 'school', to: '/dashboard/home' },
-  { label: 'Thông tin cá nhân', icon: 'manage_accounts', to: '/dashboard/my-profile' },
   { label: 'Tin nhắn', icon: 'chat', to: '/dashboard/chat' },
-  { label: 'Tra cứu GPLX', icon: 'manage_search', to: '/license-check' },
+  { label: 'Tra cứu', icon: 'manage_search', to: '/lookup' },
 ];
 
 const Sidebar: React.FC<SidebarProps> = ({ collapsed, isMobile, onNavClick }) => {
@@ -70,7 +69,7 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed, isMobile, onNavClick }) =>
       ],
     },
     { label: 'Kết quả sát hạch', icon: 'fact_check', to: '/dashboard/ket-qua-sat-hanh' },
-    { label: 'Tra cứu GPLX', icon: 'manage_search', to: '/license-check' },
+    { label: 'Tra cứu', icon: 'manage_search', to: '/lookup' },
   ];
 
   const navItems = role === 'GiaoVien' ? TEACHER_NAV_ITEMS : role === 'HocVien' ? STUDENT_NAV_ITEMS : ADMIN_NAV_ITEMS;
