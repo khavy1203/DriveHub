@@ -63,7 +63,18 @@ const checkUserJwt = async (req, res, next) => {
             return next();
         }
 
-        if (req.method === 'GET') return next();
+        if (req.method === 'GET') {
+            const cookies = req.cookies || {};
+            const token = cookies.jwt || cookies.auth_token || extractToken(req);
+            if (token) {
+                const decode = verifyToken(token);
+                if (decode) {
+                    req.user = decode;
+                    req.token = token;
+                }
+            }
+            return next();
+        }
         if (nonSecurePaths.includes(req.path)) return next();
 
         let cookies = req.cookies || {};

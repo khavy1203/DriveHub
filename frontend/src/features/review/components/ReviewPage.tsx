@@ -83,12 +83,12 @@ const ReviewPage: React.FC = () => {
       <section className="review-hero" style={{ backgroundImage: `url(${HERO_IMAGE})` }}>
         <div className="review-hero__overlay" />
         <div className="review-hero__content">
-          <h1 className="review-hero__title">Ôn tập lý thuyết lái xe</h1>
+          <h1 className="review-hero__title">Luyện thi bằng lái xe</h1>
           <p className="review-hero__description">
             Hệ thống ôn luyện toàn diện theo bộ câu hỏi mới nhất từ Cục Đường Bộ Việt Nam.
           </p>
           <button className="review-hero__cta" onClick={() => navigate('/teststudent')}>
-            Bắt đầu ngay
+            Bắt đầu thi thử
           </button>
         </div>
       </section>

@@ -107,6 +107,7 @@ const ReviewChillPage: React.FC = () => {
     if (index < 0 || index >= totalQuestions) return;
     setCurrentIndex(index);
     setImgFailed(false);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   }, [totalQuestions]);
 
   // ── Keyboard ─────────────────────────────────────────────────────────────────
