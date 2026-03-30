@@ -78,6 +78,69 @@ const getPublicTeachers = async (req, res) => {
   }
 };
 
+const getPublicTeacherDetail = async (req, res) => {
+  try {
+    const teacherId = parseInt(req.params.id);
+    const teacher = await db.user.findOne({
+      where: { id: teacherId, groupId: 3 },
+      attributes: ['id', 'username'],
+      include: [{ model: db.teacher_profile, as: 'teacherProfile', required: false }],
+    });
+
+    if (!teacher) {
+      return res.status(404).json({ EM: 'Không tìm thấy giáo viên', EC: -1, DT: null });
+    }
+
+    const [assignmentStats, ratingStats] = await Promise.all([
+      db.student_assignment.findAll({
+        where: {
+          teacherId,
+          status: { [Op.in]: ['learning', 'completed'] },
+        },
+        attributes: [
+          'status',
+          [db.sequelize.fn('COUNT', db.sequelize.col('id')), 'cnt'],
+        ],
+        group: ['status'],
+        raw: true,
+      }),
+      db.teacher_rating.findAll({
+        where: { teacherUserId: teacherId },
+        attributes: [
+          [db.sequelize.fn('AVG', db.sequelize.col('stars')), 'avgStars'],
+          [db.sequelize.fn('COUNT', db.sequelize.col('id')), 'totalRatings'],
+        ],
+        raw: true,
+      }),
+    ]);
+
+    let activeStudents = 0;
+    let completedStudents = 0;
+    for (const row of assignmentStats) {
+      if (row.status === 'learning') activeStudents = parseInt(row.cnt);
+      if (row.status === 'completed') completedStudents = parseInt(row.cnt);
+    }
+
+    const rating = ratingStats[0] || {};
+    const plain = teacher.get({ plain: true });
+
+    const data = {
+      id: plain.id,
+      username: plain.username,
+      profile: plain.teacherProfile || null,
+      activeStudents,
+      completedStudents,
+      avgStars: rating.avgStars ? parseFloat(rating.avgStars).toFixed(1) : '0.0',
+      totalRatings: rating.totalRatings ? parseInt(rating.totalRatings) : 0,
+    };
+
+    return res.status(200).json({ EM: 'ok', EC: 0, DT: data });
+  } catch (e) {
+    console.error('[teacherProfileController.getPublicTeacherDetail]', e);
+    return res.status(500).json({ EM: 'Lỗi server', EC: -1, DT: null });
+  }
+};
+
 // ── Authenticated endpoints ──────────────────────────────────────────────────
 
 const getProfile = async (req, res) => {
@@ -150,4 +213,4 @@ const uploadAvatar = async (req, res) => {
   }
 };
 
-export default { getPublicTeachers, getProfile, upsertProfile, uploadAvatar };
+export default { getPublicTeachers, getPublicTeacherDetail, getProfile, upsertProfile, uploadAvatar };
