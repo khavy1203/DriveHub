@@ -210,30 +210,25 @@ const FinalExamForm: React.FC = () => {
         const student: ThiSinh = response.DT[0];
         setStudentNow(student);
 
-        const examSubjectIds = student?.exams?.map(exam => Number(exam.IDSubject)) || [];
-        const subjectsNotTested: Subject[] = student?.rank?.subjects?.filter(
-          (subject: any) => !examSubjectIds.includes(subject.id)
-        ) || [];
+        // --- Temporarily disabled: server-side exam completion check ---
+        // Since exams are not saved to server, we skip checking completed exams.
+        // Re-enable when server-side exam storage is restored.
+        // const examSubjectIds = student?.exams?.map(exam => Number(exam.IDSubject)) || [];
+        // const subjectsNotTested: Subject[] = student?.rank?.subjects?.filter(
+        //   (subject: any) => !examSubjectIds.includes(subject.id)
+        // ) || [];
+        // if (subjectsNotTested.length === 0) { ... }
 
-        if (subjectsNotTested.length === 0) {
-          toast.success("Bạn đã hoàn thành tất cả các bài thi!");
-          await post(`/api/students/update-processtest`, {
-            IDThiSinh,
-            processtest: 3,
-          });
+        // All subjects are available since no exams are saved
+        const allSubjects: Subject[] = student?.rank?.subjects || [];
+        const subjectId = allSubjects.some(e => e.id === IDSubject) ? IDSubject : allSubjects[0]?.id;
+        if (!subjectId) {
+          toast.error("Không tìm thấy môn thi.");
           navigate('/testStudent');
           return;
         }
-        else {
-          const subjectId = subjectsNotTested.some(e => e.id === IDSubject) ? IDSubject : subjectsNotTested[0].id;
-          setUntestedSubjects(subjectsNotTested.filter(e => e.id !== subjectId));
-          await setupExam(subjectId);
-
-          await post(`/api/students/update-processtest`, {
-            IDThiSinh,
-            processtest: 2,
-          });
-        }
+        setUntestedSubjects(allSubjects.filter(e => e.id !== subjectId));
+        await setupExam(subjectId);
 
       } catch (error) {
         console.error("Lỗi khi khởi tạo bài thi:", error);
@@ -427,37 +422,49 @@ const FinalExamForm: React.FC = () => {
       const isFailedCritical = failedCritical.length > 0;
       const finalResult = (calculatedScore < subject.threshold || isFailedCritical) ? "TRƯỢT" : "ĐẠT";
 
-      const resCreateExam = await post<ApiResponse>("/api/exam/create-exam", {
-        IDThisinh: IDThiSinh,
-        IDTest: testRandom,
-        answerlist: stringAnswerlist.join(','),
-        point: calculatedScore,
-        result: finalResult,
-        IDSubject: subject?.id,
-      });
+      // --- Temporarily disabled: exam result not saved to server ---
+      // const resCreateExam = await post<ApiResponse>("/api/exam/create-exam", {
+      //   IDThisinh: IDThiSinh,
+      //   IDTest: testRandom,
+      //   answerlist: stringAnswerlist.join(','),
+      //   point: calculatedScore,
+      //   result: finalResult,
+      //   IDSubject: subject?.id,
+      // });
+      //
+      // if (resCreateExam.EC === 0) toast.success(resCreateExam.EM);
+      // else if (resCreateExam.EC === 1) toast.warn(resCreateExam.EM);
+      // else toast.error(resCreateExam.EM);
 
-      if (resCreateExam.EC === 0) toast.success(resCreateExam.EM);
-      else if (resCreateExam.EC === 1) toast.warn(resCreateExam.EM);
-      else toast.error(resCreateExam.EM);
-
-      // Cập nhật danh sách môn chưa thi sau khi hoàn thành bài hiện tại
-      const response = await get<ApiResponse<Student[]>>(`/api/students?IDThiSinh=${IDThiSinh}`);
-      const updatedStudent: ThiSinh = response.DT[0];
-      const examSubjectIds = updatedStudent?.exams?.map(exam => Number(exam.IDSubject)) || [];
-      const updatedUntestedSubjects: Subject[] = updatedStudent?.rank?.subjects?.filter(
-        (subject: any) => !examSubjectIds.includes(subject.id)
-      ) || [];
-      if(updatedUntestedSubjects.length == 0){
-        await post(`/api/students/update-processtest`, {
-          IDThiSinh,
-          processtest: 3,
-        });
-      }else{
-        await post(`/api/students/update-processtest`, {
-          IDThiSinh,
-          processtest: 1,
-        });
+      // Show result locally instead
+      if (finalResult === "ĐẠT") {
+        toast.success(`Chúc mừng bạn đã ĐẠT với số điểm là: ${calculatedScore}`);
+      } else {
+        toast.warn(`Bạn đã TRƯỢT với số điểm là: ${calculatedScore}`);
       }
+
+      // --- Temporarily disabled: server-side untested subject tracking ---
+      // const response = await get<ApiResponse<Student[]>>(`/api/students?IDThiSinh=${IDThiSinh}`);
+      // const updatedStudent: ThiSinh = response.DT[0];
+      // const examSubjectIds = updatedStudent?.exams?.map(exam => Number(exam.IDSubject)) || [];
+      // const updatedUntestedSubjects: Subject[] = updatedStudent?.rank?.subjects?.filter(
+      //   (subject: any) => !examSubjectIds.includes(subject.id)
+      // ) || [];
+      // if(updatedUntestedSubjects.length == 0){
+      //   await post(`/api/students/update-processtest`, {
+      //     IDThiSinh,
+      //     processtest: 3,
+      //   });
+      // }else{
+      //   await post(`/api/students/update-processtest`, {
+      //     IDThiSinh,
+      //     processtest: 1,
+      //   });
+      // }
+
+      // Compute untested subjects locally (no server round-trip)
+      const currentSubjectId = subject.id;
+      const updatedUntestedSubjects = untestedSubjects.filter(s => s.id !== currentSubjectId);
 
       setUntestedSubjects(updatedUntestedSubjects);
       setNextSubjectName(updatedUntestedSubjects.length > 0 ? updatedUntestedSubjects[0].name : null);
@@ -478,14 +485,15 @@ const FinalExamForm: React.FC = () => {
   };
 
   const handleCloseResult = async () => {
-    try {
-      await post(`/api/students/update-processtest`, {
-        IDThiSinh,
-        processtest: 1,
-      });
-    } catch (error) {
-      console.error("Lỗi khi reset trạng thái:", error);
-    }
+    // --- Temporarily disabled: processtest status update ---
+    // try {
+    //   await post(`/api/students/update-processtest`, {
+    //     IDThiSinh,
+    //     processtest: 1,
+    //   });
+    // } catch (error) {
+    //   console.error("Lỗi khi reset trạng thái:", error);
+    // }
     setShowResult(false);
   };
 
@@ -508,10 +516,11 @@ const FinalExamForm: React.FC = () => {
     try {
       if (untestedSubjects.length === 0) {
         toast.success("Bạn đã hoàn thành tất cả các bài thi!");
-        await post(`/api/students/update-processtest`, {
-          IDThiSinh,
-          processtest: 3,
-        });
+        // --- Temporarily disabled: processtest status update ---
+        // await post(`/api/students/update-processtest`, {
+        //   IDThiSinh,
+        //   processtest: 3,
+        // });
         navigate('/testStudent');
         return;
       } else {
@@ -519,10 +528,11 @@ const FinalExamForm: React.FC = () => {
         setUntestedSubjects(prev => prev.filter(subject => subject.id !== nextSubjectId));
         setNextSubjectName(untestedSubjects.length ? untestedSubjects[0].name : null);
         await setupExam(nextSubjectId);
-        await post(`/api/students/update-processtest`, {
-          IDThiSinh,
-          processtest: 2,
-        });
+        // --- Temporarily disabled: processtest status update ---
+        // await post(`/api/students/update-processtest`, {
+        //   IDThiSinh,
+        //   processtest: 2,
+        // });
       }
     } catch (error) {
       console.error("Lỗi khi tạo bài thi kế tiếp:", error);

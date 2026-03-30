@@ -1,6 +1,9 @@
 import db from "../models/index.js"; // Sequelize models
 const { Op } = require("sequelize");
 import XLSX from 'xlsx';
+import cache from '../cache/memoryCache.js';
+
+const TEST_CACHE_TTL = 15 * 60 * 1000; // 15 minutes
 
 const getSubject = async () => {
     try {
@@ -155,6 +158,9 @@ const processExcelAndInsert = async (file, IDrank) => {
             }
 
         }
+        // Invalidate all cached tests after rebuild
+        cache.invalidatePrefix('test_');
+
         return ({
             EC: 0,
             EM: 'Dữ liệu đã được xử lý thành công và chèn vào cơ sở dữ liệu!',
@@ -163,8 +169,8 @@ const processExcelAndInsert = async (file, IDrank) => {
     } catch (error) {
         console.error(error);
         return ({
-            EM: 'error from sever',//error message
-            EC: -1,//error code
+            EM: 'error from server',
+            EC: -1,
             DT: []
         })
     }
@@ -173,38 +179,30 @@ const processExcelAndInsert = async (file, IDrank) => {
 const getTest = async (IDTest) => {
     try {
         if (!IDTest)
-            return ({
-                EM: 'Some Field Null',//error message
-                EC: 2,//error code
-                DT: []
-            });
+            return ({ EM: 'Some Field Null', EC: 2, DT: [] });
+
+        const cacheKey = `test_${IDTest}`;
+        const cached = cache.get(cacheKey);
+        if (cached) {
+            return ({ EM: 'success', EC: 0, DT: [cached] });
+        }
 
         const test = await db.test.findOne({
             where: { id: IDTest },
             include: [
-                {
-                    model: db.subject
-                },
-                {
-                    model: db.question,
-                    as: 'questions',
-                    // order: [['id', 'ASC']] // Sắp xếp theo `id` tăng dần
-                }
+                { model: db.subject },
+                { model: db.question, as: 'questions' },
             ],
         });
 
-        return ({
-            EM: 'success',//error message
-            EC: 0,//error code
-            DT: [test]
-        });
+        if (test) {
+            cache.set(cacheKey, test, TEST_CACHE_TTL);
+        }
+
+        return ({ EM: 'success', EC: 0, DT: [test] });
     } catch (e) {
-        console.error("check error: ", e);
-        return ({
-            EM: 'error from sever',//error message
-            EC: -1,//error code
-            DT: []
-        })
+        console.error("[getTest]", e);
+        return ({ EM: 'error from server', EC: -1, DT: [] });
     }
 }
 

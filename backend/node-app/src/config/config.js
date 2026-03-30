@@ -40,6 +40,6 @@ module.exports = {
   test: mysqlConfig(),
   docker_production: mysqlConfig(),
   docker_test: mysqlConfig(),
-  production: mysqlConfig({ max: 20 }),
+  production: mysqlConfig({ max: 50, min: 10 }),
   buildlocal: mysqlConfig(),
 };

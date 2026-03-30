@@ -109,7 +109,7 @@ const LoginTestStudent: React.FC = () => {
         }
     }, [sbd]);
 
-    // 🛠️ Tự động load thông tin thí sinh khi trang render (KHÔNG reset bài thi)
+    // Auto-load student info on page render (display only, does NOT enable start button)
     useEffect(() => {
         const autoLoadStudentInfo = async () => {
             if (!selectedKhoaHoc || !sbd || sbd <= 0 || sbd !== Number(localStorage?.getItem("sbd"))) return;
@@ -129,11 +129,8 @@ const LoginTestStudent: React.FC = () => {
                     }
                     setSubjectList(subjects);
                     autoSelectSubject(student, subjects);
-                    const allSubjectCompleted = subjects.every((subject: Subject) =>
-                        student.exams?.some((exam: Exam) => exam.IDSubject === subject.id && exam.result !== null)
-                    );
-                    setIsStartEnabled(!allSubjectCompleted);
                 }
+                // Start button stays disabled — user must click "Kiểm tra thông tin" first
             } catch (error) {
                 console.error("Error auto-loading student info:", error);
             }
@@ -192,15 +189,14 @@ const LoginTestStudent: React.FC = () => {
 
             const student = response.DT[0] as ThiSinh;
 
-            // Reset toàn bộ bài thi của thí sinh này
-            await del(`/api/students/${student.IDThiSinh}/exams`);
+            // --- Temporarily disabled: exam reset on server ---
+            // await del(`/api/students/${student.IDThiSinh}/exams`);
+            // const refreshed = await get<ApiResponse<Student[]>>(`/api/students?IDKhoaHoc=${selectedKhoaHoc}&SoBaoDanh=${sbd}`);
+            // const updatedStudent = refreshed.DT[0] as ThiSinh;
 
-            // Reload lại thông tin thí sinh sau khi reset
-            const refreshed = await get<ApiResponse<Student[]>>(`/api/students?IDKhoaHoc=${selectedKhoaHoc}&SoBaoDanh=${sbd}`);
-            const updatedStudent = refreshed.DT[0] as ThiSinh;
-            setStudentNow(updatedStudent);
+            setStudentNow(student);
 
-            const rank = ranks.find((r) => r.name === updatedStudent.loaibangthi);
+            const rank = ranks.find((r) => r.name === student.loaibangthi);
             if (rank) {
                 const cacheKey = `cache_subjects_${rank.id}`;
                 let subjects = scGet<Subject[]>(cacheKey);
@@ -210,11 +206,9 @@ const LoginTestStudent: React.FC = () => {
                     scSet(cacheKey, subjects);
                 }
                 setSubjectList(subjects);
-                autoSelectSubject(updatedStudent, subjects);
-                const allSubjectCompleted = subjects.every((subject: Subject) =>
-                    updatedStudent.exams?.some((exam: Exam) => exam.IDSubject === subject.id && exam.result !== null)
-                );
-                setIsStartEnabled(!allSubjectCompleted);
+                autoSelectSubject(student, subjects);
+                // Always enable start after check — exams are not saved to server
+                setIsStartEnabled(true);
             }
         } catch (error) {
             console.error("Error checking student:", error);
@@ -251,21 +245,32 @@ const LoginTestStudent: React.FC = () => {
             return;
         }
 
-        // Kiểm tra trạng thái processtest
-        if (studentNow?.processtest?.id === 2) {
-            toast.error("Thí sinh đã trong trạng thái thi. Không thể vào thi lại.");
-            return;
-        }
+        // --- Temporarily disabled: processtest check ---
+        // Since exam results are not saved to server, processtest can get stuck at 2.
+        // Re-enable this check when server-side exam storage is restored.
+        // if (studentNow?.processtest?.id === 2) {
+        //     toast.error("Thí sinh đã trong trạng thái thi. Không thể vào thi lại.");
+        //     return;
+        // }
 
-        // Kiểm tra nếu thí sinh đã thi môn này
-        const existingExam = studentNow.exams?.find((exam: Exam) => exam.IDSubject == selectedSubject);
-        const existingSubjectInRank = studentNow?.rank?.subjects?.some((e: Subject) => e.id == Number(selectedSubject))
+        // --- Temporarily disabled: duplicate exam check ---
+        // Since exams are not saved to server, these checks are not needed.
+        // Re-enable when server-side exam storage is restored.
+        // const existingExam = studentNow.exams?.find((exam: Exam) => exam.IDSubject == selectedSubject);
+        // const existingSubjectInRank = studentNow?.rank?.subjects?.some((e: Subject) => e.id == Number(selectedSubject))
+        // if (!existingSubjectInRank) {
+        //     toast.warning("Môn học của khóa không hợp lệ, vui lòng click vào môn học trong bảng hoặc chọn lại môn học");
+        //     return;
+        // }
+        // if (existingExam) {
+        //     toast.warning("Thí sinh đã thi môn này.Kết quả: " + (existingExam.result === "ĐẠT" ? "✅ Đạt" : "❌ Trượt"));
+        //     return;
+        // }
+
+        // Validate subject belongs to student's rank (local check only)
+        const existingSubjectInRank = studentNow?.rank?.subjects?.some((e: Subject) => e.id == Number(selectedSubject));
         if (!existingSubjectInRank) {
             toast.warning("Môn học của khóa không hợp lệ, vui lòng click vào môn học trong bảng hoặc chọn lại môn học");
-            return;
-        }
-        if (existingExam) {
-            toast.warning("Thí sinh đã thi môn này.Kết quả: " + (existingExam.result === "ĐẠT" ? "✅ Đạt" : "❌ Trượt"));
             return;
         }
         // Sử dụng navigate để chuyển trang và truyền thông tin thí sinh qua state
