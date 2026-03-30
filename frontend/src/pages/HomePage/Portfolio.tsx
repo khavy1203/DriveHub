@@ -56,19 +56,6 @@ const Portfolio: React.FC = () => {
   return (
     <section id="portfolio" className="hp-instructors hp-section">
       <div className="hp-container">
-        <div className="hp-instructors-header hp-reveal">
-          <div className="hp-section-label">
-            <i className="material-icons">people</i>
-            Đội ngũ giảng viên
-          </div>
-          <h2 className="hp-section-title">
-            Giảng viên <em>tận tâm</em> & thành tích nổi bật
-          </h2>
-          <p className="hp-section-sub">
-            Những giảng viên kinh nghiệm, luôn đồng hành cùng bạn trên con đường chinh phục bằng lái xe.
-          </p>
-        </div>
-
         <div className="hp-instructors-scroll">
           {teachers.map(t => (
             <div className="hp-instructor-card" key={t.id} onClick={() => setSelectedTeacherId(t.id)} style={{ cursor: 'pointer' }}>

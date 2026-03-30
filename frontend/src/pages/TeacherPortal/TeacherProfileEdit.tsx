@@ -28,9 +28,14 @@ type FormState = {
   address: string;
   genderId: string;
   bio: string;
-  licenseTypes: string;
+  selectedLicenses: string[];
   locationName: string;
   yearsExp: string;
+};
+
+type RankItem = {
+  id: number;
+  name: string;
 };
 
 const GENDER_OPTIONS = [
@@ -47,6 +52,7 @@ const TeacherProfileEdit: React.FC = () => {
   const [avatarUploading, setAvatarUploading] = useState(false);
   const [profile, setProfile] = useState<ProfileData | null>(null);
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
+  const [availableRanks, setAvailableRanks] = useState<RankItem[]>([]);
   const [form, setForm] = useState<FormState>({
     username: '',
     email: '',
@@ -54,7 +60,7 @@ const TeacherProfileEdit: React.FC = () => {
     address: '',
     genderId: '',
     bio: '',
-    licenseTypes: '',
+    selectedLicenses: [],
     locationName: '',
     yearsExp: '',
   });
@@ -62,10 +68,21 @@ const TeacherProfileEdit: React.FC = () => {
   const fetchProfile = useCallback(async () => {
     try {
       setLoading(true);
-      const res = await axios.get('/api/teacher-profile/me/full');
-      if (res.data?.EC === 0 && res.data.DT) {
-        const d = res.data.DT as ProfileData;
+      const [profileRes, rankRes] = await Promise.all([
+        axios.get('/api/teacher-profile/me/full'),
+        axios.get('/api/rank/getRank'),
+      ]);
+
+      if (rankRes.data?.EC === 0 && Array.isArray(rankRes.data.DT)) {
+        setAvailableRanks(rankRes.data.DT.map((r: RankItem) => ({ id: r.id, name: r.name })));
+      }
+
+      if (profileRes.data?.EC === 0 && profileRes.data.DT) {
+        const d = profileRes.data.DT as ProfileData;
         setProfile(d);
+        const existingLicenses = d.teacherProfile?.licenseTypes
+          ? d.teacherProfile.licenseTypes.split(',').map((s) => s.trim()).filter(Boolean)
+          : [];
         setForm({
           username: d.username || '',
           email: d.email || '',
@@ -73,7 +90,7 @@ const TeacherProfileEdit: React.FC = () => {
           address: d.address || '',
           genderId: d.genderId != null ? String(d.genderId) : '',
           bio: d.teacherProfile?.bio || '',
-          licenseTypes: d.teacherProfile?.licenseTypes || '',
+          selectedLicenses: existingLicenses,
           locationName: d.teacherProfile?.locationName || '',
           yearsExp: d.teacherProfile?.yearsExp != null ? String(d.teacherProfile.yearsExp) : '',
         });
@@ -93,9 +110,24 @@ const TeacherProfileEdit: React.FC = () => {
     setForm((prev) => ({ ...prev, [name]: value }));
   };
 
+  const toggleLicense = (rankName: string) => {
+    setForm((prev) => {
+      const next = prev.selectedLicenses.includes(rankName)
+        ? prev.selectedLicenses.filter((l) => l !== rankName)
+        : [...prev.selectedLicenses, rankName];
+      return { ...prev, selectedLicenses: next };
+    });
+  };
+
   const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (!file || !userId) return;
+    if (!file) return;
+
+    const profileId = profile?.id ?? userId;
+    if (!profileId) {
+      toast.error('Không xác định được người dùng.');
+      return;
+    }
 
     if (file.size > 5 * 1024 * 1024) {
       toast.error('File quá lớn (tối đa 5MB).');
@@ -106,7 +138,7 @@ const TeacherProfileEdit: React.FC = () => {
     try {
       const fd = new FormData();
       fd.append('avatar', file);
-      const res = await axios.post(`/api/teacher-avatar/${userId}`, fd, {
+      const res = await axios.post(`/api/teacher-avatar/${profileId}`, fd, {
         headers: { 'Content-Type': 'multipart/form-data' },
       });
       if (res.data?.EC === 0 && res.data.DT?.url) {
@@ -142,7 +174,7 @@ const TeacherProfileEdit: React.FC = () => {
         address: form.address.trim() || null,
         genderId: form.genderId ? parseInt(form.genderId) : null,
         bio: form.bio.trim() || null,
-        licenseTypes: form.licenseTypes.trim() || null,
+        licenseTypes: form.selectedLicenses.length > 0 ? form.selectedLicenses.join(', ') : null,
         locationName: form.locationName.trim() || null,
         yearsExp: form.yearsExp ? parseInt(form.yearsExp) : null,
         avatarUrl: avatarPreview || null,
@@ -251,8 +283,23 @@ const TeacherProfileEdit: React.FC = () => {
           <h2 className="tpe__section-title">Thông tin chuyên môn</h2>
           <div className="tpe__grid">
             <div className="tpe__field">
-              <label className="tpe__label" htmlFor="tpe-license">Hạng bằng giảng dạy</label>
-              <input id="tpe-license" name="licenseTypes" className="tpe__input" value={form.licenseTypes} onChange={handleChange} placeholder="A1, B1, B2, C" />
+              <label className="tpe__label">Hạng bằng giảng dạy</label>
+              <div className="tpe__license-grid">
+                {availableRanks.map((rank) => (
+                  <label key={rank.id} className={`tpe__license-chip${form.selectedLicenses.includes(rank.name) ? ' tpe__license-chip--active' : ''}`}>
+                    <input
+                      type="checkbox"
+                      checked={form.selectedLicenses.includes(rank.name)}
+                      onChange={() => toggleLicense(rank.name)}
+                      hidden
+                    />
+                    <span className="material-icons tpe__license-chip-icon">
+                      {form.selectedLicenses.includes(rank.name) ? 'check_circle' : 'radio_button_unchecked'}
+                    </span>
+                    Hạng {rank.name}
+                  </label>
+                ))}
+              </div>
             </div>
             <div className="tpe__field">
               <label className="tpe__label" htmlFor="tpe-years">Số năm kinh nghiệm</label>

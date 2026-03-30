@@ -6,21 +6,21 @@ import './ForgotPassword.scss';
 const ForgotPassword: React.FC = () => {
   const navigate = useNavigate();
 
-  const [email, setEmail] = useState('');
+  const [identifier, setIdentifier] = useState('');
   const [submitting, setSubmitting] = useState(false);
-  const [sent, setSent] = useState(false);
+  const [successMsg, setSuccessMsg] = useState('');
   const [error, setError] = useState('');
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
-    if (!email.trim()) { setError('Vui lòng nhập email'); return; }
+    if (!identifier.trim()) { setError('Vui lòng nhập email hoặc số CCCD'); return; }
 
     setSubmitting(true);
     try {
-      const res = await axios.post<{ EC: number; EM: string }>('/api/auth/forgot-password', { email: email.trim() });
+      const res = await axios.post<{ EC: number; EM: string }>('/api/auth/forgot-password', { email: identifier.trim() });
       if (res.data.EC === 0) {
-        setSent(true);
+        setSuccessMsg(res.data.EM);
       } else {
         setError(res.data.EM || 'Có lỗi xảy ra');
       }
@@ -31,12 +31,12 @@ const ForgotPassword: React.FC = () => {
     }
   };
 
-  if (sent) {
+  if (successMsg) {
     return (
       <div className="fp fp--center">
         <span className="material-icons fp__icon-ok">mark_email_read</span>
         <h2>Kiểm tra email của bạn</h2>
-        <p>Nếu email tồn tại trong hệ thống, bạn sẽ nhận được link đặt lại mật khẩu trong vài phút.</p>
+        <p>{successMsg}</p>
         <button className="fp__btn-primary" onClick={() => navigate('/login')}>
           Quay về đăng nhập
         </button>
@@ -52,18 +52,18 @@ const ForgotPassword: React.FC = () => {
         </div>
         <h1 className="fp__title">Quên mật khẩu</h1>
         <p className="fp__subtitle">
-          Nhập email tài khoản của bạn. Chúng tôi sẽ gửi link đặt lại mật khẩu.
+          Nhập email hoặc số CCCD của bạn. Chúng tôi sẽ gửi link đặt lại mật khẩu về email đã đăng ký.
         </p>
 
         <form className="fp__form" onSubmit={handleSubmit}>
           <div className="fp__field">
-            <label className="fp__label">Email</label>
+            <label className="fp__label">Email hoặc số CCCD</label>
             <input
-              type="email"
+              type="text"
               className={`fp__input${error ? ' fp__input--error' : ''}`}
-              placeholder="example@email.com"
-              value={email}
-              onChange={e => setEmail(e.target.value)}
+              placeholder="example@email.com hoặc 0123456789xx"
+              value={identifier}
+              onChange={e => setIdentifier(e.target.value)}
               autoComplete="email"
               autoFocus
             />
@@ -79,7 +79,7 @@ const ForgotPassword: React.FC = () => {
           <button
             type="submit"
             className="fp__btn-primary"
-            disabled={submitting || !email.trim()}
+            disabled={submitting || !identifier.trim()}
           >
             {submitting
               ? <><span className="material-icons fp__spin">sync</span>Đang gửi...</>

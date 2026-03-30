@@ -84,22 +84,46 @@ const setupPassword = async (req, res) => {
   }
 };
 
+const findUserByIdentifier = async (identifier) => {
+  const isEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(identifier);
+
+  if (isEmail) {
+    return db.user.findOne({
+      where: { email: identifier, groupId: { [Op.in]: ALLOWED_GROUP_IDS } },
+    });
+  }
+
+  // Treat as CCCD — look up hoc_vien first, then get user
+  const hocVien = await db.hoc_vien.findOne({
+    where: { SoCCCD: identifier },
+    attributes: ['id', 'userId'],
+  });
+  if (!hocVien || !hocVien.userId) return null;
+
+  return db.user.findOne({
+    where: { id: hocVien.userId, groupId: { [Op.in]: ALLOWED_GROUP_IDS } },
+  });
+};
+
 const forgotPassword = async (req, res) => {
-  const { email } = req.body;
-  if (!email) {
-    return res.status(200).json({ EM: 'Vui lòng nhập email', EC: 1, DT: null });
+  const { email: identifier } = req.body;
+  if (!identifier || !identifier.trim()) {
+    return res.status(200).json({ EM: 'Vui lòng nhập email hoặc số CCCD', EC: 1, DT: null });
   }
 
   try {
-    const user = await db.user.findOne({
-      where: {
-        email,
-        groupId: { [Op.in]: ALLOWED_GROUP_IDS },
-      },
-    });
+    const user = await findUserByIdentifier(identifier.trim());
 
     if (!user) {
-      return res.status(200).json({ EM: 'Email này không tồn tại trong hệ thống', EC: 1, DT: null });
+      const isEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(identifier.trim());
+      const msg = isEmail
+        ? 'Email này không tồn tại trong hệ thống'
+        : 'Không tìm thấy dữ liệu người dùng với số CCCD này';
+      return res.status(200).json({ EM: msg, EC: 1, DT: null });
+    }
+
+    if (!user.email) {
+      return res.status(200).json({ EM: 'Tài khoản chưa có email để gửi link đặt lại mật khẩu', EC: 1, DT: null });
     }
 
     const token = crypto.randomBytes(32).toString('hex');
@@ -110,7 +134,11 @@ const forgotPassword = async (req, res) => {
     const setupLink = buildSetupLink(token);
     mailService.sendResetEmail({ toEmail: user.email, hoTen: user.username, setupLink }).catch(() => {});
 
-    return res.status(200).json({ EM: 'Link đặt lại mật khẩu đã được gửi đến email của bạn', EC: 0, DT: null });
+    // Mask email for display
+    const parts = user.email.split('@');
+    const masked = parts[0].slice(0, 2) + '***@' + parts[1];
+
+    return res.status(200).json({ EM: `Link đặt lại mật khẩu đã được gửi đến ${masked}`, EC: 0, DT: null });
   } catch (e) {
     console.error('[forgotPassword]', e);
     return res.status(500).json({ EM: 'Lỗi server', EC: -1, DT: null });

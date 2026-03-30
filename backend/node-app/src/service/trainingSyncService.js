@@ -179,7 +179,12 @@ export const syncOneStudent = async (hocVienId) => {
 
     const assignment = await db.student_assignment.findOne({ where: { hocVienId } });
     if (assignment) {
-      await assignment.update({ progressPercent: pct });
+      const updates = { progressPercent: pct };
+      if (pct >= 100 && assignment.status !== 'completed') {
+        updates.status = 'completed';
+        await db.hoc_vien.update({ status: 'dat_completed' }, { where: { id: hocVienId } });
+      }
+      await assignment.update(updates);
     }
 
     logSyncDebug('sync ok', { hocVienId, cccd: maskCccd(cccd), pct });

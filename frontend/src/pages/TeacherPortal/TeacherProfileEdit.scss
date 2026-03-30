@@ -176,6 +176,44 @@
   min-height: 80px;
 }
 
+/* ── License chips ────────────────────────────────────────────────────────── */
+.tpe__license-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.tpe__license-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.45rem 0.85rem;
+  border: 1.5px solid var(--tpe-outline-variant);
+  border-radius: 2rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--tpe-on-surface-variant);
+  background: var(--tpe-surface);
+  cursor: pointer;
+  user-select: none;
+  transition: border-color 0.15s, background 0.15s, color 0.15s;
+
+  &:hover {
+    border-color: var(--tpe-primary);
+    background: var(--tpe-surface-low);
+  }
+
+  &--active {
+    border-color: var(--tpe-primary);
+    background: var(--tpe-primary-container);
+    color: var(--tpe-primary-dark);
+  }
+}
+
+.tpe__license-chip-icon {
+  font-size: 1.1rem;
+}
+
 /* ── Avatar ────────────────────────────────────────────────────────────────── */
 .tpe__avatar-row {
   display: flex;
