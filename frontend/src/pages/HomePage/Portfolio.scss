@@ -1,0 +1,409 @@
+// ─── Portfolio (SuperTeacher Homepage Section) ───────────────────────────────
+// Design: Screen 7 — teal primary, editorial layout, tonal layering
+
+$_primary: #00685f;
+$_primary-ctr: #008378;
+$_on-primary: #ffffff;
+$_surface: #f8f9ff;
+$_surface-low: #eff4ff;
+$_surface-lowest: #ffffff;
+$_on-surface: #0b1c30;
+$_on-surface-var: #3d4947;
+$_outline: #6d7a77;
+$_outline-var: #bcc9c6;
+$_font-hl: 'Plus Jakarta Sans', sans-serif;
+$_font-body: 'Work Sans', sans-serif;
+$_radius-sm: 0.5rem;
+$_radius-md: 0.75rem;
+$_radius-xl: 1.25rem;
+
+.pf {
+  background: $_surface;
+
+  // ── Label pill ──────────────────────────────────────────────────────
+  &__label {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba($_primary, 0.08);
+    color: $_primary;
+    font-size: 0.6875rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 5px 14px;
+    border-radius: 100px;
+    margin-bottom: 1rem;
+
+    .material-symbols-outlined {
+      font-size: 15px;
+    }
+  }
+
+  // ── Hero text ───────────────────────────────────────────────────────
+  &__hero-title {
+    font-family: $_font-hl;
+    font-size: 2.75rem;
+    font-weight: 800;
+    line-height: 1.12;
+    color: $_on-surface;
+    margin: 0 0 1rem;
+    letter-spacing: -0.02em;
+
+    em {
+      font-style: italic;
+    }
+
+    @media (max-width: 768px) {
+      font-size: 2rem;
+    }
+  }
+
+  &__hero-sub {
+    font-size: 0.9375rem;
+    color: $_on-surface-var;
+    line-height: 1.7;
+    max-width: 640px;
+    margin: 0 0 2rem;
+  }
+
+  // ── Filters ─────────────────────────────────────────────────────────
+  &__filters {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 2rem;
+    flex-wrap: wrap;
+  }
+
+  &__tabs {
+    display: flex;
+    gap: 0.375rem;
+  }
+
+  &__tab {
+    padding: 0.5rem 1rem;
+    border-radius: $_radius-sm;
+    border: 1px solid rgba($_outline-var, 0.2);
+    background: $_surface-lowest;
+    color: $_on-surface-var;
+    font-family: $_font-body;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s;
+
+    &:hover {
+      background: $_surface-low;
+    }
+
+    &--active {
+      background: linear-gradient(135deg, $_primary, $_primary-ctr);
+      color: $_on-primary;
+      border-color: transparent;
+    }
+  }
+
+  &__search-wrap {
+    position: relative;
+    min-width: 260px;
+
+    @media (max-width: 640px) {
+      min-width: 100%;
+    }
+  }
+
+  &__search-icon {
+    position: absolute;
+    left: 0.75rem;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 20px;
+    color: $_outline-var;
+    pointer-events: none;
+  }
+
+  &__search {
+    width: 100%;
+    padding: 0.5rem 0.75rem 0.5rem 2.25rem;
+    border: 1px solid rgba($_outline-var, 0.2);
+    border-radius: $_radius-sm;
+    font-family: $_font-body;
+    font-size: 0.8125rem;
+    color: $_on-surface;
+    background: $_surface-lowest;
+    outline: none;
+    transition: border-color 0.15s;
+
+    &:focus {
+      border-color: $_primary;
+    }
+
+    &::placeholder {
+      color: $_outline-var;
+    }
+  }
+
+  // ── Card grid ───────────────────────────────────────────────────────
+  &__grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+
+    @media (max-width: 991px) {
+      grid-template-columns: repeat(2, 1fr);
+    }
+
+    @media (max-width: 640px) {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  &__empty {
+    grid-column: 1 / -1;
+    text-align: center;
+    color: $_on-surface-var;
+    padding: 3rem 0;
+  }
+
+  // ── Card ────────────────────────────────────────────────────────────
+  &__card {
+    background: $_surface-lowest;
+    border-radius: $_radius-xl;
+    padding: 1.5rem;
+    box-shadow: 0 1px 3px rgba(11, 28, 48, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.8);
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+
+    &:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 4px 20px rgba(11, 28, 48, 0.08);
+    }
+  }
+
+  &__card-top {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  &__card-avatar {
+    width: 3.5rem;
+    height: 3.5rem;
+    border-radius: $_radius-md;
+    object-fit: cover;
+    flex-shrink: 0;
+  }
+
+  &__card-info {
+    flex: 1;
+    min-width: 0;
+  }
+
+  &__card-name {
+    font-family: $_font-hl;
+    font-size: 1.0625rem;
+    font-weight: 700;
+    color: $_on-surface;
+    margin: 0 0 0.25rem;
+  }
+
+  &__card-badge {
+    display: inline-flex;
+    padding: 0.125rem 0.5rem;
+    border-radius: $_radius-sm;
+    background: $_surface-low;
+    color: $_on-surface-var;
+    font-size: 0.6875rem;
+    font-weight: 700;
+  }
+
+  &__card-rating {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+  }
+
+  &__card-rating-val {
+    font-size: 0.8125rem;
+    font-weight: 700;
+    color: $_on-surface;
+    margin-left: 0.25rem;
+  }
+
+  &__card-rating-count {
+    font-size: 0.75rem;
+    color: $_on-surface-var;
+  }
+
+  &__card-bio {
+    font-size: 0.8125rem;
+    color: $_on-surface-var;
+    line-height: 1.6;
+    margin: 0;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  &__card-exp {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    font-size: 0.75rem;
+    color: $_outline;
+    margin: 0;
+
+    .material-symbols-outlined {
+      font-size: 16px;
+    }
+  }
+
+  &__card-stats {
+    display: flex;
+    gap: 1.25rem;
+    padding-top: 0.75rem;
+    background: $_surface-low;
+    border-radius: $_radius-sm;
+    padding: 0.75rem 1rem;
+  }
+
+  &__card-stat {
+    display: flex;
+    flex-direction: column;
+    text-align: center;
+    flex: 1;
+
+    strong {
+      font-family: $_font-hl;
+      font-size: 1.25rem;
+      font-weight: 800;
+      color: $_primary;
+    }
+
+    span {
+      font-size: 0.625rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: $_on-surface-var;
+    }
+  }
+
+  &__card-cta {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.375rem;
+    width: 100%;
+    padding: 0.625rem;
+    border-radius: $_radius-sm;
+    background: linear-gradient(135deg, $_primary, $_primary-ctr);
+    color: $_on-primary;
+    font-family: $_font-body;
+    font-size: 0.8125rem;
+    font-weight: 700;
+    border: none;
+    cursor: pointer;
+    transition: opacity 0.15s;
+
+    .material-symbols-outlined {
+      font-size: 18px;
+    }
+
+    &:hover {
+      opacity: 0.9;
+    }
+  }
+
+  // ── Stars ───────────────────────────────────────────────────────────
+  &__stars {
+    display: inline-flex;
+    align-items: center;
+  }
+
+  &__star {
+    font-size: 16px;
+    color: rgba($_outline-var, 0.4);
+
+    &--filled {
+      color: #f59e0b;
+    }
+  }
+}
+
+// ─── Trust Section ───────────────────────────────────────────────────────────
+.pf-trust {
+  background: $_surface-lowest;
+
+  &__inner {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 3rem;
+    align-items: center;
+
+    @media (max-width: 768px) {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  &__title {
+    font-family: $_font-hl;
+    font-size: 2rem;
+    font-weight: 800;
+    color: $_on-surface;
+    margin: 0 0 1rem;
+    letter-spacing: -0.02em;
+  }
+
+  &__text {
+    font-size: 0.9375rem;
+    color: $_on-surface-var;
+    line-height: 1.7;
+    margin: 0 0 1.5rem;
+  }
+
+  &__metrics {
+    display: flex;
+    gap: 2rem;
+  }
+
+  &__metric {
+    display: flex;
+    flex-direction: column;
+  }
+
+  &__metric-val {
+    font-family: $_font-hl;
+    font-size: 2rem;
+    font-weight: 800;
+    color: $_primary;
+  }
+
+  &__metric-label {
+    font-size: 0.8125rem;
+    color: $_on-surface-var;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-weight: 600;
+  }
+
+  &__visual {
+    border-radius: $_radius-xl;
+    overflow: hidden;
+  }
+
+  &__img {
+    width: 100%;
+    height: auto;
+    display: block;
+    border-radius: $_radius-xl;
+  }
+}

@@ -48,11 +48,17 @@ const getAllUsers = async () => {
     try {
         let users = await db.user.findAll({
             where: { groupId: TEACHER_GROUP_ID },
-            attributes: ['id', 'email', 'username', 'address', 'phone', 'groupId', 'active'],
+            attributes: ['id', 'email', 'username', 'address', 'phone', 'groupId', 'active', 'superTeacherId'],
             include: [
                 {
                     model: db.group,
                     attributes: ['name', 'description'],
+                },
+                {
+                    model: db.user,
+                    as: 'superTeacher',
+                    attributes: ['id', 'username', 'email'],
+                    required: false,
                 },
             ],
             order: [['id', 'ASC']],
@@ -80,8 +86,17 @@ const getAllUsers = async () => {
         }
     }
 }
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
 const createUser = async (data) => {
     try {
+        if (!data.email || !EMAIL_RE.test(data.email)) {
+            return {
+                EM: 'Email không hợp lệ',
+                EC: 1,
+                DT: 'email'
+            }
+        }
         if (await checkEmail(data.email) === true) {
             return {
                 EM: 'Email đã tồn tại',
@@ -109,6 +124,7 @@ const createUser = async (data) => {
             address: data.address || null,
             phone: data.phone || null,
             groupId: TEACHER_GROUP_ID,
+            superTeacherId: data.superTeacherId || null,
             setupToken,
             setupTokenExpiry,
         });
@@ -143,6 +159,7 @@ const updateUser = async (user) => {
                 username: user.username,
                 address: user.address || null,
                 phone: user.phone || null,
+                superTeacherId: user.superTeacherId !== undefined ? (user.superTeacherId || null) : findUser.superTeacherId,
             });
             if (user.password) {
                 findUser.set({ password: hashUserPassword(user.password) });

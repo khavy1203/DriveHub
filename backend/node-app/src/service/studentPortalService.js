@@ -7,7 +7,7 @@ const getMyProgress = async (userId) => {
       include: [
         {
           model: db.student_assignment,
-          as: 'assignment',
+          as: 'assignments',
           required: false,
           include: [
             {
@@ -26,14 +26,35 @@ const getMyProgress = async (userId) => {
     if (!hocVien) return { EM: 'Không tìm thấy hồ sơ học viên', EC: 1, DT: null };
 
     const plain = hocVien.get({ plain: true });
-    const assignment = plain.assignment;
+    const allAssignments = plain.assignments || [];
+    const primaryAssignment = allAssignments.find(a => a.role === 'primary') || allAssignments[0] || null;
+    const supervisorAssignment = allAssignments.find(a => a.role === 'supervisor') || null;
 
     let teacherRating = { avgStars: '0.0', totalRatings: 0 };
     let canRate = false;
 
-    if (assignment?.teacher?.id) {
+    if (primaryAssignment?.teacher?.id) {
+      // Self-heal: if training snapshot shows >= 100% but assignment not yet completed, fix it now
+      if (primaryAssignment.status !== 'completed') {
+        const snap = await db.training_snapshot.findOne({
+          where: { hocVienId: hocVien.id },
+          attributes: ['courseProgressPct'],
+        });
+        if (snap && snap.courseProgressPct >= 100) {
+          await db.student_assignment.update(
+            { status: 'completed', progressPercent: snap.courseProgressPct },
+            { where: { id: primaryAssignment.id } },
+          );
+          await db.hoc_vien.update(
+            { status: 'dat_completed' },
+            { where: { id: hocVien.id } },
+          );
+          primaryAssignment.status = 'completed';
+        }
+      }
+
       const agg = await db.teacher_rating.findOne({
-        where: { teacherUserId: assignment.teacher.id },
+        where: { teacherUserId: primaryAssignment.teacher.id },
         attributes: [
           [db.sequelize.fn('AVG', db.sequelize.col('stars')), 'avgStars'],
           [db.sequelize.fn('COUNT', db.sequelize.col('id')), 'totalRatings'],
@@ -46,10 +67,34 @@ const getMyProgress = async (userId) => {
       };
 
       const existingRating = await db.teacher_rating.findOne({
-        where: { teacherUserId: assignment.teacher.id, hocVienId: hocVien.id },
+        where: { teacherUserId: primaryAssignment.teacher.id, hocVienId: hocVien.id },
       });
-      canRate = assignment.status === 'completed' && !existingRating;
+      canRate = primaryAssignment.status === 'completed' && !existingRating;
     }
+
+    const formatAssignment = (a, rating, canRateFlag) => {
+      if (!a) return null;
+      return {
+        id: a.id,
+        role: a.role || 'primary',
+        status: a.status,
+        progressPercent: a.progressPercent,
+        datHoursCompleted: a.datHoursCompleted,
+        notes: a.notes,
+        canRate: canRateFlag,
+        teacher: a.teacher
+          ? {
+              id: a.teacher.id,
+              username: a.teacher.username,
+              phone: a.teacher.phone,
+              email: a.teacher.email,
+              address: a.teacher.address,
+              profile: a.teacher.teacherProfile || null,
+              ...rating,
+            }
+          : null,
+      };
+    };
 
     return {
       EM: 'ok',
@@ -61,27 +106,10 @@ const getMyProgress = async (userId) => {
           loaibangthi: plain.loaibangthi,
           status: plain.status,
         },
-        assignment: assignment
-          ? {
-              id: assignment.id,
-              status: assignment.status,
-              progressPercent: assignment.progressPercent,
-              datHoursCompleted: assignment.datHoursCompleted,
-              notes: assignment.notes,
-              canRate,
-              teacher: assignment.teacher
-                ? {
-                    id: assignment.teacher.id,
-                    username: assignment.teacher.username,
-                    phone: assignment.teacher.phone,
-                    email: assignment.teacher.email,
-                    address: assignment.teacher.address,
-                    profile: assignment.teacher.teacherProfile || null,
-                    ...teacherRating,
-                  }
-                : null,
-            }
-          : null,
+        // Primary assignment (backward compatible)
+        assignment: formatAssignment(primaryAssignment, teacherRating, canRate),
+        // Supervisor assignment (SuperTeacher chat)
+        supervisorAssignment: formatAssignment(supervisorAssignment, { avgStars: '0.0', totalRatings: 0 }, false),
       },
     };
   } catch (e) {
@@ -94,7 +122,7 @@ const getAllTeachers = async (myHocVienId) => {
   try {
     const myAssignment = myHocVienId
       ? await db.student_assignment.findOne({
-          where: { hocVienId: myHocVienId },
+          where: { hocVienId: myHocVienId, role: 'primary' },
           attributes: ['teacherId'],
         })
       : null;
@@ -155,7 +183,7 @@ const submitRating = async (hocVienId, { stars, comment }) => {
       return { EM: 'Số sao phải từ 1 đến 5', EC: -1, DT: null };
     }
 
-    const assignment = await db.student_assignment.findOne({ where: { hocVienId } });
+    const assignment = await db.student_assignment.findOne({ where: { hocVienId, role: 'primary' } });
     if (!assignment) return { EM: 'Không tìm thấy phân công học', EC: -1, DT: null };
     if (assignment.status !== 'completed') {
       return { EM: 'Chỉ được đánh giá sau khi hoàn thành khóa học', EC: -1, DT: null };

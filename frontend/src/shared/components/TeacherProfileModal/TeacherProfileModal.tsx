@@ -97,7 +97,8 @@ const TeacherProfileModal: React.FC<Props> = ({ teacherId, onClose, actionLabel,
     axios.get(`/api/public/teachers/${teacherId}`)
       .then(res => {
         if (res.data?.EC === 0 && res.data.DT) {
-          setData(res.data.DT as TeacherDetail);
+          const dt = res.data.DT as TeacherDetail;
+          setData({ ...dt, reviews: dt.reviews ?? [] });
         }
       })
       .catch(() => { /* handled by null data */ })

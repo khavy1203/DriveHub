@@ -3,11 +3,10 @@ import { syncApiRegistryToDb, seedDefaultGroupApiPermissions } from '../service/
 
 export async function ensureApiEndpointsBootstrapped() {
   try {
-    const n = await db.api_endpoint.count();
-    if (n > 0) return;
-    console.log('[api_endpoint] Empty table — bootstrapping from API_REGISTRY…');
+    console.log('[api_endpoint] Syncing API registry + seeding default permissions…');
     await syncApiRegistryToDb();
     await seedDefaultGroupApiPermissions();
+    console.log('[api_endpoint] Sync complete.');
   } catch (e) {
     console.error('[api_endpoint] Bootstrap skipped:', e?.message || e);
   }

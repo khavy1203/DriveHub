@@ -488,7 +488,86 @@ body.test-student-page.force-landscape-lock footer {
     box-shadow: none;
     overflow-y: auto;
     z-index: 100;
-    justify-content: center;
+    justify-content: flex-start;
+  }
+}
+
+@media (pointer: coarse) and (orientation: landscape) and (max-height: 500px) {
+  body.test-student-page .app-teststudent {
+    overflow-y: hidden;
+  }
+
+  .st-main-content {
+    display: grid;
+    grid-template-columns: 1fr 220px;
+    grid-template-rows: 1fr auto;
+    grid-template-areas:
+      "form candidate"
+      "buttons candidate";
+    gap: 0 14px;
+    padding: 10px 14px;
+    height: 100%;
+    overflow: hidden;
+  }
+
+  .st-search-form {
+    grid-area: form;
+    margin-bottom: 0;
+    overflow-y: auto;
+  }
+
+  .st-candidate-panel {
+    grid-area: candidate;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 0;
+    overflow-y: auto;
+    align-items: flex-start;
+  }
+
+  .st-avatar-box {
+    width: 80px;
+    flex-shrink: 0;
+  }
+
+  .st-avatar-img,
+  .st-avatar-placeholder {
+    width: 72px;
+    height: 96px;
+  }
+
+  .st-info-label {
+    min-width: 80px;
+    font-size: 12px;
+  }
+
+  .st-info-value {
+    font-size: 12px;
+  }
+
+  .st-footer-buttons {
+    grid-area: buttons;
+    flex-direction: row;
+    gap: 10px;
+    margin-top: 8px;
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+
+  .st-btn-login,
+  .st-btn-cancel {
+    flex: 1;
+    min-width: unset;
+    padding: 7px 8px;
+    font-size: 13px;
+  }
+
+  .st-form-row > label {
+    font-size: 12px;
+  }
+
+  .st-form-row select,
+  .st-form-row input {
+    font-size: 13px;
   }
 }
 

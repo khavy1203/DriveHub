@@ -41,6 +41,25 @@ async function ensureGroupApiLink(groupId, apiEndpointId, t) {
   });
 }
 
+function shouldSeedSupperTeacher(ep) {
+  if (ep.isPublic) return false;
+  const { path } = ep;
+  // Own team management
+  if (path.startsWith('/api/super-teacher')) return true;
+  // Same perms as GiaoVien
+  if (path.startsWith('/api/student-assignment')) return true;
+  if (path.startsWith('/api/teacher-profile')) return true;
+  if (path.startsWith('/api/teacher-avatar')) return true;
+  if (path.startsWith('/api/teacher-course')) return true;
+  if (path === '/api/teacher/my-students') return true;
+  if (path.startsWith('/api/teacher/students')) return true;
+  if (path.startsWith('/api/chat')) return true;
+  if (path.startsWith('/api/training')) return true;
+  if (path === '/api/hocvien') return true;
+  if (path.startsWith('/api/hocvien/')) return true;
+  return false;
+}
+
 function shouldSeedGiaoVien(ep) {
   if (ep.isPublic) return false;
   const { path, method } = ep;
@@ -80,6 +99,7 @@ export async function seedDefaultGroupApiPermissions() {
     const adminId = byName.Admin;
     const gvId = byName.GiaoVien;
     const hvId = byName.HocVien;
+    const stId = byName.SupperTeacher;
 
     for (const ep of endpoints) {
       const plain = ep.get ? ep.get({ plain: true }) : ep;
@@ -93,6 +113,7 @@ export async function seedDefaultGroupApiPermissions() {
         if (!isSyncOnly) await ensureGroupApiLink(adminId, plain.id, t);
       }
 
+      if (stId && shouldSeedSupperTeacher(plain)) await ensureGroupApiLink(stId, plain.id, t);
       if (gvId && shouldSeedGiaoVien(plain)) await ensureGroupApiLink(gvId, plain.id, t);
       if (hvId && shouldSeedHocVien(plain)) await ensureGroupApiLink(hvId, plain.id, t);
     }

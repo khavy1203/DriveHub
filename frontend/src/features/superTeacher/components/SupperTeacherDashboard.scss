@@ -1,0 +1,627 @@
+@use '../tokens' as *;
+
+.st-dashboard {
+  @include st-page-base;
+
+  // ── Welcome header ──────────────────────────────────────────────────────
+  &__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    margin-bottom: $st-space-10;
+  }
+
+  &__title {
+    font-family: $st-font-headline;
+    font-size: 1.875rem;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    color: $st-on-surface;
+    margin: 0 0 $st-space-1;
+  }
+
+  &__subtitle {
+    font-size: 0.875rem;
+    color: $st-on-surface-variant;
+    margin: 0;
+  }
+
+  &__header-actions {
+    display: flex;
+    gap: $st-space-3;
+  }
+
+  &__btn-report {
+    @include st-btn-secondary;
+  }
+
+  &__btn-schedule {
+    @include st-btn-primary;
+  }
+
+  // ── Stats cards ─────────────────────────────────────────────────────────
+  &__stats {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: $st-space-6;
+    margin-bottom: $st-space-10;
+  }
+
+  &__stat-card {
+    @include st-card;
+    padding: $st-space-6;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+
+  &__stat-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: $st-space-4;
+  }
+
+  &__stat-icon {
+    width: 3rem;
+    height: 3rem;
+    border-radius: $st-radius-sm;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    .material-symbols-outlined {
+      font-size: 24px;
+    }
+
+    &--teachers {
+      background: rgba(0, 104, 95, 0.08);
+      color: $st-primary;
+    }
+
+    &--students {
+      background: rgba(79, 70, 229, 0.08);
+      color: #4f46e5;
+    }
+
+    &--waiting {
+      background: rgba(153, 65, 0, 0.08);
+      color: $st-tertiary;
+    }
+
+    &--rate {
+      background: rgba(5, 150, 105, 0.08);
+      color: #059669;
+    }
+  }
+
+  &__stat-badge {
+    font-size: 0.75rem;
+    font-weight: 700;
+    padding: 0.25rem 0.5rem;
+    border-radius: $st-radius-sm;
+
+    &--primary {
+      background: $st-primary-fixed;
+      color: $st-primary;
+    }
+
+    &--indigo {
+      background: rgba(79, 70, 229, 0.1);
+      color: #4f46e5;
+    }
+
+    &--tertiary {
+      background: $st-tertiary-fixed;
+      color: $st-tertiary;
+    }
+
+    &--success {
+      background: rgba(5, 150, 105, 0.1);
+      color: #059669;
+    }
+  }
+
+  &__stat-label {
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: $st-on-surface-variant;
+  }
+
+  &__stat-value {
+    font-family: $st-font-headline;
+    font-size: 2.25rem;
+    font-weight: 800;
+    color: $st-on-surface;
+    line-height: 1;
+  }
+
+  &__stat-card--attention {
+    border-left: 4px solid $st-tertiary;
+
+    .st-dashboard__stat-value {
+      color: $st-tertiary;
+    }
+  }
+
+  &__stat-card--success .st-dashboard__stat-value {
+    color: #059669;
+  }
+
+  // ── Main grid ───────────────────────────────────────────────────────────
+  &__grid {
+    display: grid;
+    grid-template-columns: 7fr 5fr;
+    gap: $st-space-8;
+  }
+
+  &__left,
+  &__right {
+    display: flex;
+    flex-direction: column;
+    gap: $st-space-8;
+  }
+
+  // ── Distribution chart ──────────────────────────────────────────────────
+  &__distribution {
+    @include st-card;
+    padding: $st-space-8;
+  }
+
+  &__distribution-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: $st-space-8;
+  }
+
+  &__distribution-title {
+    @include st-heading-md;
+    margin: 0;
+  }
+
+  &__distribution-sub {
+    font-size: 0.875rem;
+    color: $st-on-surface-variant;
+    margin: $st-space-1 0 0;
+  }
+
+  &__distribution-legend {
+    display: flex;
+    align-items: center;
+    gap: $st-space-2;
+    font-size: 0.75rem;
+    color: $st-on-surface-variant;
+  }
+
+  &__legend-dot {
+    width: 0.75rem;
+    height: 0.75rem;
+    border-radius: $st-radius-full;
+
+    &--normal {
+      background: $st-primary;
+    }
+
+    &--overloaded {
+      background: $st-error;
+    }
+  }
+
+  &__bars {
+    display: flex;
+    flex-direction: column;
+    gap: $st-space-6;
+  }
+
+  &__bar-item {
+    display: flex;
+    flex-direction: column;
+    gap: $st-space-2;
+  }
+
+  &__bar-label {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: $st-on-surface;
+  }
+
+  &__bar-track {
+    width: 100%;
+    height: 0.75rem;
+    background: $st-surface-container;
+    border-radius: $st-radius-full;
+    overflow: hidden;
+  }
+
+  &__bar-fill {
+    height: 100%;
+    border-radius: $st-radius-full;
+    transition: width 0.6s ease;
+
+    &--normal {
+      background: $st-primary;
+    }
+
+    &--overloaded {
+      background: $st-error;
+    }
+  }
+
+  // ── Recent Activity ─────────────────────────────────────────────────────
+  &__activity {
+    @include st-card;
+    overflow: hidden;
+  }
+
+  &__activity-header {
+    padding: $st-space-6;
+    border-bottom: 1px solid rgba($st-surface-container-low, 0.7);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  &__activity-title {
+    @include st-heading-md;
+    margin: 0;
+  }
+
+  &__activity-link {
+    background: none;
+    border: none;
+    color: $st-primary;
+    font-size: 0.875rem;
+    font-weight: 700;
+    cursor: pointer;
+    font-family: $st-font-body;
+
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+
+  &__activity-table {
+    width: 100%;
+    text-align: left;
+    border-collapse: collapse;
+
+    thead tr {
+      background: $st-surface-container-low;
+    }
+
+    th {
+      @include st-label-sm;
+      padding: $st-space-3 $st-space-6;
+    }
+
+    td {
+      padding: $st-space-4 $st-space-6;
+      font-size: 0.875rem;
+    }
+
+    tbody tr {
+      transition: background 0.15s;
+
+      &:hover {
+        background: rgba($st-surface-container-low, 0.5);
+      }
+    }
+
+    tbody tr + tr td {
+      border-top: 1px solid rgba($st-surface-container-low, 0.5);
+    }
+  }
+
+  &__activity-action {
+    font-weight: 500;
+    color: $st-on-surface;
+  }
+
+  &__activity-user {
+    color: $st-on-surface-variant;
+  }
+
+  &__activity-time {
+    color: $st-on-surface-variant;
+  }
+
+  &__activity-status {
+    font-size: 0.625rem;
+    font-weight: 700;
+    padding: 0.25rem 0.5rem;
+    border-radius: $st-radius-full;
+    text-transform: uppercase;
+
+    &--completed {
+      background: rgba(0, 104, 95, 0.08);
+      color: $st-primary;
+    }
+
+    &--pending {
+      background: rgba(153, 65, 0, 0.08);
+      color: $st-tertiary;
+    }
+  }
+
+  // ── Quick Actions ───────────────────────────────────────────────────────
+  &__quick-actions {
+    @include st-card;
+    padding: $st-space-8;
+  }
+
+  &__quick-title {
+    @include st-heading-md;
+    margin: 0 0 $st-space-6;
+  }
+
+  &__quick-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: $st-space-4;
+  }
+
+  &__quick-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: $st-space-6;
+    background: $st-surface-container-low;
+    border: none;
+    border-radius: $st-radius-xl;
+    cursor: pointer;
+    transition: all 0.3s;
+    font-family: $st-font-body;
+
+    .material-symbols-outlined {
+      font-size: 1.875rem;
+      color: $st-primary;
+      margin-bottom: $st-space-3;
+      transition: color 0.3s;
+    }
+
+    span:last-child {
+      font-size: 0.875rem;
+      font-weight: 700;
+      color: $st-on-surface;
+      text-align: center;
+      transition: color 0.3s;
+    }
+
+    &:hover {
+      background: $st-primary-container;
+
+      .material-symbols-outlined,
+      span:last-child {
+        color: $st-on-primary;
+      }
+    }
+  }
+
+  // ── AI Insight ──────────────────────────────────────────────────────────
+  &__insight {
+    @include st-glass-card;
+    padding: $st-space-8;
+    position: relative;
+    overflow: hidden;
+  }
+
+  &__insight-glow {
+    position: absolute;
+    top: -3rem;
+    right: -3rem;
+    width: 8rem;
+    height: 8rem;
+    background: rgba($st-primary, 0.1);
+    border-radius: $st-radius-full;
+    filter: blur(2rem);
+  }
+
+  &__insight-badge {
+    display: flex;
+    align-items: center;
+    gap: $st-space-2;
+    color: $st-primary;
+    margin-bottom: $st-space-4;
+    position: relative;
+    z-index: 1;
+
+    .material-symbols-outlined {
+      font-variation-settings: 'FILL' 1;
+    }
+
+    span:last-child {
+      font-size: 0.875rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+  }
+
+  &__insight-title {
+    font-family: $st-font-headline;
+    font-size: 1.125rem;
+    font-weight: 700;
+    color: $st-on-surface;
+    margin: 0 0 $st-space-3;
+    position: relative;
+    z-index: 1;
+  }
+
+  &__insight-text {
+    font-size: 0.875rem;
+    color: $st-on-surface-variant;
+    line-height: 1.6;
+    margin-bottom: $st-space-6;
+    position: relative;
+    z-index: 1;
+
+    strong {
+      color: $st-primary;
+    }
+  }
+
+  &__insight-link {
+    display: inline-flex;
+    align-items: center;
+    gap: $st-space-2;
+    background: none;
+    border: none;
+    color: $st-primary;
+    font-size: 0.875rem;
+    font-weight: 700;
+    cursor: pointer;
+    font-family: $st-font-body;
+    padding: 0;
+    transition: gap 0.2s;
+    position: relative;
+    z-index: 1;
+
+    &:hover {
+      gap: $st-space-3;
+    }
+
+    .material-symbols-outlined {
+      font-size: 16px;
+    }
+  }
+
+  // ── Training Success Rate ───────────────────────────────────────────────
+  &__success-rate {
+    @include st-card;
+    padding: $st-space-8;
+  }
+
+  &__success-title {
+    @include st-heading-md;
+    margin: 0 0 $st-space-6;
+  }
+
+  &__success-hero {
+    display: flex;
+    align-items: flex-end;
+    gap: $st-space-4;
+    margin-bottom: $st-space-8;
+  }
+
+  &__success-value {
+    font-family: $st-font-headline;
+    font-size: 3rem;
+    font-weight: 800;
+    color: #059669;
+    line-height: 1;
+  }
+
+  &__success-trend {
+    display: flex;
+    align-items: center;
+    gap: $st-space-1;
+    color: #059669;
+    font-weight: 700;
+    font-size: 0.875rem;
+    padding-bottom: $st-space-2;
+
+    .material-symbols-outlined {
+      font-size: 16px;
+    }
+  }
+
+  &__progress-row {
+    margin-bottom: $st-space-6;
+
+    &:last-child {
+      margin-bottom: 0;
+    }
+  }
+
+  &__progress-label {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: $st-space-4;
+
+    span:first-child {
+      font-size: 0.875rem;
+      font-weight: 500;
+      color: $st-on-surface-variant;
+    }
+
+    span:last-child {
+      font-size: 0.875rem;
+      font-weight: 700;
+      color: $st-on-surface;
+    }
+  }
+
+  &__progress-track {
+    width: 100%;
+    height: 6px;
+    background: $st-surface-container;
+    border-radius: $st-radius-full;
+    overflow: hidden;
+  }
+
+  &__progress-fill {
+    height: 100%;
+    border-radius: $st-radius-full;
+    background: #059669;
+    transition: width 0.6s ease;
+
+    &--success {
+      background: $st-primary;
+    }
+  }
+
+  // ── Progress Distribution ───────────────────────────────────────────────
+  &__progress-dist {
+    @include st-card;
+    padding: $st-space-8;
+  }
+
+  &__progress-dist-title {
+    @include st-heading-md;
+    margin: 0 0 $st-space-2;
+  }
+
+  &__progress-dist-sub {
+    font-size: 0.8125rem;
+    color: $st-on-surface-variant;
+    margin: 0 0 $st-space-6;
+  }
+
+  &__bucket-list {
+    display: flex;
+    flex-direction: column;
+    gap: $st-space-4;
+  }
+
+  &__bucket {
+    display: flex;
+    flex-direction: column;
+    gap: $st-space-2;
+  }
+
+  &__bucket-header {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: $st-on-surface-variant;
+  }
+
+  &__bucket-track {
+    height: 8px;
+    background: rgba($st-outline-variant, 0.15);
+    border-radius: $st-radius-full;
+    overflow: hidden;
+  }
+
+  &__bucket-fill {
+    height: 100%;
+    border-radius: $st-radius-full;
+    transition: width 0.6s ease;
+  }
+}

@@ -131,7 +131,7 @@ const App: React.FC = () => {
               <Route
                 path="dashboard/*"
                 element={
-                  <PrivateRoute requiredRole={['SupperAdmin', 'Admin', 'GiaoVien', 'HocVien']}>
+                  <PrivateRoute requiredRole={['SupperAdmin', 'Admin', 'SupperTeacher', 'GiaoVien', 'HocVien']}>
                     <DashBoardLayoutWrapper />
                   </PrivateRoute>
                 }

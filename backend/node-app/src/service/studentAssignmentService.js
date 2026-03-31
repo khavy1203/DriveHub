@@ -33,6 +33,15 @@ const getAssignmentsByCourse = async (courseId) => {
 
 const createAssignment = async ({ hocVienId, teacherId, courseId, notes }) => {
   try {
+    // Check existing training snapshot for initial progress
+    const snap = await db.training_snapshot.findOne({
+      where: { hocVienId },
+      attributes: ['courseProgressPct'],
+    });
+    const pct = snap?.courseProgressPct ?? 0;
+    const initialStatus = pct >= 100 ? 'completed' : pct > 0 ? 'learning' : 'waiting';
+    const hvStatus = pct >= 100 ? 'dat_completed' : 'learning';
+
     const existing = await db.student_assignment.findOne({
       where: {
         hocVienId,
@@ -40,18 +49,17 @@ const createAssignment = async ({ hocVienId, teacherId, courseId, notes }) => {
       },
     });
     if (existing) {
-      existing.set({ teacherId, status: 'learning', notes: notes ?? existing.notes });
+      existing.set({ teacherId, status: initialStatus, progressPercent: pct, notes: notes ?? existing.notes });
       await existing.save();
-      // Update hoc_vien status
-      await db.hoc_vien.update({ status: 'assigned' }, { where: { id: hocVienId, status: 'registered' } });
+      await db.hoc_vien.update({ status: hvStatus }, { where: { id: hocVienId } });
       return { EM: 'Assignment updated', EC: 0, DT: existing.get({ plain: true }) };
     }
     const row = await db.student_assignment.create({
       hocVienId, teacherId, courseId,
-      status: 'learning', progressPercent: 0, datHoursCompleted: 0,
+      status: initialStatus, progressPercent: pct, datHoursCompleted: 0,
       notes: notes ?? null,
     });
-    await db.hoc_vien.update({ status: 'learning' }, { where: { id: hocVienId } });
+    await db.hoc_vien.update({ status: hvStatus }, { where: { id: hocVienId } });
     return { EM: 'Assigned successfully', EC: 0, DT: row.get({ plain: true }) };
   } catch (e) {
     console.error(e);
@@ -160,4 +168,65 @@ const getAssignmentsByTeacher = async (teacherUserId) => {
   }
 };
 
-export default { getAssignmentsByCourse, createAssignment, updateAssignment, deleteAssignment, getAssignmentsByTeacher };
+const getAllAssignments = async () => {
+  try {
+    const rows = await db.student_assignment.findAll({
+      include: [
+        {
+          model: db.hoc_vien,
+          as: 'hocVien',
+          attributes: ['id', 'HoTen', 'SoCCCD', 'NgaySinh', 'GioiTinh',
+            'DiaChi', 'loaibangthi', 'phone', 'email', 'status', 'IDKhoaHoc', 'createdAt'],
+          include: [
+            {
+              model: db.khoahoc,
+              as: 'khoahoc',
+              required: false,
+              attributes: ['IDKhoaHoc', 'TenKhoaHoc', 'NgayThi'],
+            },
+          ],
+        },
+        {
+          model: db.user,
+          as: 'teacher',
+          attributes: ['id', 'username'],
+          required: false,
+        },
+      ],
+      order: [['createdAt', 'DESC']],
+    });
+
+    const plain = rows.map((r) => r.get({ plain: true }));
+    const hocVienIds = [...new Set(plain.map((p) => p.hocVienId).filter(Boolean))];
+
+    let hasKqshSet = new Set();
+    if (hocVienIds.length) {
+      const kqshRows = await db.kqsh_thisinh.findAll({
+        where: { hocVienId: { [Op.in]: hocVienIds } },
+        attributes: ['hocVienId'],
+      });
+      hasKqshSet = new Set(kqshRows.map((r) => r.hocVienId));
+    }
+
+    const snapMap = await loadTrainingSnapshotsByHocVienIds(hocVienIds);
+
+    const withFlag = plain.map((p) => {
+      const snap = snapMap.get(p.hocVienId);
+      const hocVien = p.hocVien
+        ? enrichHocVienPlainWithTrainingSnapshot({ ...p.hocVien }, snap ?? null)
+        : p.hocVien;
+      return {
+        ...p,
+        hocVien,
+        hasKQSH: hasKqshSet.has(p.hocVienId),
+      };
+    });
+
+    return { EM: 'ok', EC: 0, DT: withFlag };
+  } catch (e) {
+    console.error('[getAllAssignments]', e);
+    return { EM: 'Server error', EC: -1, DT: [] };
+  }
+};
+
+export default { getAssignmentsByCourse, createAssignment, updateAssignment, deleteAssignment, getAssignmentsByTeacher, getAllAssignments };

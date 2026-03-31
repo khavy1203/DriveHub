@@ -1,0 +1,281 @@
+// ── SupperTeacher Design System Tokens ─────────────────────────────────────
+// Based on "Intelligent Workspace" design system
+// Primary: Teal, Tertiary: Coral, Surfaces: Slate-Blue
+
+// Colors
+$st-primary: #00685f;
+$st-primary-container: #008378;
+$st-primary-fixed: #89f5e7;
+$st-primary-fixed-dim: #6bd8cb;
+$st-on-primary: #ffffff;
+
+$st-tertiary: #994100;
+$st-tertiary-container: #c05400;
+$st-tertiary-fixed: #ffdbca;
+
+$st-error: #ba1a1a;
+$st-error-container: #ffdad6;
+
+$st-surface: #f8f9ff;
+$st-surface-container-low: #eff4ff;
+$st-surface-container: #e5eeff;
+$st-surface-container-high: #dce9ff;
+$st-surface-container-highest: #d3e4fe;
+$st-surface-container-lowest: #ffffff;
+
+$st-on-surface: #0b1c30;
+$st-on-surface-variant: #3d4947;
+$st-outline: #6d7a77;
+$st-outline-variant: #bcc9c6;
+
+$st-secondary-container: #dae2fd;
+$st-on-secondary-fixed-variant: #3f465c;
+
+// Typography
+$st-font-headline: 'Plus Jakarta Sans', sans-serif;
+$st-font-body: 'Work Sans', sans-serif;
+
+// Radius
+$st-radius-sm: 0.5rem;
+$st-radius-md: 0.75rem;
+$st-radius-lg: 1rem;
+$st-radius-xl: 1.25rem;
+$st-radius-full: 9999px;
+
+// Shadows
+$st-shadow-sm: 0 1px 4px rgba(11, 28, 48, 0.04);
+$st-shadow-md: 0 4px 20px rgba(11, 28, 48, 0.04), 0 12px 40px rgba(11, 28, 48, 0.08);
+$st-shadow-card: 0 1px 3px rgba(11, 28, 48, 0.06);
+
+// Spacing
+$st-space-1: 0.25rem;
+$st-space-2: 0.5rem;
+$st-space-3: 0.75rem;
+$st-space-4: 1rem;
+$st-space-5: 1.25rem;
+$st-space-6: 1.5rem;
+$st-space-8: 2rem;
+$st-space-10: 2.5rem;
+$st-space-12: 3rem;
+
+// ── Shared component mixins ───────────────────────────────────────────────
+
+@mixin st-page-base {
+  padding: $st-space-8 $st-space-8 $st-space-12;
+  min-height: 100%;
+  font-family: $st-font-body;
+  color: $st-on-surface;
+  background: $st-surface;
+}
+
+@mixin st-card {
+  background: $st-surface-container-lowest;
+  border-radius: $st-radius-xl;
+  box-shadow: $st-shadow-card;
+  border: 1px solid rgba(255, 255, 255, 0.8);
+}
+
+@mixin st-glass-card {
+  background: rgba(255, 255, 255, 0.4);
+  backdrop-filter: blur(12px);
+  border-radius: $st-radius-xl;
+  border-left: 4px solid $st-primary;
+  box-shadow: $st-shadow-md;
+}
+
+@mixin st-heading-lg {
+  font-family: $st-font-headline;
+  font-size: 1.875rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: $st-on-surface;
+}
+
+@mixin st-heading-md {
+  font-family: $st-font-headline;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: $st-on-surface;
+}
+
+@mixin st-label-sm {
+  font-size: 0.6875rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: $st-outline-variant;
+}
+
+@mixin st-btn-primary {
+  background: linear-gradient(135deg, $st-primary, $st-primary-container);
+  color: $st-on-primary;
+  border: none;
+  padding: $st-space-3 $st-space-6;
+  border-radius: $st-radius-sm;
+  font-family: $st-font-body;
+  font-size: 0.875rem;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(0, 104, 95, 0.2);
+  transition: all 0.2s;
+  display: inline-flex;
+  align-items: center;
+  gap: $st-space-2;
+
+  &:hover {
+    opacity: 0.9;
+    transform: scale(1.02);
+  }
+
+  &:active {
+    transform: scale(0.98);
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+  }
+}
+
+@mixin st-btn-secondary {
+  background: $st-surface-container-highest;
+  color: $st-on-secondary-fixed-variant;
+  border: none;
+  padding: $st-space-3 $st-space-5;
+  border-radius: $st-radius-sm;
+  font-family: $st-font-body;
+  font-size: 0.875rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: inline-flex;
+  align-items: center;
+  gap: $st-space-2;
+
+  &:hover {
+    background: $st-surface-container-high;
+  }
+}
+
+@mixin st-btn-tertiary {
+  background: linear-gradient(135deg, $st-tertiary, $st-tertiary-container);
+  color: $st-on-primary;
+  border: none;
+  padding: $st-space-3 $st-space-6;
+  border-radius: $st-radius-sm;
+  font-family: $st-font-body;
+  font-size: 0.875rem;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(153, 65, 0, 0.2);
+  transition: all 0.2s;
+  display: inline-flex;
+  align-items: center;
+  gap: $st-space-2;
+
+  &:hover { opacity: 0.9; }
+  &:active { transform: scale(0.95); }
+}
+
+@mixin st-table-base {
+  width: 100%;
+  text-align: left;
+  border-collapse: collapse;
+  background: $st-surface-container-lowest;
+  border-radius: $st-radius-xl;
+  overflow: hidden;
+  box-shadow: $st-shadow-card;
+
+  thead tr {
+    background: rgba($st-surface-container-low, 0.5);
+  }
+
+  th {
+    @include st-label-sm;
+    padding: $st-space-4 $st-space-6;
+  }
+
+  td {
+    padding: $st-space-5 $st-space-6;
+    font-size: 0.875rem;
+    color: $st-on-surface;
+    vertical-align: middle;
+  }
+
+  tbody tr {
+    transition: background 0.15s;
+
+    &:hover td {
+      background: rgba($st-surface-container-low, 0.3);
+    }
+  }
+
+  tbody tr + tr td {
+    border-top: 1px solid rgba($st-surface-container-low, 0.7);
+  }
+}
+
+@mixin st-input-underline {
+  width: 100%;
+  padding: $st-space-2 $st-space-3;
+  padding-left: 2.25rem;
+  background: $st-surface-container-lowest;
+  border: none;
+  border-bottom: 2px solid rgba($st-outline-variant, 0.2);
+  border-radius: $st-radius-sm $st-radius-sm 0 0;
+  font-size: 0.875rem;
+  font-family: $st-font-body;
+  color: $st-on-surface;
+  outline: none;
+  transition: border-color 0.2s;
+
+  &:focus {
+    border-bottom-color: $st-primary;
+  }
+
+  &::placeholder {
+    color: $st-outline-variant;
+  }
+}
+
+// Status pill
+@mixin st-status-pill($bg, $color, $dot-color) {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.25rem 0.75rem;
+  border-radius: $st-radius-full;
+  background: $bg;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  color: $color;
+
+  &::before {
+    content: '';
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: $dot-color;
+  }
+}
+
+// Avatar initials
+@mixin st-avatar($size: 2.5rem) {
+  width: $size;
+  height: $size;
+  border-radius: $st-radius-full;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: calc(#{$size} * 0.35);
+  flex-shrink: 0;
+
+  img {
+    width: 100%;
+    height: 100%;
+    border-radius: inherit;
+    object-fit: cover;
+  }
+}

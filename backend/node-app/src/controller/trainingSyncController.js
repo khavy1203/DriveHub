@@ -10,7 +10,7 @@ import {
 } from '../service/trainingSyncService.js';
 import { getTrainingApiDebugMeta, isTrainingApiConfigured } from '../service/trainingPortalService.js';
 
-const ALLOWED_GROUPS = new Set(['HocVien', 'GiaoVien', 'Admin', 'SupperAdmin']);
+const ALLOWED_GROUPS = new Set(['HocVien', 'GiaoVien', 'SupperTeacher', 'Admin', 'SupperAdmin']);
 const ADMIN_GROUPS = new Set(['Admin', 'SupperAdmin']);
 
 const resolveTokenContext = (req) => {

@@ -2,6 +2,8 @@ import React, { useEffect, useState, useCallback, useRef } from 'react';
 import useApiService from '../../../services/useApiService';
 import axios from '../../../axios';
 import { TeacherProfileModal } from '../../../shared/components/TeacherProfileModal';
+import { fetchSupperTeachers, reassignTeacherApi } from '../../../features/superTeacher/services/superTeacherApi';
+import type { SupperTeacher } from '../../../features/superTeacher/types';
 import './TeacherManagement.scss';
 
 type Rank = { id: number; name: string };
@@ -12,6 +14,8 @@ type Teacher = {
   email: string;
   address?: string;
   phone?: string;
+  superTeacherId?: number | null;
+  superTeacher?: { id: number; username: string; email: string } | null;
 };
 
 type TeacherProfile = {
@@ -31,9 +35,10 @@ type FormState = {
   password: string;
   address: string;
   phone: string;
+  superTeacherId: number | '';
 };
 
-const EMPTY_FORM: FormState = { username: '', email: '', password: '', address: '', phone: '' };
+const EMPTY_FORM: FormState = { username: '', email: '', password: '', address: '', phone: '', superTeacherId: '' };
 const EMPTY_PROFILE: Omit<TeacherProfile, 'userId'> = {
   bio: '', licenseTypes: '', locationName: '', yearsExp: '', avatarUrl: '', isActive: 1,
 };
@@ -55,10 +60,15 @@ const TeacherManagement: React.FC = () => {
 
   // Ranks
   const [ranks, setRanks] = useState<Rank[]>([]);
+  // SupperTeachers for assignment dropdown
+  const [supperTeachers, setSupperTeachers] = useState<SupperTeacher[]>([]);
 
   useEffect(() => {
     axios.get<{ EC: number; DT: Rank[] }>('/api/rank/getRank')
       .then(res => { if (res.data.EC === 0) setRanks(res.data.DT ?? []); })
+      .catch(() => {});
+    fetchSupperTeachers()
+      .then(res => { if (res.EC === 0) setSupperTeachers(res.DT ?? []); })
       .catch(() => {});
   }, []);
 
@@ -99,7 +109,7 @@ const TeacherManagement: React.FC = () => {
   };
 
   const openEdit = (t: Teacher) => {
-    setForm({ id: t.id, username: t.username, email: t.email, password: '', address: t.address ?? '', phone: t.phone ?? '' });
+    setForm({ id: t.id, username: t.username, email: t.email, password: '', address: t.address ?? '', phone: t.phone ?? '', superTeacherId: t.superTeacherId ?? '' });
     setMessage(null);
     setShowModal(true);
   };
@@ -112,10 +122,19 @@ const TeacherManagement: React.FC = () => {
     setSaving(true);
     setMessage(null);
     try {
+      const payload = { ...form, superTeacherId: form.superTeacherId || null };
       const res = form.id
-        ? await put<{ EC: number; EM: string }>('/api/users', form as Record<string, unknown>)
-        : await post<{ EC: number; EM: string }>('/api/users', form as Record<string, unknown>);
+        ? await put<{ EC: number; EM: string }>('/api/users', payload as Record<string, unknown>)
+        : await post<{ EC: number; EM: string }>('/api/users', payload as Record<string, unknown>);
       if (res.EC === 0) {
+        // If editing and superTeacherId changed, also call reassign API
+        if (form.id && form.superTeacherId) {
+          try {
+            await reassignTeacherApi(form.id, Number(form.superTeacherId));
+          } catch {
+            // non-critical, teacher was still saved
+          }
+        }
         setMessage({ text: form.id ? 'Cập nhật thành công' : 'Tạo tài khoản thành công', ok: true });
         await fetchTeachers();
         setTimeout(() => setShowModal(false), 800);
@@ -261,6 +280,7 @@ const TeacherManagement: React.FC = () => {
                 <th>Giáo viên</th>
                 <th>Số điện thoại</th>
                 <th>Địa chỉ</th>
+                <th>SupperTeacher</th>
                 <th className="tm__th-right">Thao tác</th>
               </tr>
             </thead>
@@ -281,6 +301,7 @@ const TeacherManagement: React.FC = () => {
                   </td>
                   <td className="tm__td-muted">{t.phone || '—'}</td>
                   <td className="tm__td-muted">{t.address || '—'}</td>
+                  <td className="tm__td-muted">{t.superTeacher?.username || <span style={{ color: '#94a3b8' }}>Chưa gán</span>}</td>
                   <td>
                     <div className="tm__actions">
                       <button className="tm__action-icon" onClick={() => openProfile(t)} title="Hồ sơ giảng viên">
@@ -335,6 +356,19 @@ const TeacherManagement: React.FC = () => {
               <label className="tm__label">
                 Số điện thoại
                 <input className="tm__input" value={form.phone} onChange={e => setForm(f => ({ ...f, phone: e.target.value }))} placeholder="Nhập số điện thoại" />
+              </label>
+              <label className="tm__label">
+                Thuộc SupperTeacher
+                <select
+                  className="tm__input"
+                  value={form.superTeacherId}
+                  onChange={e => setForm(f => ({ ...f, superTeacherId: e.target.value ? Number(e.target.value) : '' }))}
+                >
+                  <option value="">— Chưa gán —</option>
+                  {supperTeachers.map(st => (
+                    <option key={st.id} value={st.id}>{st.username} ({st.email})</option>
+                  ))}
+                </select>
               </label>
               {message && (
                 <div className={`tm__msg ${message.ok ? 'tm__msg--ok' : 'tm__msg--err'}`}>

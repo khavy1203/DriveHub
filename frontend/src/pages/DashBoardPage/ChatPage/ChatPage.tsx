@@ -13,18 +13,21 @@ type Conversation = {
   avatarUrl?: string;
   role: 'teacher' | 'student';
   status: 'waiting' | 'learning' | 'completed';
+  isSupervisor?: boolean;
 };
 
 type TeacherProfile = { avatarUrl?: string; licenseTypes?: string };
 type AssignedTeacher = { id: number; username: string; profile: TeacherProfile | null };
 type MyAssignment = {
   id: number;
+  role?: 'primary' | 'supervisor';
   status: 'waiting' | 'learning' | 'completed';
   teacher: AssignedTeacher | null;
 };
 type MyProgress = {
   hocVien: { id: number; HoTen: string };
   assignment: MyAssignment | null;
+  supervisorAssignment: MyAssignment | null;
 };
 
 type HocVien = { id: number; HoTen: string; status: string };
@@ -276,7 +279,8 @@ type MobileChatPanel = 'list' | 'chat';
 const ChatPage: React.FC = () => {
   const { role, isAuthLoading } = useAuth();
   const isStudent = role === 'HocVien';
-  const isTeacher = role === 'GiaoVien';
+  const isTeacher = role === 'GiaoVien' || role === 'SupperTeacher';
+  const isSupperAdmin = role === 'SupperAdmin';
   const isMobile = useDashboardIsMobile();
 
   const [conversations, setConversations] = useState<Conversation[]>([]);
@@ -292,19 +296,35 @@ const ChatPage: React.FC = () => {
     try {
       if (isStudent) {
         const res = await axios.get<{ EC: number; DT: MyProgress }>('/api/student-portal/my-progress');
-        if (res.data.EC === 0 && res.data.DT.assignment?.teacher) {
-          const { assignment } = res.data.DT;
-          const conv: Conversation = {
-            assignmentId: assignment.id,
-            name: assignment.teacher!.username,
-            avatarUrl: assignment.teacher!.profile?.avatarUrl,
-            role: 'teacher',
-            status: assignment.status,
-          };
-          setConversations([conv]);
-          setSelectedId(assignment.id);
+        if (res.data.EC === 0) {
+          const { assignment, supervisorAssignment } = res.data.DT;
+          const convs: Conversation[] = [];
+
+          if (assignment?.teacher) {
+            convs.push({
+              assignmentId: assignment.id,
+              name: assignment.teacher.username,
+              avatarUrl: assignment.teacher.profile?.avatarUrl,
+              role: 'teacher',
+              status: assignment.status,
+            });
+          }
+
+          if (supervisorAssignment?.teacher && supervisorAssignment.id !== assignment?.id) {
+            convs.push({
+              assignmentId: supervisorAssignment.id,
+              name: supervisorAssignment.teacher.username,
+              avatarUrl: supervisorAssignment.teacher.profile?.avatarUrl,
+              role: 'teacher',
+              status: supervisorAssignment.status,
+              isSupervisor: true,
+            });
+          }
+
+          setConversations(convs);
+          if (convs.length > 0) setSelectedId(convs[0].assignmentId);
         }
-      } else if (isTeacher) {
+      } else if (isTeacher || isSupperAdmin) {
         const res = await axios.get<{ EC: number; DT: TeacherAssignment[] }>('/api/teacher/my-students');
         if (res.data.EC === 0) {
           const convs: Conversation[] = res.data.DT.map((a) => ({
@@ -322,7 +342,7 @@ const ChatPage: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  }, [isStudent, isTeacher, isAuthLoading]);
+  }, [isStudent, isTeacher, isSupperAdmin, isAuthLoading]);
 
   useEffect(() => {
     loadConversations();
@@ -401,7 +421,9 @@ const ChatPage: React.FC = () => {
               <div className="chp__contact-meta">
                 <span className="chp__contact-name">{c.name}</span>
                 <span className="chp__contact-sub">
-                  {c.role === 'teacher' ? 'Giáo viên của tôi' : 'Học viên'}
+                  {c.role === 'teacher'
+                    ? c.isSupervisor ? 'Trưởng nhóm' : 'Giáo viên của tôi'
+                    : 'Học viên'}
                 </span>
               </div>
             </button>

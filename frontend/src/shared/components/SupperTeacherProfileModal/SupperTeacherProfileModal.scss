@@ -1,0 +1,472 @@
+// ── SupperTeacher Profile Modal ─────────────────────────────────────────────
+// Design tokens inline (shared component, not coupled to feature tokens)
+
+$_primary: #00685f;
+$_primary-ctr: #008378;
+$_on-primary: #ffffff;
+$_surface: #f8f9ff;
+$_surface-low: #eff4ff;
+$_surface-ctr: #e5eeff;
+$_surface-lowest: #ffffff;
+$_on-surface: #0b1c30;
+$_on-surface-var: #3d4947;
+$_outline: #6d7a77;
+$_outline-var: #bcc9c6;
+$_secondary-ctr: #dae2fd;
+$_error: #ba1a1a;
+$_font-hl: 'Plus Jakarta Sans', sans-serif;
+$_font-body: 'Work Sans', sans-serif;
+$_radius-sm: 0.5rem;
+$_radius-md: 0.75rem;
+$_radius-xl: 1.25rem;
+$_shadow-md: 0 4px 20px rgba(11, 28, 48, 0.04), 0 12px 40px rgba(11, 28, 48, 0.08);
+
+.stpm {
+  &__overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 1100;
+    background: rgba(11, 28, 48, 0.45);
+    backdrop-filter: blur(6px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    animation: stpmFadeIn 0.2s ease;
+  }
+
+  &__panel {
+    background: $_surface-lowest;
+    border-radius: $_radius-xl;
+    box-shadow: $_shadow-md;
+    width: 95vw;
+    max-width: 820px;
+    max-height: 90vh;
+    display: flex;
+    flex-direction: column;
+    animation: stpmSlideUp 0.25s ease;
+    overflow: hidden;
+  }
+
+  &__loading {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 4rem 2rem;
+    gap: 1rem;
+    color: $_on-surface-var;
+  }
+
+  &__spinner {
+    width: 2rem;
+    height: 2rem;
+    border: 3px solid $_outline-var;
+    border-top-color: $_primary;
+    border-radius: 50%;
+    animation: stpmSpin 0.6s linear infinite;
+  }
+
+  // ── Header ──────────────────────────────────────────────────────────
+  &__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding: 1.5rem 2rem;
+    gap: 1rem;
+  }
+
+  &__header-left {
+    display: flex;
+    gap: 1.25rem;
+    align-items: flex-start;
+  }
+
+  &__avatar-wrap {
+    position: relative;
+    flex-shrink: 0;
+  }
+
+  &__avatar {
+    width: 4.5rem;
+    height: 4.5rem;
+    border-radius: $_radius-md;
+    object-fit: cover;
+  }
+
+  &__verified {
+    position: absolute;
+    bottom: -4px;
+    right: -4px;
+    width: 22px;
+    height: 22px;
+    background: $_primary;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid $_surface-lowest;
+
+    .material-symbols-outlined {
+      font-size: 14px;
+      color: $_on-primary;
+    }
+  }
+
+  &__header-info {
+    min-width: 0;
+  }
+
+  &__name-row {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    margin-bottom: 0.25rem;
+  }
+
+  &__name {
+    font-family: $_font-hl;
+    font-size: 1.25rem;
+    font-weight: 800;
+    color: $_on-surface;
+    margin: 0;
+  }
+
+  &__badge {
+    display: inline-flex;
+    padding: 0.125rem 0.5rem;
+    border-radius: 9999px;
+    background: $_secondary-ctr;
+    color: $_on-surface-var;
+    font-size: 0.625rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+
+  &__rating-row {
+    display: flex;
+    align-items: center;
+    gap: 0.375rem;
+    flex-wrap: wrap;
+    margin-bottom: 0.75rem;
+  }
+
+  &__rating-text {
+    font-size: 0.8125rem;
+    color: $_on-surface-var;
+  }
+
+  &__sep {
+    color: $_outline-var;
+    font-size: 0.875rem;
+  }
+
+  &__location {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.125rem;
+    font-size: 0.8125rem;
+    color: $_on-surface-var;
+
+    .material-symbols-outlined {
+      font-size: 16px;
+      color: $_primary;
+    }
+  }
+
+  &__profile-details {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
+  }
+
+  &__detail-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.25rem 0.625rem;
+    border-radius: $_radius-sm;
+    background: $_surface-low;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: $_on-surface-var;
+
+    .material-symbols-outlined {
+      font-size: 15px;
+      color: $_primary;
+    }
+  }
+
+  &__bio {
+    font-size: 0.8125rem;
+    color: $_on-surface-var;
+    line-height: 1.6;
+    margin: 0;
+  }
+
+  &__close {
+    background: none;
+    border: none;
+    padding: 0.5rem;
+    cursor: pointer;
+    color: $_outline;
+    border-radius: $_radius-sm;
+    transition: all 0.15s;
+    flex-shrink: 0;
+
+    &:hover {
+      background: $_surface-low;
+      color: $_on-surface;
+    }
+
+    .material-symbols-outlined {
+      font-size: 22px;
+    }
+  }
+
+  // ── Stars ───────────────────────────────────────────────────────────
+  &__stars {
+    display: inline-flex;
+    align-items: center;
+  }
+
+  &__star {
+    font-size: 18px;
+    color: rgba($_outline-var, 0.4);
+
+    &--filled {
+      color: #f59e0b;
+    }
+
+    &--sm {
+      font-size: 14px;
+    }
+  }
+
+  // ── Body ────────────────────────────────────────────────────────────
+  &__body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 0 2rem 1.5rem;
+
+    &::-webkit-scrollbar {
+      width: 4px;
+    }
+
+    &::-webkit-scrollbar-thumb {
+      background: $_outline-var;
+      border-radius: 2px;
+    }
+  }
+
+  &__section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+  }
+
+  &__section-title {
+    font-family: $_font-hl;
+    font-size: 1rem;
+    font-weight: 700;
+    color: $_on-surface;
+    margin: 0;
+  }
+
+  &__member-count {
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: $_primary;
+  }
+
+  // ── Assistant cards ─────────────────────────────────────────────────
+  &__assistants-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  &__assistant {
+    background: $_surface-low;
+    border-radius: $_radius-md;
+    padding: 1rem 1.25rem;
+  }
+
+  &__assistant-header {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  &__assistant-avatar {
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: 50%;
+    object-fit: cover;
+    flex-shrink: 0;
+  }
+
+  &__assistant-info {
+    flex: 1;
+    min-width: 0;
+  }
+
+  &__assistant-name {
+    font-weight: 700;
+    font-size: 0.875rem;
+    color: $_on-surface;
+    margin: 0;
+  }
+
+  &__assistant-role {
+    font-size: 0.75rem;
+    color: $_on-surface-var;
+    margin: 0.125rem 0 0;
+  }
+
+  &__assistant-rating {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    flex-shrink: 0;
+  }
+
+  &__assistant-rating-text {
+    font-size: 0.8125rem;
+    font-weight: 700;
+    color: $_on-surface;
+  }
+
+  &__assistant-reviews {
+    margin-top: 0.75rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  // ── Reviews ─────────────────────────────────────────────────────────
+  &__reviews-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  &__review {
+    background: $_surface-lowest;
+    border-radius: $_radius-sm;
+    padding: 0.75rem 1rem;
+  }
+
+  &__review-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.375rem;
+  }
+
+  &__review-author {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  &__review-avatar {
+    width: 1.75rem;
+    height: 1.75rem;
+    border-radius: 50%;
+    background: $_secondary-ctr;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    .material-symbols-outlined {
+      font-size: 16px;
+      color: $_on-surface-var;
+    }
+  }
+
+  &__review-name {
+    font-weight: 600;
+    font-size: 0.8125rem;
+    color: $_on-surface;
+    margin: 0;
+  }
+
+  &__review-meta {
+    display: flex;
+    align-items: center;
+    gap: 0.375rem;
+  }
+
+  &__review-time {
+    font-size: 0.6875rem;
+    color: $_outline;
+  }
+
+  &__review-text {
+    font-size: 0.8125rem;
+    color: $_on-surface-var;
+    margin: 0;
+    line-height: 1.5;
+  }
+
+  // ── Footer ──────────────────────────────────────────────────────────
+  &__footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.5rem;
+    padding: 1rem 2rem;
+    border-top: 1px solid rgba($_outline-var, 0.15);
+    flex-shrink: 0;
+  }
+
+  &__btn {
+    padding: 0.5rem 1.25rem;
+    border-radius: $_radius-sm;
+    font-family: $_font-body;
+    font-size: 0.8125rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.15s;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+
+    &--ghost {
+      background: none;
+      border: 1px solid rgba($_outline-var, 0.3);
+      color: $_on-surface-var;
+
+      &:hover {
+        background: $_surface-low;
+      }
+    }
+
+    &--primary {
+      background: linear-gradient(135deg, $_primary, $_primary-ctr);
+      color: $_on-primary;
+      border: none;
+
+      &:hover {
+        opacity: 0.9;
+      }
+    }
+  }
+}
+
+@keyframes stpmFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes stpmSlideUp {
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes stpmSpin {
+  to { transform: rotate(360deg); }
+}

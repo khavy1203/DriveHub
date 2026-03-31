@@ -278,37 +278,46 @@ const importFromCccd = async (cccd, upstreamDT) => {
 
     const idKhoaHocFk = await resolveIdKhoaHocForFk(maKhoaHocFromApi, t);
 
-    const email = `${cccd}@drivehub.local`;
-    const hashed = hashUserPassword(cccd);
-
-    const existingUser = await db.user.findOne({ where: { email }, transaction: t });
-    let user;
-    if (existingUser) {
-      user = existingUser;
-    } else {
-      user = await db.user.create({
-        email, password: hashed, username: hoTen,
-        phone: null, address: diaChi,
-        groupId: HOC_VIEN_GROUP_ID, active: 1, thisinhId: null,
-      }, { transaction: t });
-    }
-
     const existingHv = await db.hoc_vien.findOne({ where: { SoCCCD: cccd }, transaction: t });
     let hocVien;
+
     if (existingHv) {
+      // Student already in system — only sync training data, preserve existing account
       const updatePayload = {
         HoTen: hoTen,
         NgaySinh: ngaySinh,
         DiaChi: diaChi,
         loaibangthi: hangDaoTao,
-        userId: user.id,
       };
       if (idKhoaHocFk !== null) {
         updatePayload.IDKhoaHoc = idKhoaHocFk;
       }
       await existingHv.update(updatePayload, { transaction: t });
       hocVien = existingHv;
+
+      // If hoc_vien has no userId yet, create an auto account
+      if (!existingHv.userId) {
+        const email = `${cccd}@drivehub.local`;
+        const hashed = hashUserPassword(cccd);
+        const existingUser = await db.user.findOne({ where: { email }, transaction: t });
+        const user = existingUser || await db.user.create({
+          email, password: hashed, username: hoTen,
+          phone: null, address: diaChi,
+          groupId: HOC_VIEN_GROUP_ID, active: 1, thisinhId: null,
+        }, { transaction: t });
+        await existingHv.update({ userId: user.id }, { transaction: t });
+      }
     } else {
+      // New student — create auto account + hoc_vien record
+      const email = `${cccd}@drivehub.local`;
+      const hashed = hashUserPassword(cccd);
+      const existingUser = await db.user.findOne({ where: { email }, transaction: t });
+      const user = existingUser || await db.user.create({
+        email, password: hashed, username: hoTen,
+        phone: null, address: diaChi,
+        groupId: HOC_VIEN_GROUP_ID, active: 1, thisinhId: null,
+      }, { transaction: t });
+
       hocVien = await db.hoc_vien.create({
         HoTen: hoTen,
         NgaySinh: ngaySinh,
@@ -324,7 +333,7 @@ const importFromCccd = async (cccd, upstreamDT) => {
     }
 
     await t.commit();
-    return { ok: true, hocVienId: hocVien.id, userId: user.id, hoTen, created: !existingHv };
+    return { ok: true, hocVienId: hocVien.id, userId: hocVien.userId, hoTen, created: !existingHv };
   } catch (e) {
     await t.rollback();
     console.error(`[hocvienService.importFromCccd] cccd=${cccd}`, e.message);

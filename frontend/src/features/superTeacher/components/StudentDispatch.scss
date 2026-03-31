@@ -1,0 +1,680 @@
+@use '../tokens' as *;
+
+.dispatch {
+  padding: $st-space-6 $st-space-8;
+  min-height: 100%;
+  font-family: $st-font-body;
+  color: $st-on-surface;
+  background: $st-surface;
+  display: flex;
+  flex-direction: column;
+
+  // ── Header ──────────────────────────────────────────────────────────────
+  &__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    margin-bottom: $st-space-6;
+  }
+
+  &__title {
+    font-family: $st-font-headline;
+    font-size: 1.875rem;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    color: $st-on-surface;
+    margin: 0 0 $st-space-1;
+  }
+
+  &__subtitle {
+    font-size: 0.875rem;
+    color: $st-on-surface-variant;
+    font-weight: 500;
+    margin: 0;
+  }
+
+  &__header-right {
+    display: flex;
+    align-items: center;
+    gap: $st-space-3;
+  }
+
+  &__avatar-stack {
+    display: flex;
+
+    img,
+    .avatar-placeholder {
+      width: 2rem;
+      height: 2rem;
+      border-radius: $st-radius-full;
+      border: 2px solid $st-surface-container-lowest;
+      margin-left: -0.5rem;
+      object-fit: cover;
+
+      &:first-child {
+        margin-left: 0;
+      }
+    }
+
+    .avatar-placeholder {
+      background: $st-surface-container-high;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.625rem;
+      font-weight: 700;
+      color: $st-outline;
+    }
+  }
+
+  &__import-btn {
+    @include st-btn-primary;
+    font-size: 0.8125rem;
+    padding: $st-space-2 $st-space-5;
+
+    .material-symbols-outlined {
+      font-size: 18px;
+    }
+  }
+
+  &__filter-btn {
+    display: flex;
+    align-items: center;
+    gap: $st-space-2;
+    background: $st-surface-container-high;
+    padding: $st-space-2 $st-space-4;
+    border-radius: $st-radius-sm;
+    border: none;
+    color: $st-primary;
+    font-weight: 600;
+    font-size: 0.875rem;
+    font-family: $st-font-body;
+    cursor: pointer;
+    transition: all 0.2s;
+
+    &:hover {
+      opacity: 0.8;
+    }
+
+    .material-symbols-outlined {
+      font-size: 18px;
+    }
+  }
+
+  // ── Board ───────────────────────────────────────────────────────────────
+  &__board {
+    flex: 1;
+    display: flex;
+    gap: $st-space-6;
+    overflow-x: auto;
+    padding-bottom: $st-space-6;
+
+    &::-webkit-scrollbar {
+      height: 6px;
+    }
+
+    &::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    &::-webkit-scrollbar-thumb {
+      background: $st-outline-variant;
+      border-radius: 10px;
+    }
+  }
+
+  // ── Column ──────────────────────────────────────────────────────────────
+  &__column {
+    width: 20rem;
+    min-width: 20rem;
+    display: flex;
+    flex-direction: column;
+    background: $st-surface-container-low;
+    border-radius: $st-radius-xl;
+    max-height: calc(100vh - 200px);
+  }
+
+  &__column--unassigned {
+    border-top: 4px solid rgba(234, 179, 8, 0.5);
+  }
+
+  &__column-header {
+    padding: $st-space-4;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  &__column-header--teacher {
+    background: rgba($st-surface-container-high, 0.3);
+    border-radius: $st-radius-xl $st-radius-xl 0 0;
+  }
+
+  &__column-title-row {
+    display: flex;
+    align-items: center;
+    gap: $st-space-2;
+  }
+
+  &__unassigned-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #eab308;
+    animation: pulse 2s infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+  }
+
+  &__column-name {
+    font-weight: 700;
+    font-size: 0.875rem;
+    color: $st-on-surface;
+    letter-spacing: -0.01em;
+  }
+
+  &__column-count {
+    font-size: 0.75rem;
+    font-weight: 700;
+    padding: 0.125rem 0.5rem;
+    border-radius: $st-radius-full;
+
+    &--yellow {
+      background: #fef9c3;
+      color: #a16207;
+    }
+
+    &--primary {
+      background: rgba($st-primary, 0.1);
+      color: $st-primary;
+    }
+  }
+
+  &__column-actions {
+    display: flex;
+    align-items: center;
+    gap: $st-space-2;
+  }
+
+  &__sort-btn {
+    width: 1.75rem;
+    height: 1.75rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: $st-radius-sm;
+    border: none;
+    background: none;
+    color: $st-outline-variant;
+    cursor: pointer;
+    transition: all 0.15s;
+
+    .material-symbols-outlined {
+      font-size: 16px;
+    }
+
+    &:hover {
+      background: rgba($st-primary, 0.08);
+      color: $st-primary;
+    }
+
+    &--active {
+      background: rgba($st-primary, 0.12);
+      color: $st-primary;
+    }
+  }
+
+  &__completion-badge {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    font-size: 0.8125rem;
+    font-weight: 800;
+    font-family: $st-font-body;
+  }
+
+  &__completion-incomplete {
+    color: $st-tertiary;
+  }
+
+  &__completion-sep {
+    color: $st-outline-variant;
+  }
+
+  &__completion-done {
+    color: $st-primary;
+  }
+
+  &__teacher-info {
+    display: flex;
+    align-items: center;
+    gap: $st-space-3;
+  }
+
+  &__teacher-avatar {
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: $st-radius-full;
+    border: 1px solid rgba($st-primary, 0.2);
+    background: $st-surface-container-lowest;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 0.75rem;
+    color: $st-primary;
+    overflow: hidden;
+
+    img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+  }
+
+  &__teacher-meta {
+    .name {
+      font-weight: 700;
+      font-size: 0.875rem;
+      color: $st-on-surface;
+    }
+
+    .role {
+      font-size: 0.625rem;
+      color: $st-on-surface-variant;
+      font-weight: 500;
+    }
+  }
+
+  // ── Card list ───────────────────────────────────────────────────────────
+  &__card-list {
+    flex: 1;
+    overflow-y: auto;
+    padding: 0 $st-space-4 $st-space-4;
+    display: flex;
+    flex-direction: column;
+    gap: $st-space-3;
+
+    &::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    &::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    &::-webkit-scrollbar-thumb {
+      background: $st-outline-variant;
+      border-radius: 10px;
+    }
+  }
+
+  &__column--drop-active {
+    background: rgba($st-primary, 0.08);
+    outline: 2px dashed $st-primary;
+    outline-offset: -2px;
+    transition: all 0.2s;
+  }
+
+  // ── Student card ────────────────────────────────────────────────────────
+  &__card {
+    background: $st-surface-container-lowest;
+    padding: $st-space-4;
+    border-radius: $st-radius-xl;
+    box-shadow: $st-shadow-sm;
+    transition: box-shadow 0.2s, opacity 0.2s, transform 0.15s;
+    cursor: grab;
+    user-select: none;
+
+    &:hover {
+      box-shadow: $st-shadow-card;
+    }
+
+    &:active {
+      cursor: grabbing;
+    }
+
+    &--dragging {
+      opacity: 0.4;
+      transform: scale(0.95);
+    }
+
+    &--unassigned {
+      border-left: 4px solid #eab308;
+    }
+
+    &--assigned {
+      border-left: 4px solid rgba($st-primary, 0.4);
+    }
+  }
+
+  &__card-drag-hint {
+    opacity: 0;
+    transition: opacity 0.15s;
+    color: $st-outline-variant;
+
+    .dispatch__card:hover & {
+      opacity: 1;
+    }
+
+    .material-symbols-outlined {
+      font-size: 16px;
+    }
+  }
+
+  &__card-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: $st-space-3;
+  }
+
+  &__card-name {
+    font-weight: 700;
+    font-size: 0.875rem;
+    color: $st-on-surface;
+  }
+
+  &__card-badge {
+    background: $st-secondary-container;
+    color: $st-on-secondary-fixed-variant;
+    font-size: 0.625rem;
+    font-weight: 700;
+    padding: 0.125rem 0.5rem;
+    border-radius: $st-radius-sm;
+    text-transform: uppercase;
+  }
+
+  &__card-details {
+    display: flex;
+    flex-direction: column;
+    gap: $st-space-2;
+  }
+
+  &__card-detail {
+    display: flex;
+    align-items: center;
+    gap: $st-space-2;
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: $st-on-surface-variant;
+
+    .material-symbols-outlined {
+      font-size: 14px;
+    }
+  }
+
+  &__card-progress {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+  }
+
+  &__card-progress-label {
+    font-size: 0.625rem;
+    font-weight: 500;
+    color: $st-on-surface-variant;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  &__card-progress-value {
+    font-size: 0.625rem;
+    font-weight: 700;
+    color: $st-primary;
+    background: rgba($st-primary, 0.08);
+    padding: 0.125rem 0.375rem;
+    border-radius: $st-radius-sm;
+  }
+
+  // Mini progress on card
+  &__card-mini-progress {
+    display: flex;
+    align-items: center;
+    gap: $st-space-2;
+    font-size: 0.625rem;
+    font-weight: 700;
+    color: $st-primary;
+    margin-top: $st-space-1;
+  }
+
+  &__card-mini-track {
+    flex: 1;
+    height: 4px;
+    background: rgba($st-outline-variant, 0.2);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+
+  &__card-mini-fill {
+    height: 100%;
+    background: linear-gradient(90deg, $st-primary, $st-primary-container);
+    border-radius: 2px;
+    transition: width 0.3s ease;
+  }
+
+  // ── Drop zone ───────────────────────────────────────────────────────────
+  &__drop-zone {
+    border: 2px dashed rgba($st-primary, 0.2);
+    border-radius: $st-radius-xl;
+    min-height: 4.5rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: $st-space-1;
+    color: rgba($st-primary, 0.4);
+    font-size: 0.75rem;
+    font-weight: 700;
+    transition: all 0.2s;
+
+    .material-symbols-outlined {
+      font-size: 20px;
+    }
+
+    &--active {
+      border-color: $st-primary;
+      background: rgba($st-primary, 0.06);
+      color: $st-primary;
+    }
+  }
+
+  // ── Assign button (on card) ─────────────────────────────────────────────
+  &__assign-btn {
+    width: 100%;
+    margin-top: $st-space-3;
+    padding: $st-space-2;
+    background: rgba($st-primary, 0.08);
+    border: 1px dashed rgba($st-primary, 0.3);
+    border-radius: $st-radius-sm;
+    color: $st-primary;
+    font-size: 0.75rem;
+    font-weight: 700;
+    font-family: $st-font-body;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: $st-space-1;
+
+    &:hover {
+      background: rgba($st-primary, 0.15);
+      border-style: solid;
+    }
+
+    .material-symbols-outlined {
+      font-size: 14px;
+    }
+  }
+
+  // ── Column empty ────────────────────────────────────────────────────────
+  &__column-empty {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: $st-space-8;
+    color: rgba($st-on-surface-variant, 0.4);
+
+    .material-symbols-outlined {
+      font-size: 2.5rem;
+      margin-bottom: $st-space-2;
+    }
+
+    p {
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+  }
+
+  // ── AI Insight (floating) ───────────────────────────────────────────────
+  &__ai-card {
+    position: fixed;
+    bottom: $st-space-8;
+    right: $st-space-8;
+    width: 18rem;
+    background: rgba(255, 255, 255, 0.8);
+    backdrop-filter: blur(12px);
+    border-radius: $st-radius-xl;
+    padding: $st-space-4;
+    border-left: 4px solid $st-primary;
+    box-shadow: $st-shadow-md;
+    z-index: 30;
+  }
+
+  &__ai-header {
+    display: flex;
+    align-items: center;
+    gap: $st-space-2;
+    margin-bottom: $st-space-2;
+
+    .material-symbols-outlined {
+      font-size: 16px;
+      color: $st-primary;
+    }
+
+    span:last-child {
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: $st-primary;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+  }
+
+  &__ai-text {
+    font-size: 0.75rem;
+    color: $st-on-surface;
+    line-height: 1.5;
+    margin-bottom: $st-space-3;
+
+    strong {
+      font-weight: 700;
+    }
+  }
+
+  &__ai-footer {
+    display: flex;
+    justify-content: flex-end;
+  }
+
+  &__ai-link {
+    background: none;
+    border: none;
+    font-size: 0.625rem;
+    font-weight: 800;
+    color: $st-primary;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    font-family: $st-font-body;
+    text-transform: uppercase;
+
+    .material-symbols-outlined {
+      font-size: 12px;
+    }
+
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+
+  // ── Assign modal ────────────────────────────────────────────────────────
+  &__modal-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(11, 28, 48, 0.45);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    backdrop-filter: blur(4px);
+  }
+
+  &__modal-box {
+    background: $st-surface-container-lowest;
+    border-radius: $st-radius-xl;
+    padding: $st-space-8;
+    width: 380px;
+    max-width: 95vw;
+    box-shadow: $st-shadow-md;
+  }
+
+  &__modal-title {
+    font-family: $st-font-headline;
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: $st-on-surface;
+    margin: 0 0 $st-space-2;
+  }
+
+  &__modal-text {
+    font-size: 0.875rem;
+    color: $st-on-surface-variant;
+    margin-bottom: $st-space-5;
+
+    strong {
+      color: $st-on-surface;
+    }
+  }
+
+  &__modal-select {
+    width: 100%;
+    padding: $st-space-3 $st-space-4;
+    background: $st-surface-container-lowest;
+    border: 2px solid rgba($st-outline-variant, 0.3);
+    border-radius: $st-radius-sm;
+    font-size: 0.875rem;
+    font-family: $st-font-body;
+    color: $st-on-surface;
+    outline: none;
+    cursor: pointer;
+
+    &:focus {
+      border-color: $st-primary;
+    }
+  }
+
+  &__modal-actions {
+    display: flex;
+    gap: $st-space-3;
+    justify-content: flex-end;
+    margin-top: $st-space-6;
+  }
+
+  &__modal-cancel {
+    @include st-btn-secondary;
+  }
+
+  &__modal-confirm {
+    @include st-btn-primary;
+  }
+}

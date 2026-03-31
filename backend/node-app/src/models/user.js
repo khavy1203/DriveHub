@@ -12,8 +12,6 @@ module.exports = (sequelize, DataTypes) => {
       // Định nghĩa quan hệ với bảng group
       user.belongsTo(models.group, {
         foreignKey: 'groupId',
-        // onDelete: 'CASCADE',
-        // onUpdate: 'CASCADE',
       });
       user.belongsToMany(models.khoahoc, {
         through: models.teacher_course,
@@ -24,6 +22,17 @@ module.exports = (sequelize, DataTypes) => {
       user.hasOne(models.teacher_profile, {
         foreignKey: 'userId',
         as: 'teacherProfile',
+      });
+      // SupperTeacher → manages many teachers
+      user.hasMany(models.user, {
+        foreignKey: 'superTeacherId',
+        as: 'managedTeachers',
+        onDelete: 'CASCADE',
+      });
+      // Teacher → belongs to one SupperTeacher
+      user.belongsTo(models.user, {
+        foreignKey: 'superTeacherId',
+        as: 'superTeacher',
       });
     }
   }
@@ -104,6 +113,11 @@ module.exports = (sequelize, DataTypes) => {
       },
       setupTokenExpiry: {
         type: DataTypes.DATE,
+        allowNull: true,
+        defaultValue: null,
+      },
+      superTeacherId: {
+        type: DataTypes.INTEGER,
         allowNull: true,
         defaultValue: null,
       },

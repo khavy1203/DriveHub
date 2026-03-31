@@ -1,0 +1,469 @@
+@use '../tokens' as *;
+
+.ro {
+  @include st-page-base;
+
+  // ── Header ──────────────────────────────────────────────────────────
+  &__header {
+    margin-bottom: $st-space-10;
+  }
+
+  &__title {
+    font-family: $st-font-headline;
+    font-size: 2.25rem;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    color: $st-on-surface;
+    margin: 0 0 $st-space-2;
+  }
+
+  &__subtitle {
+    font-size: 0.9375rem;
+    color: $st-on-surface-variant;
+    margin: 0;
+  }
+
+  &__loading {
+    text-align: center;
+    color: $st-on-surface-variant;
+    padding: $st-space-12 0;
+  }
+
+  // ── Stat cards (bento) ──────────────────────────────────────────────
+  &__stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: $st-space-6;
+    margin-bottom: $st-space-12;
+
+    @media (max-width: 768px) {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  &__stat {
+    @include st-card;
+    padding: $st-space-8;
+  }
+
+  &__stat-head {
+    display: flex;
+    align-items: center;
+    gap: $st-space-3;
+    margin-bottom: $st-space-4;
+  }
+
+  &__stat-icon {
+    width: 2.75rem;
+    height: 2.75rem;
+    border-radius: $st-radius-md;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+
+    .material-symbols-outlined {
+      font-size: 22px;
+    }
+
+    &--star {
+      background: rgba($st-primary-container, 0.2);
+      .material-symbols-outlined { color: $st-primary; }
+    }
+
+    &--review {
+      background: rgba($st-secondary-container, 0.3);
+      .material-symbols-outlined { color: $st-on-secondary-fixed-variant; }
+    }
+
+    &--done {
+      background: rgba($st-tertiary-container, 0.1);
+      .material-symbols-outlined { color: $st-tertiary; }
+    }
+  }
+
+  &__stat-tag {
+    @include st-label-sm;
+    letter-spacing: 0.12em;
+  }
+
+  &__stat-body {
+    display: flex;
+    align-items: baseline;
+    gap: $st-space-2;
+    margin-bottom: $st-space-4;
+  }
+
+  &__stat-big {
+    font-family: $st-font-headline;
+    font-size: 3rem;
+    font-weight: 800;
+    color: $st-on-surface;
+    line-height: 1;
+  }
+
+  &__stat-sub {
+    font-size: 1.125rem;
+    font-weight: 700;
+    color: $st-primary;
+  }
+
+  &__stat-trend {
+    display: flex;
+    align-items: center;
+    gap: $st-space-1;
+    font-size: 0.75rem;
+    font-weight: 700;
+
+    .material-symbols-outlined {
+      font-size: 16px;
+    }
+
+    &--up {
+      color: $st-primary;
+    }
+  }
+
+  &__stat-note {
+    font-size: 0.75rem;
+    color: $st-on-surface-variant;
+    font-style: italic;
+    margin: 0;
+  }
+
+  &__stat-bar {
+    width: 100%;
+    height: 6px;
+    background: $st-surface-container;
+    border-radius: 3px;
+    overflow: hidden;
+  }
+
+  &__stat-bar-fill {
+    height: 100%;
+    background: $st-tertiary;
+    border-radius: 3px;
+    transition: width 0.6s ease;
+  }
+
+  // ── Section header ──────────────────────────────────────────────────
+  &__section-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    margin-bottom: $st-space-8;
+  }
+
+  &__section-title {
+    font-family: $st-font-headline;
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: $st-on-surface;
+    margin: 0;
+  }
+
+  &__section-link {
+    background: none;
+    border: none;
+    color: $st-primary;
+    font-size: 0.875rem;
+    font-weight: 700;
+    font-family: $st-font-body;
+    cursor: pointer;
+
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+
+  // ── Teacher grid ────────────────────────────────────────────────────
+  &__grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: $st-space-8;
+    margin-bottom: $st-space-12;
+
+    @media (max-width: 991px) {
+      grid-template-columns: repeat(2, 1fr);
+    }
+
+    @media (max-width: 640px) {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  &__empty {
+    color: $st-on-surface-variant;
+    grid-column: 1 / -1;
+    text-align: center;
+    padding: $st-space-8;
+  }
+
+  // ── Teacher card ────────────────────────────────────────────────────
+  &__card {
+    @include st-card;
+    padding: $st-space-6;
+    display: flex;
+    flex-direction: column;
+    gap: $st-space-5;
+    transition: box-shadow 0.2s;
+
+    &:hover {
+      box-shadow: $st-shadow-md;
+    }
+  }
+
+  &__card-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+  }
+
+  &__card-left {
+    display: flex;
+    align-items: center;
+    gap: $st-space-4;
+  }
+
+  &__card-avatar {
+    width: 3.5rem;
+    height: 3.5rem;
+    border-radius: $st-radius-full;
+    object-fit: cover;
+    flex-shrink: 0;
+  }
+
+  &__card-name {
+    font-family: $st-font-headline;
+    font-size: 1.0625rem;
+    font-weight: 700;
+    color: $st-on-surface;
+    margin: 0;
+  }
+
+  &__card-role {
+    font-size: 0.75rem;
+    color: $st-on-surface-variant;
+    margin: 0.125rem 0 0;
+  }
+
+  &__card-pill {
+    display: flex;
+    align-items: center;
+    gap: 0.125rem;
+    background: rgba($st-primary, 0.1);
+    color: $st-primary;
+    padding: 0.25rem 0.75rem;
+    border-radius: $st-radius-full;
+    flex-shrink: 0;
+  }
+
+  &__card-pill-val {
+    font-size: 0.875rem;
+    font-weight: 700;
+  }
+
+  &__card-pill-star {
+    font-size: 14px;
+    font-variation-settings: 'FILL' 1;
+  }
+
+  &__card-meta {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.875rem;
+  }
+
+  &__card-meta-label {
+    color: $st-on-surface-variant;
+  }
+
+  &__card-meta-val {
+    font-weight: 700;
+    color: $st-on-surface;
+  }
+
+  &__card-quote {
+    background: $st-surface-container-low;
+    border-radius: $st-radius-sm;
+    padding: $st-space-4;
+  }
+
+  &__card-quote-text {
+    font-size: 0.875rem;
+    color: $st-on-surface;
+    font-style: italic;
+    margin: 0 0 $st-space-2;
+    line-height: 1.5;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  &__card-quote-tag {
+    font-size: 0.625rem;
+    font-weight: 700;
+    color: $st-outline;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+
+  // ── AI Insights ─────────────────────────────────────────────────────
+  &__ai {
+    margin-top: $st-space-12;
+  }
+
+  &__ai-label {
+    display: flex;
+    align-items: center;
+    gap: $st-space-2;
+    margin-bottom: $st-space-6;
+
+    .material-symbols-outlined {
+      font-size: 22px;
+      color: $st-primary;
+      font-variation-settings: 'FILL' 1;
+    }
+
+    h3 {
+      font-family: $st-font-headline;
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: $st-on-surface;
+      margin: 0;
+    }
+  }
+
+  &__ai-glass {
+    @include st-glass-card;
+    padding: $st-space-8;
+    display: grid;
+    grid-template-columns: 1.2fr 0.8fr;
+    gap: $st-space-12;
+    align-items: center;
+
+    @media (max-width: 768px) {
+      grid-template-columns: 1fr;
+      gap: $st-space-6;
+    }
+  }
+
+  &__ai-left {
+    display: flex;
+    flex-direction: column;
+    gap: $st-space-4;
+  }
+
+  &__ai-date {
+    display: inline-block;
+    background: rgba($st-primary-container, 0.1);
+    color: $st-primary-container;
+    font-size: 0.6875rem;
+    font-weight: 700;
+    padding: 0.25rem 0.75rem;
+    border-radius: $st-radius-full;
+    width: fit-content;
+  }
+
+  &__ai-heading {
+    font-family: $st-font-headline;
+    font-size: 1.5rem;
+    font-weight: 800;
+    line-height: 1.3;
+    color: $st-on-surface;
+    margin: 0;
+  }
+
+  &__ai-desc {
+    font-size: 0.9375rem;
+    color: $st-on-surface-variant;
+    line-height: 1.7;
+    margin: 0;
+  }
+
+  &__ai-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: $st-space-3;
+  }
+
+  &__ai-chip {
+    display: flex;
+    align-items: center;
+    gap: $st-space-2;
+    background: $st-surface-container-lowest;
+    padding: $st-space-2 $st-space-4;
+    border-radius: $st-radius-sm;
+    border: 1px solid rgba($st-outline-variant, 0.2);
+    box-shadow: $st-shadow-sm;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: $st-on-surface;
+
+    .material-symbols-outlined {
+      font-size: 18px;
+    }
+  }
+
+  &__ai-chip-icon--up {
+    color: $st-primary;
+  }
+
+  &__ai-chip-icon--warn {
+    color: $st-error;
+  }
+
+  &__ai-right {
+    position: relative;
+    background: rgba($st-surface-container-high, 0.3);
+    border-radius: $st-radius-xl;
+    padding: $st-space-6;
+    overflow: hidden;
+    min-height: 200px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+
+  &__ai-right-tag {
+    @include st-label-sm;
+    letter-spacing: 0.14em;
+    margin-bottom: $st-space-4;
+  }
+
+  &__ai-tips {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: $st-space-4;
+  }
+
+  &__ai-tip {
+    display: flex;
+    align-items: flex-start;
+    gap: $st-space-3;
+
+    .material-symbols-outlined {
+      font-size: 20px;
+      color: $st-primary;
+      margin-top: 2px;
+      flex-shrink: 0;
+    }
+
+    p {
+      font-size: 0.875rem;
+      font-weight: 500;
+      color: $st-on-surface;
+      margin: 0;
+      line-height: 1.5;
+
+      strong {
+        color: $st-primary;
+        font-weight: 700;
+      }
+    }
+  }
+}

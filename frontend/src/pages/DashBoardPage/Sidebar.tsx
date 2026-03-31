@@ -23,8 +23,9 @@ const ADMIN_NAV_ITEMS: NavItem[] = [
       { label: 'Kết quả thi',      icon: 'fact_check',      to: '/dashboard/exam-results' },
       { label: 'Học viên',         icon: 'school',          to: '/dashboard/hoc-vien' },
       { label: 'Đăng ký học viên', icon: 'person_add',      to: '/dashboard/dang-ky-hoc-vien' },
-      { label: 'Phân công',        icon: 'assignment_ind',  to: '/dashboard/manual-assign' },
-      { label: 'Giáo viên',        icon: 'manage_accounts', to: '/dashboard/teachers' },
+      { label: 'Phân công',         icon: 'assignment_ind',   to: '/dashboard/manual-assign' },
+      { label: 'Giáo viên',        icon: 'manage_accounts',  to: '/dashboard/teachers' },
+      { label: 'SupperTeacher',    icon: 'supervisor_account', to: '/dashboard/supper-teachers' },
     ],
   },
   {
@@ -47,6 +48,20 @@ const TEACHER_NAV_ITEMS: NavItem[] = [
   { label: 'Tra cứu', icon: 'manage_search', to: '/lookup' },
 ];
 
+const SUPPER_TEACHER_NAV_ITEMS: NavItem[] = [
+  { label: 'Tổng quan', icon: 'dashboard', to: '/dashboard/home' },
+  {
+    label: 'Đội của tôi', icon: 'groups',
+    children: [
+      { label: 'Giáo viên trong đội', icon: 'manage_accounts', to: '/dashboard/my-teachers' },
+      { label: 'Học viên trong đội',  icon: 'school',          to: '/dashboard/my-students' },
+      { label: 'Điều phối học viên',  icon: 'assignment_ind',  to: '/dashboard/assign-students' },
+    ],
+  },
+  { label: 'Tin nhắn', icon: 'chat', to: '/dashboard/chat' },
+  { label: 'Tra cứu', icon: 'manage_search', to: '/lookup' },
+];
+
 const Sidebar: React.FC<SidebarProps> = ({ collapsed, isMobile, onNavClick }) => {
   const { displayName, role, avatarUrl } = useAuth();
   const location = useLocation();
@@ -54,6 +69,7 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed, isMobile, onNavClick }) =>
 
   React.useEffect(() => {
     if (role === 'HocVien') setOpenGroups(['Cổng học viên']);
+    if (role === 'SupperTeacher') setOpenGroups(['Đội của tôi']);
   }, [role]);
 
   const STUDENT_NAV_ITEMS: NavItem[] = [
@@ -72,7 +88,11 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed, isMobile, onNavClick }) =>
     { label: 'Tra cứu', icon: 'manage_search', to: '/lookup' },
   ];
 
-  const navItems = role === 'GiaoVien' ? TEACHER_NAV_ITEMS : role === 'HocVien' ? STUDENT_NAV_ITEMS : ADMIN_NAV_ITEMS;
+  const navItems =
+    role === 'SupperTeacher' ? SUPPER_TEACHER_NAV_ITEMS :
+    role === 'GiaoVien'      ? TEACHER_NAV_ITEMS :
+    role === 'HocVien'       ? STUDENT_NAV_ITEMS :
+    ADMIN_NAV_ITEMS;
 
   const defaultAvatar = 'https://gravatar.com/avatar/d302cbc4526bf50e64befe198736824c?s=400&d=robohash&r=x';
   const resolvedAvatar = avatarUrl || defaultAvatar;
@@ -93,12 +113,12 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed, isMobile, onNavClick }) =>
   return (
     <aside className="db-sidebar">
       {/* Logo */}
-      <div className="db-sidebar-logo">
+      <Link to="/" className="db-sidebar-logo">
         <div className="db-logo-icon">
           <i className="material-icons">directions_car</i>
         </div>
         {!collapsed && <span className="db-logo-text">DriveHub</span>}
-      </div>
+      </Link>
 
       {/* Navigation */}
       <nav className="db-sidebar-nav">

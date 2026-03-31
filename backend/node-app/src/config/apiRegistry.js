@@ -59,6 +59,28 @@ export const API_REGISTRY = [
   P('GET', '/api/public/teachers/:id', 'Giáo viên', 'Public teacher detail', true),
   P('GET', '/api/teacher/students', 'KQSH', 'Teacher student KQSH', false, '/api/teacher/students/:hocVienId/kqsh'),
 
+  // SupperTeacher: quản lý đội giáo viên
+  P('GET',    '/api/super-teacher/teachers',          'SupperTeacher', 'Danh sách giáo viên trong đội'),
+  P('POST',   '/api/super-teacher/teachers',          'SupperTeacher', 'Tạo giáo viên trong đội'),
+  P('PUT',    '/api/super-teacher/teachers',          'SupperTeacher', 'Cập nhật giáo viên', false, '/api/super-teacher/teachers/:teacherId'),
+  P('DELETE', '/api/super-teacher/teachers',          'SupperTeacher', 'Xóa giáo viên', false, '/api/super-teacher/teachers/:teacherId'),
+  P('GET',    '/api/super-teacher/students',          'SupperTeacher', 'Học viên toàn đội'),
+  P('POST',   '/api/super-teacher/assign-student',    'SupperTeacher', 'Phân công học viên'),
+  P('DELETE', '/api/super-teacher/students',          'SupperTeacher', 'Học viên bỏ học', false, '/api/super-teacher/students/:hocVienId'),
+  P('POST',   '/api/super-teacher/import-cccd',      'SupperTeacher', 'Import học viên theo CCCD'),
+  P('GET',    '/api/super-teacher/ratings-overview',  'SupperTeacher', 'Thống kê đánh giá'),
+
+  // SupperAdmin: quản lý SupperTeacher
+  P('GET',    '/api/admin/supper-teachers',           'SupperTeacher', 'Danh sách SupperTeacher'),
+  P('POST',   '/api/admin/supper-teachers',           'SupperTeacher', 'Tạo SupperTeacher'),
+  P('PUT',    '/api/admin/supper-teachers',           'SupperTeacher', 'Cập nhật SupperTeacher', false, '/api/admin/supper-teachers/:id'),
+  P('DELETE', '/api/admin/supper-teachers',           'SupperTeacher', 'Xóa SupperTeacher', false, '/api/admin/supper-teachers/:id'),
+  P('GET',    '/api/admin/supper-teachers/:id/preview-delete', 'SupperTeacher', 'Xem trước xóa SupperTeacher'),
+  P('GET',    '/api/admin/supper-teachers/:id/teachers', 'SupperTeacher', 'Giáo viên trong đội SupperTeacher'),
+  P('POST',   '/api/admin/teachers-with-super',       'SupperTeacher', 'Admin tạo giáo viên có SupperTeacher'),
+  P('PUT',    '/api/admin/teachers/:teacherId/assign-super', 'SupperTeacher', 'Chuyển giáo viên sang SupperTeacher'),
+  P('GET',    '/api/admin/teachers-without-super',    'SupperTeacher', 'Giáo viên chưa có SupperTeacher'),
+
   P('GET', '/api/student-portal/my-progress', 'Portal HV', 'My progress'),
   P('GET', '/api/student-portal/teachers', 'Portal HV', 'Teachers list'),
   P('POST', '/api/student-portal/rate', 'Portal HV', 'Rate teacher'),

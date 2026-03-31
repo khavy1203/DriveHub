@@ -57,6 +57,9 @@ export function broadcastChatMessage(assignmentId, message) {
 }
 
 // ── DB helpers ──────────────────────────────────────────────────────────────
+const SUPPER_ADMIN_GROUP = 'SupperAdmin';
+const SUPPER_TEACHER_GROUP_ID = 6;
+
 async function verifyAccess(userId, assignmentId) {
   const a = await db.student_assignment.findOne({
     where: { id: assignmentId },
@@ -68,8 +71,31 @@ async function verifyAccess(userId, assignmentId) {
   }
   const isTeacher = a.teacherId === userId;
   const isStudent = a.hocVien?.userId === userId;
+
+  if (!isTeacher && !isStudent) {
+    const user = await db.user.findByPk(userId, { attributes: ['id', 'groupId'] });
+    if (user) {
+      // SupperAdmin can access any assignment chat
+      const group = await db.group.findByPk(user.groupId, { attributes: ['name'] });
+      if (group?.name === SUPPER_ADMIN_GROUP) {
+        console.log(`[ChatWS] verifyAccess: userId=${userId} isSupperAdmin=true`);
+        return { assignment: a, role: 'teacher' };
+      }
+
+      // SuperTeacher can access assignments of students in their team
+      if (user.groupId === SUPPER_TEACHER_GROUP_ID) {
+        const teacher = await db.user.findByPk(a.teacherId, { attributes: ['superTeacherId'] });
+        if (teacher?.superTeacherId === userId) {
+          console.log(`[ChatWS] verifyAccess: userId=${userId} isSuperTeacher=true`);
+          return { assignment: a, role: 'teacher' };
+        }
+      }
+    }
+    console.log(`[ChatWS] verifyAccess: userId=${userId} no access`);
+    return null;
+  }
+
   console.log(`[ChatWS] verifyAccess: userId=${userId} teacherId=${a.teacherId} hocVienUserId=${a.hocVien?.userId} isTeacher=${isTeacher} isStudent=${isStudent}`);
-  if (!isTeacher && !isStudent) return null;
   return { assignment: a, role: isTeacher ? 'teacher' : 'student' };
 }
 

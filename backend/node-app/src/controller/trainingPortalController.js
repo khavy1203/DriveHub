@@ -2,7 +2,7 @@ import db from '../models/index.js';
 import { verifyToken } from '../middleware/JWTaction.js';
 import * as trainingPortalService from '../service/trainingPortalService.js';
 
-const ALLOWED_GROUPS = new Set(['HocVien', 'GiaoVien', 'Admin', 'SupperAdmin']);
+const ALLOWED_GROUPS = new Set(['HocVien', 'GiaoVien', 'SupperTeacher', 'Admin', 'SupperAdmin']);
 
 const resolveTokenContext = (req) => {
   const token =

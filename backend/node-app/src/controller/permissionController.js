@@ -3,8 +3,8 @@ import { verifyToken } from '../middleware/JWTaction.js';
 import { invalidateApiEndpointCache } from '../middleware/apiEndpointCache.js';
 import { syncApiRegistryToDb, seedDefaultGroupApiPermissions } from '../service/apiPermissionService.js';
 
-const SYSTEM_GROUP_IDS = [1, 2, 3, 4, 5];
-const PROTECTED_GROUP_NAMES = ['SupperAdmin', 'Admin', 'GiaoVien', 'HocVien', 'KhachHang'];
+const SYSTEM_GROUP_IDS = [1, 2, 3, 4, 5, 6];
+const PROTECTED_GROUP_NAMES = ['SupperAdmin', 'Admin', 'GiaoVien', 'HocVien', 'KhachHang', 'SupperTeacher'];
 const PROTECTED_EMAIL = 'admin@gmail.com';
 
 // GET requests bypass checkUserJwt, so req.user is not populated — resolve token manually
@@ -22,6 +22,11 @@ const isAdminOrSupper = (req) => {
   const user = resolveUser(req);
   const name = user?.groupWithRoles?.name;
   return name === 'SupperAdmin' || name === 'Admin';
+};
+
+const isSupperAdmin = (req) => {
+  const user = resolveUser(req);
+  return user?.groupWithRoles?.name === 'SupperAdmin';
 };
 
 // ── Groups ──────────────────────────────────────────────────────────────────

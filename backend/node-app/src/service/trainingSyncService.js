@@ -183,12 +183,14 @@ export const syncOneStudent = async (hocVienId) => {
       lastSyncAt: new Date(),
     });
 
-    const assignment = await db.student_assignment.findOne({ where: { hocVienId } });
+    const assignment = await db.student_assignment.findOne({ where: { hocVienId, role: 'primary' } });
     if (assignment) {
       const updates = { progressPercent: pct };
       if (pct >= 100 && assignment.status !== 'completed') {
         updates.status = 'completed';
         await db.hoc_vien.update({ status: 'dat_completed' }, { where: { id: hocVienId } });
+      } else if (pct > 0 && assignment.status === 'waiting') {
+        updates.status = 'learning';
       }
       await assignment.update(updates);
     }
@@ -235,6 +237,7 @@ export const syncAllIncomplete = async () => {
         model: db.student_assignment,
         as: 'assignment',
         required: false,
+        where: { role: 'primary' },
       },
     ],
   });
@@ -306,9 +309,16 @@ export const importAndSyncByCccdList = async (cccdList) => {
         lastSyncAt: new Date(),
       });
 
-      const assignment = await db.student_assignment.findOne({ where: { hocVienId: importResult.hocVienId } });
+      const assignment = await db.student_assignment.findOne({ where: { hocVienId: importResult.hocVienId, role: 'primary' } });
       if (assignment) {
-        await assignment.update({ progressPercent: pct });
+        const updates = { progressPercent: pct };
+        if (pct >= 100 && assignment.status !== 'completed') {
+          updates.status = 'completed';
+          await db.hoc_vien.update({ status: 'dat_completed' }, { where: { id: importResult.hocVienId } });
+        } else if (pct > 0 && assignment.status === 'waiting') {
+          updates.status = 'learning';
+        }
+        await assignment.update(updates);
       }
 
       results.push({

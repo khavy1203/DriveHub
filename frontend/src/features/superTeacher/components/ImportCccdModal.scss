@@ -1,0 +1,172 @@
+@use '../tokens' as *;
+
+.import-cccd {
+  &__backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    background: rgba(11, 28, 48, 0.45);
+    backdrop-filter: blur(6px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    animation: importFadeIn 0.2s ease;
+  }
+
+  &__box {
+    @include st-card;
+    width: 100%;
+    max-width: 540px;
+    padding: $st-space-8;
+    animation: importSlideUp 0.25s ease;
+  }
+
+  &__title {
+    @include st-heading-md;
+    margin: 0 0 $st-space-2;
+    display: flex;
+    align-items: center;
+    gap: $st-space-2;
+
+    &::before {
+      content: 'cloud_upload';
+      font-family: 'Material Symbols Outlined';
+      font-size: 22px;
+      color: $st-primary;
+    }
+  }
+
+  &__desc {
+    font-size: 0.8125rem;
+    color: $st-on-surface-variant;
+    line-height: 1.6;
+    margin: 0 0 $st-space-6;
+  }
+
+  &__textarea {
+    width: 100%;
+    min-height: 140px;
+    padding: $st-space-4;
+    background: $st-surface-container-low;
+    border: 2px solid transparent;
+    border-radius: $st-radius-md;
+    font-family: 'JetBrains Mono', 'Fira Code', monospace;
+    font-size: 0.8125rem;
+    color: $st-on-surface;
+    resize: vertical;
+    outline: none;
+    transition: border-color 0.2s;
+
+    &:focus {
+      border-color: $st-primary;
+    }
+
+    &::placeholder {
+      color: $st-outline-variant;
+    }
+
+    &:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+  }
+
+  &__count {
+    display: flex;
+    align-items: center;
+    gap: $st-space-2;
+    margin: $st-space-3 0 0;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: $st-primary;
+
+    .material-symbols-outlined {
+      font-size: 18px;
+    }
+  }
+
+  &__results {
+    margin-top: $st-space-6;
+    max-height: 240px;
+    overflow-y: auto;
+    border-radius: $st-radius-md;
+    background: $st-surface-container-low;
+    padding: $st-space-2;
+
+    &::-webkit-scrollbar {
+      width: 4px;
+    }
+
+    &::-webkit-scrollbar-thumb {
+      background: $st-outline-variant;
+      border-radius: 2px;
+    }
+  }
+
+  &__result-row {
+    display: flex;
+    align-items: center;
+    gap: $st-space-3;
+    padding: $st-space-3 $st-space-4;
+    border-radius: $st-radius-sm;
+    font-size: 0.8125rem;
+    transition: background 0.15s;
+
+    &:hover {
+      background: rgba(255, 255, 255, 0.5);
+    }
+
+    .material-symbols-outlined {
+      font-size: 18px;
+      flex-shrink: 0;
+    }
+
+    &--ok .material-symbols-outlined {
+      color: #2e7d32;
+    }
+
+    &--fail .material-symbols-outlined {
+      color: $st-error;
+    }
+  }
+
+  &__result-cccd {
+    font-family: 'JetBrains Mono', 'Fira Code', monospace;
+    font-weight: 600;
+    color: $st-on-surface;
+    min-width: 120px;
+  }
+
+  &__result-detail {
+    color: $st-on-surface-variant;
+    flex: 1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  &__actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: $st-space-3;
+    margin-top: $st-space-8;
+  }
+
+  &__cancel {
+    @include st-btn-secondary;
+  }
+
+  &__submit {
+    @include st-btn-primary;
+  }
+}
+
+@keyframes importFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes importSlideUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}

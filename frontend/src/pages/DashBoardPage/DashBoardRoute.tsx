@@ -19,6 +19,9 @@ import TeacherProfileEdit from '../TeacherPortal/TeacherProfileEdit';
 import StudentPortal from '../StudentPortal/StudentPortal';
 import TeacherManagement from './TeacherManagement/TeacherManagement';
 import HocVienManagement from './HocVienManagement/HocVienManagement';
+import SupperTeacherManagement from './SupperTeacherManagement/SupperTeacherManagement';
+import { MyTeacherList, MyStudentList, SupperTeacherDashboard, StudentDispatch } from '../../features/superTeacher';
+import ManualAssign from './ManualAssign/ManualAssign';
 
 import DangKyHocVien from './DangKyHocVien/DangKyHocVien';
 import ChatPage from './ChatPage/ChatPage';
@@ -29,6 +32,7 @@ import { StudentsList } from '../../features/student';
 const DashBoardRoute: React.FC = () => {
   const { role } = useAuth();
   const isTeacher = role === 'GiaoVien';
+  const isSupperTeacher = role === 'SupperTeacher';
   const isStudent = role === 'HocVien';
 
   return (
@@ -39,7 +43,15 @@ const DashBoardRoute: React.FC = () => {
         {/* Tổng quan */}
         <Route
           path="/home"
-          element={isTeacher ? <TeacherPortal embedded /> : isStudent ? <StudentPortal /> : <DashboardHome />}
+          element={
+            isSupperTeacher
+              ? <SupperTeacherDashboard />
+              : isTeacher
+                ? <TeacherPortal embedded />
+                : isStudent
+                  ? <StudentPortal />
+                  : <DashboardHome />
+          }
         />
 
         {/* Quản lý thi */}
@@ -49,7 +61,12 @@ const DashBoardRoute: React.FC = () => {
         <Route path="/dang-ky-hoc-vien" element={<DangKyHocVien />} />
 
         <Route path="/teachers" element={<TeacherManagement />} />
-        {isTeacher && <Route path="/my-profile" element={<TeacherProfileEdit />} />}
+        <Route path="/supper-teachers" element={<SupperTeacherManagement />} />
+        <Route path="/my-teachers" element={<MyTeacherList />} />
+        <Route path="/my-students" element={<MyStudentList />} />
+        <Route path="/assign-students" element={<StudentDispatch />} />
+        <Route path="/manual-assign" element={<ManualAssign />} />
+        {(isTeacher || isSupperTeacher) && <Route path="/my-profile" element={<TeacherProfileEdit />} />}
 
         {/* Cài đặt */}
         <Route path="/setting" element={<Setting />} />

@@ -41,6 +41,12 @@ import {
 import { getTrainingStudent, getTrainingAvatar, getTrainingSessionDetail } from "../controller/trainingPortalController";
 import { getTrainingStudentCached, triggerSyncAll, getTrainingSyncStatus, importByCccdList } from "../controller/trainingSyncController";
 import contactLeadController from "../controller/contactLeadController";
+import {
+  listMyTeachers, addTeacher, editTeacher, removeTeacher,
+  listMyStudents, assignStudent, dropStudentHandler, importCccd, ratingsOverview,
+  listSupperTeachers, addSupperTeacher, editSupperTeacher, removeSupperTeacher,
+  previewDeleteSupperTeacher, addTeacherByAdmin, moveTeacherToSupper, listTeachersInTeam, listTeachersWithoutSupper,
+} from "../controller/superTeacherController";
 
 
 const routes = express.Router();
@@ -210,6 +216,28 @@ const initWebRoutes = (app) => {
     routes.put("/admin/permissions/api-endpoints/:id", updateApiEndpoint);
     routes.get("/admin/permissions/group-api", getGroupApiMatrix);
     routes.put("/admin/permissions/group-api", setGroupApiPermissions);
+
+    // ── SupperTeacher: manage own team ───────────────────────────────────────
+    routes.get('/super-teacher/teachers', listMyTeachers);
+    routes.post('/super-teacher/teachers', addTeacher);
+    routes.put('/super-teacher/teachers/:teacherId', editTeacher);
+    routes.delete('/super-teacher/teachers/:teacherId', removeTeacher);
+    routes.get('/super-teacher/students', listMyStudents);
+    routes.post('/super-teacher/assign-student', assignStudent);
+    routes.delete('/super-teacher/students/:hocVienId', dropStudentHandler);
+    routes.post('/super-teacher/import-cccd', importCccd);
+    routes.get('/super-teacher/ratings-overview', ratingsOverview);
+
+    // ── SupperAdmin: manage SupperTeachers ───────────────────────────────────
+    routes.get('/admin/supper-teachers', listSupperTeachers);
+    routes.post('/admin/supper-teachers', addSupperTeacher);
+    routes.put('/admin/supper-teachers/:id', editSupperTeacher);
+    routes.delete('/admin/supper-teachers/:id', removeSupperTeacher);
+    routes.get('/admin/supper-teachers/:id/preview-delete', previewDeleteSupperTeacher);
+    routes.get('/admin/supper-teachers/:id/teachers', listTeachersInTeam);
+    routes.post('/admin/teachers-with-super', addTeacherByAdmin);
+    routes.put('/admin/teachers/:teacherId/assign-super', moveTeacherToSupper);
+    routes.get('/admin/teachers-without-super', listTeachersWithoutSupper);
 
     routes.get("/training/student", getTrainingStudent);
     routes.get("/training/student-cached", getTrainingStudentCached);

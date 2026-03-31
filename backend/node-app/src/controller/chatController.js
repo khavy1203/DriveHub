@@ -1,6 +1,9 @@
 import { Op } from 'sequelize';
 import db from '../models/index.js';
 
+const SUPPER_ADMIN_GROUP = 'SupperAdmin';
+const SUPPER_TEACHER_GROUP_ID = 6;
+
 const getHistory = async (req, res) => {
   try {
     const assignmentId = Number(req.params.assignmentId);
@@ -14,7 +17,19 @@ const getHistory = async (req, res) => {
     if (!a) return res.status(404).json({ EC: -1, EM: 'Assignment not found', DT: null });
 
     const uid = req.user.id;
-    if (a.teacherId !== uid && a.hocVien?.userId !== uid) {
+    const isSupperAdmin = req.user.groupWithRoles?.name === SUPPER_ADMIN_GROUP;
+
+    // SuperTeacher can access assignments of students in their team
+    let isSuperTeacherAccess = false;
+    if (a.teacherId !== uid && a.hocVien?.userId !== uid && !isSupperAdmin) {
+      const caller = await db.user.findByPk(uid, { attributes: ['id', 'groupId'] });
+      if (caller?.groupId === SUPPER_TEACHER_GROUP_ID) {
+        const teacher = await db.user.findByPk(a.teacherId, { attributes: ['superTeacherId'] });
+        if (teacher?.superTeacherId === uid) isSuperTeacherAccess = true;
+      }
+    }
+
+    if (a.teacherId !== uid && a.hocVien?.userId !== uid && !isSupperAdmin && !isSuperTeacherAccess) {
       return res.status(403).json({ EC: -1, EM: 'Access denied', DT: null });
     }
 

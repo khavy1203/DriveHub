@@ -8,6 +8,10 @@ module.exports = (sequelize, DataTypes) => {
         foreignKey: 'userId',
         as: 'account',
       });
+      hoc_vien.belongsTo(models.user, {
+        foreignKey: 'superTeacherId',
+        as: 'superTeacher',
+      });
       hoc_vien.belongsTo(models.khoahoc, {
         foreignKey: 'IDKhoaHoc',
         as: 'khoahoc',
@@ -15,6 +19,10 @@ module.exports = (sequelize, DataTypes) => {
       hoc_vien.hasOne(models.student_assignment, {
         foreignKey: 'hocVienId',
         as: 'assignment',
+      });
+      hoc_vien.hasMany(models.student_assignment, {
+        foreignKey: 'hocVienId',
+        as: 'assignments',
       });
       hoc_vien.hasOne(models.training_snapshot, {
         foreignKey: 'hocVienId',
@@ -43,9 +51,10 @@ module.exports = (sequelize, DataTypes) => {
       GhiChu: { type: DataTypes.TEXT, allowNull: true },
       IDKhoaHoc: { type: DataTypes.STRING(20), allowNull: true },
       userId: { type: DataTypes.INTEGER, allowNull: true },
+      superTeacherId: { type: DataTypes.INTEGER, allowNull: true, defaultValue: null },
       avatarUrl: { type: DataTypes.STRING(512), allowNull: true },
       status: {
-        type: DataTypes.ENUM('registered', 'assigned', 'learning', 'dat_completed', 'exam_ready'),
+        type: DataTypes.ENUM('registered', 'assigned', 'learning', 'dat_completed', 'exam_ready', 'dropped'),
         allowNull: false,
         defaultValue: 'registered',
       },

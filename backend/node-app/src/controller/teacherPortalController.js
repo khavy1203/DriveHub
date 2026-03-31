@@ -26,6 +26,13 @@ const getMyStudents = async (req, res) => {
       return res.status(401).json({ EC: -1, EM: 'Chưa đăng nhập hoặc token không hợp lệ', DT: null });
     }
 
+    // SupperAdmin sees all assignments across all teachers
+    const isSupperAdmin = req.user?.groupWithRoles?.name === 'SupperAdmin';
+    if (isSupperAdmin) {
+      const result = await studentAssignmentService.getAllAssignments();
+      return res.status(result.EC === 0 ? 200 : 500).json(result);
+    }
+
     const result = await studentAssignmentService.getAssignmentsByTeacher(teacherId);
     return res.status(result.EC === 0 ? 200 : 500).json(result);
   } catch (e) {

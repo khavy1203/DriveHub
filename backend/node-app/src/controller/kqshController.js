@@ -15,7 +15,7 @@ const resolveUserId = async (req) => {
   return user ? user.id : null;
 };
 
-const ALLOWED_SYNC_ROLES = ['Admin', 'SupperAdmin', 'GiaoVien'];
+const ALLOWED_SYNC_ROLES = ['Admin', 'SupperAdmin', 'SupperTeacher', 'GiaoVien'];
 
 export const triggerSync = async (req, res, next) => {
   const groupName = req.user?.groupWithRoles?.name;
@@ -80,7 +80,7 @@ export const getHocVienKQSH = async (req, res, next) => {
   try {
     const decoded = resolveTokenContext(req);
     const groupName = decoded?.groupWithRoles?.name;
-    if (!['Admin', 'SupperAdmin'].includes(groupName)) {
+    if (!['Admin', 'SupperAdmin', 'SupperTeacher', 'GiaoVien'].includes(groupName)) {
       return res.status(403).json({ EC: -1, EM: 'Không có quyền truy cập', DT: null });
     }
 

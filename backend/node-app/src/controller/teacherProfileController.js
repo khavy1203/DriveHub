@@ -3,71 +3,106 @@ import { Op } from 'sequelize';
 
 // ── Public endpoint ─────────────────────────────────────────────────────────
 
+const SUPPER_TEACHER_GROUP_ID = 6;
+const TEACHER_GROUP_ID = 3;
+
 const getPublicTeachers = async (req, res) => {
   try {
-    const teachers = await db.user.findAll({
-      where: { groupId: 3 },
+    // Fetch SupperTeachers with their managed assistant teachers
+    const supperTeachers = await db.user.findAll({
+      where: { groupId: SUPPER_TEACHER_GROUP_ID },
       attributes: ['id', 'username'],
-      include: [{ model: db.teacher_profile, as: 'teacherProfile', required: false }],
+      include: [
+        { model: db.teacher_profile, as: 'teacherProfile', required: false },
+        {
+          model: db.user, as: 'managedTeachers',
+          attributes: ['id', 'username'],
+          required: false,
+          include: [{ model: db.teacher_profile, as: 'teacherProfile', required: false }],
+        },
+      ],
     });
 
-    if (teachers.length === 0) {
+    if (supperTeachers.length === 0) {
       return res.status(200).json({ EM: 'ok', EC: 0, DT: [] });
     }
 
-    const teacherIds = teachers.map(t => t.id);
+    // Collect all assistant teacher IDs across all teams
+    const allTeacherIds = [];
+    for (const st of supperTeachers) {
+      for (const t of st.managedTeachers || []) allTeacherIds.push(t.id);
+    }
 
+    // Fetch aggregated stats for all assistant teachers
     const [assignmentStats, ratingStats] = await Promise.all([
-      db.student_assignment.findAll({
-        where: {
-          teacherId: { [Op.in]: teacherIds },
-          status: { [Op.in]: ['learning', 'completed'] },
-        },
-        attributes: [
-          'teacherId', 'status',
-          [db.sequelize.fn('COUNT', db.sequelize.col('id')), 'cnt'],
-        ],
-        group: ['teacherId', 'status'],
-        raw: true,
-      }),
-      db.teacher_rating.findAll({
-        where: { teacherUserId: { [Op.in]: teacherIds } },
-        attributes: [
-          'teacherUserId',
-          [db.sequelize.fn('AVG', db.sequelize.col('stars')), 'avgStars'],
-          [db.sequelize.fn('COUNT', db.sequelize.col('id')), 'totalRatings'],
-        ],
-        group: ['teacherUserId'],
-        raw: true,
-      }),
+      allTeacherIds.length > 0
+        ? db.student_assignment.findAll({
+            where: { teacherId: { [Op.in]: allTeacherIds } },
+            attributes: ['teacherId', 'status', [db.sequelize.fn('COUNT', db.sequelize.col('id')), 'cnt']],
+            group: ['teacherId', 'status'],
+            raw: true,
+          })
+        : [],
+      allTeacherIds.length > 0
+        ? db.teacher_rating.findAll({
+            where: { teacherUserId: { [Op.in]: allTeacherIds } },
+            attributes: [
+              'teacherUserId',
+              [db.sequelize.fn('AVG', db.sequelize.col('stars')), 'avgStars'],
+              [db.sequelize.fn('COUNT', db.sequelize.col('id')), 'totalRatings'],
+            ],
+            group: ['teacherUserId'],
+            raw: true,
+          })
+        : [],
     ]);
 
     const statMap = {};
     for (const row of assignmentStats) {
-      if (!statMap[row.teacherId]) statMap[row.teacherId] = { activeStudents: 0, completedStudents: 0 };
-      if (row.status === 'learning') statMap[row.teacherId].activeStudents = parseInt(row.cnt);
-      if (row.status === 'completed') statMap[row.teacherId].completedStudents = parseInt(row.cnt);
+      if (!statMap[row.teacherId]) statMap[row.teacherId] = { active: 0, completed: 0 };
+      if (row.status === 'learning' || row.status === 'waiting') statMap[row.teacherId].active += parseInt(row.cnt);
+      if (row.status === 'completed') statMap[row.teacherId].completed += parseInt(row.cnt);
     }
 
     const ratingMap = {};
     for (const r of ratingStats) {
       ratingMap[r.teacherUserId] = {
-        avgStars: parseFloat(r.avgStars).toFixed(1),
+        avgStars: parseFloat(r.avgStars),
         totalRatings: parseInt(r.totalRatings),
       };
     }
 
-    // No contact info (phone/email/address) returned
-    const data = teachers.map(t => {
-      const plain = t.get({ plain: true });
+    // Aggregate per SupperTeacher
+    const data = supperTeachers.map(st => {
+      const plain = st.get({ plain: true });
+      const assistants = plain.managedTeachers || [];
+      let teamActive = 0;
+      let teamCompleted = 0;
+      let teamTotalStars = 0;
+      let teamTotalRatings = 0;
+
+      for (const t of assistants) {
+        const s = statMap[t.id] || { active: 0, completed: 0 };
+        teamActive += s.active;
+        teamCompleted += s.completed;
+        const r = ratingMap[t.id];
+        if (r) {
+          teamTotalStars += r.avgStars * r.totalRatings;
+          teamTotalRatings += r.totalRatings;
+        }
+      }
+
+      const teamAvg = teamTotalRatings > 0 ? (teamTotalStars / teamTotalRatings).toFixed(1) : '0.0';
+
       return {
         id: plain.id,
         username: plain.username,
         profile: plain.teacherProfile || null,
-        activeStudents: statMap[plain.id]?.activeStudents ?? 0,
-        completedStudents: statMap[plain.id]?.completedStudents ?? 0,
-        avgStars: ratingMap[plain.id]?.avgStars ?? '0.0',
-        totalRatings: ratingMap[plain.id]?.totalRatings ?? 0,
+        assistantCount: assistants.length,
+        activeStudents: teamActive,
+        completedStudents: teamCompleted,
+        avgStars: teamAvg,
+        totalRatings: teamTotalRatings,
       };
     });
 
@@ -80,9 +115,118 @@ const getPublicTeachers = async (req, res) => {
 
 const getPublicTeacherDetail = async (req, res) => {
   try {
-    const teacherId = parseInt(req.params.id);
+    const id = parseInt(req.params.id);
+
+    // Try SupperTeacher first, then fall back to regular teacher
+    const supperTeacher = await db.user.findOne({
+      where: { id, groupId: SUPPER_TEACHER_GROUP_ID },
+      attributes: ['id', 'username'],
+      include: [
+        { model: db.teacher_profile, as: 'teacherProfile', required: false },
+        {
+          model: db.user, as: 'managedTeachers',
+          attributes: ['id', 'username'],
+          required: false,
+          include: [{ model: db.teacher_profile, as: 'teacherProfile', required: false }],
+        },
+      ],
+    });
+
+    if (supperTeacher) {
+      const stPlain = supperTeacher.get({ plain: true });
+      const assistants = stPlain.managedTeachers || [];
+      const assistantIds = assistants.map(a => a.id);
+
+      // Fetch all ratings + assignment stats for assistants
+      const [allRatings, assignmentStats] = await Promise.all([
+        assistantIds.length > 0
+          ? db.teacher_rating.findAll({
+              where: { teacherUserId: { [Op.in]: assistantIds } },
+              order: [['createdAt', 'DESC']],
+              include: [{ model: db.hoc_vien, as: 'hocVien', attributes: ['HoTen'], required: false }],
+            })
+          : [],
+        assistantIds.length > 0
+          ? db.student_assignment.findAll({
+              where: { teacherId: { [Op.in]: assistantIds } },
+              attributes: ['teacherId', 'status', [db.sequelize.fn('COUNT', db.sequelize.col('id')), 'cnt']],
+              group: ['teacherId', 'status'],
+              raw: true,
+            })
+          : [],
+      ]);
+
+      const ratingsByTeacher = {};
+      for (const r of allRatings) {
+        const rp = r.get({ plain: true });
+        if (!ratingsByTeacher[rp.teacherUserId]) ratingsByTeacher[rp.teacherUserId] = [];
+        ratingsByTeacher[rp.teacherUserId].push(rp);
+      }
+
+      const statMap = {};
+      for (const row of assignmentStats) {
+        if (!statMap[row.teacherId]) statMap[row.teacherId] = { active: 0, completed: 0 };
+        if (row.status === 'learning' || row.status === 'waiting') statMap[row.teacherId].active += parseInt(row.cnt);
+        if (row.status === 'completed') statMap[row.teacherId].completed += parseInt(row.cnt);
+      }
+
+      let teamTotalStars = 0;
+      let teamTotalRatings = 0;
+      let teamActive = 0;
+      let teamCompleted = 0;
+
+      const assistantData = assistants.map(a => {
+        const aRatings = ratingsByTeacher[a.id] || [];
+        const aStats = statMap[a.id] || { active: 0, completed: 0 };
+        const aAvg = aRatings.length > 0
+          ? (aRatings.reduce((s, r) => s + r.stars, 0) / aRatings.length).toFixed(1)
+          : '0.0';
+
+        teamTotalStars += aRatings.reduce((s, r) => s + r.stars, 0);
+        teamTotalRatings += aRatings.length;
+        teamActive += aStats.active;
+        teamCompleted += aStats.completed;
+
+        return {
+          id: a.id,
+          username: a.username,
+          avatarUrl: a.teacherProfile?.avatarUrl || null,
+          licenseTypes: a.teacherProfile?.licenseTypes || null,
+          avgStars: aAvg,
+          totalRatings: aRatings.length,
+          activeStudents: aStats.active,
+          completedStudents: aStats.completed,
+          reviews: aRatings.slice(0, 3).map(r => ({
+            id: r.id,
+            stars: r.stars,
+            comment: r.comment,
+            createdAt: r.createdAt,
+            studentName: r.hocVien?.HoTen || null,
+          })),
+        };
+      });
+
+      const teamAvg = teamTotalRatings > 0 ? (teamTotalStars / teamTotalRatings).toFixed(1) : '0.0';
+
+      return res.status(200).json({
+        EM: 'ok', EC: 0,
+        DT: {
+          id: stPlain.id,
+          username: stPlain.username,
+          profile: stPlain.teacherProfile || null,
+          isSupperTeacher: true,
+          avgStars: teamAvg,
+          totalRatings: teamTotalRatings,
+          activeStudents: teamActive,
+          completedStudents: teamCompleted,
+          assistants: assistantData,
+        },
+      });
+    }
+
+    // Fallback: regular teacher (groupId=3)
     const teacher = await db.user.findOne({
-      where: { id: teacherId, groupId: 3 },
+      where: { id, groupId: TEACHER_GROUP_ID },
       attributes: ['id', 'username'],
       include: [{ model: db.teacher_profile, as: 'teacherProfile', required: false }],
     });
@@ -91,26 +235,17 @@ const getPublicTeacherDetail = async (req, res) => {
       return res.status(404).json({ EM: 'Không tìm thấy giáo viên', EC: -1, DT: null });
     }
 
-    const [assignmentStats, ratingStats] = await Promise.all([
+    const [assignmentStats, ratings] = await Promise.all([
       db.student_assignment.findAll({
-        where: {
-          teacherId,
-          status: { [Op.in]: ['learning', 'completed'] },
-        },
-        attributes: [
-          'status',
-          [db.sequelize.fn('COUNT', db.sequelize.col('id')), 'cnt'],
-        ],
+        where: { teacherId: id },
+        attributes: ['status', [db.sequelize.fn('COUNT', db.sequelize.col('id')), 'cnt']],
         group: ['status'],
         raw: true,
       }),
       db.teacher_rating.findAll({
-        where: { teacherUserId: teacherId },
-        attributes: [
-          [db.sequelize.fn('AVG', db.sequelize.col('stars')), 'avgStars'],
-          [db.sequelize.fn('COUNT', db.sequelize.col('id')), 'totalRatings'],
-        ],
-        raw: true,
+        where: { teacherUserId: id },
+        order: [['createdAt', 'DESC']],
+        include: [{ model: db.hoc_vien, as: 'hocVien', attributes: ['HoTen'], required: false }],
       }),
     ]);
 
@@ -121,20 +256,32 @@ const getPublicTeacherDetail = async (req, res) => {
       if (row.status === 'completed') completedStudents = parseInt(row.cnt);
     }
 
-    const rating = ratingStats[0] || {};
+    const totalStars = ratings.reduce((s, r) => s + r.stars, 0);
     const plain = teacher.get({ plain: true });
 
-    const data = {
-      id: plain.id,
-      username: plain.username,
-      profile: plain.teacherProfile || null,
-      activeStudents,
-      completedStudents,
-      avgStars: rating.avgStars ? parseFloat(rating.avgStars).toFixed(1) : '0.0',
-      totalRatings: rating.totalRatings ? parseInt(rating.totalRatings) : 0,
-    };
-
-    return res.status(200).json({ EM: 'ok', EC: 0, DT: data });
+    return res.status(200).json({
+      EM: 'ok', EC: 0,
+      DT: {
+        id: plain.id,
+        username: plain.username,
+        profile: plain.teacherProfile || null,
+        isSupperTeacher: false,
+        activeStudents,
+        completedStudents,
+        avgStars: ratings.length > 0 ? (totalStars / ratings.length).toFixed(1) : '0.0',
+        totalRatings: ratings.length,
+        reviews: ratings.slice(0, 10).map(r => {
+          const rp = r.get({ plain: true });
+          return {
+            id: rp.id,
+            stars: rp.stars,
+            comment: rp.comment,
+            createdAt: rp.createdAt,
+            studentName: rp.hocVien?.HoTen || null,
+          };
+        }),
+      },
+    });
   } catch (e) {
     console.error('[teacherProfileController.getPublicTeacherDetail]', e);
     return res.status(500).json({ EM: 'Lỗi server', EC: -1, DT: null });

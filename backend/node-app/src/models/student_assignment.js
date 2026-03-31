@@ -33,6 +33,11 @@ module.exports = (sequelize, DataTypes) => {
       progressPercent: { type: DataTypes.INTEGER, allowNull: false, defaultValue: 0 },
       datHoursCompleted: { type: DataTypes.FLOAT, allowNull: false, defaultValue: 0 },
       notes: { type: DataTypes.TEXT, allowNull: true },
+      role: {
+        type: DataTypes.ENUM('primary', 'supervisor'),
+        allowNull: false,
+        defaultValue: 'primary',
+      },
     },
     {
       sequelize,
