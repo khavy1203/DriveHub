@@ -21,7 +21,7 @@
 .srm__overlay {
   position: fixed;
   inset: 0;
-  z-index: 1000;
+  z-index: 1200;
   background: rgba(0, 0, 0, 0.45);
   backdrop-filter: blur(4px);
   display: flex;
@@ -184,12 +184,26 @@
   min-height: 400px;
 }
 
+.srm__map-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  width: 100%;
+  height: 100%;
+  min-height: 400px;
+  background: var(--srm-surface-low);
+  color: var(--srm-on-surface-variant);
+  font-size: 0.85rem;
+}
+
 /* Map stats overlay */
 .srm__map-stats {
   position: absolute;
   bottom: 1.25rem;
   left: 1.25rem;
-  z-index: 1000;
+  z-index: 1200;
   background: rgba(255, 255, 255, 0.92);
   backdrop-filter: blur(8px);
   border-radius: var(--srm-radius-sm);
@@ -289,6 +303,12 @@
   margin: 0;
 }
 
+.srm__stat-sub {
+  font-size: 0.68rem;
+  color: var(--srm-outline);
+  margin: 0.1rem 0 0;
+}
+
 /* ── Right Column ─────────────────────────────────────────────────────────── */
 .srm__right-col {
   display: flex;
@@ -342,6 +362,12 @@
   font-weight: 800;
   color: var(--srm-primary);
   margin: 0;
+}
+
+.srm__info-metric-sub {
+  font-size: 0.68rem;
+  color: var(--srm-outline);
+  margin: 0.15rem 0 0;
 }
 
 .srm__info-rows {

@@ -271,7 +271,12 @@ const importFromCccd = async (cccd, upstreamDT) => {
   try {
     const hv = upstreamDT.hocVien || {};
     const hoTen = hv.hoTen || `HV_${cccd}`;
-    const ngaySinh = hv.ngaySinh ? hv.ngaySinh.split('T')[0] : null;
+    let ngaySinh = null;
+    if (hv.ngaySinh) {
+      const raw = String(hv.ngaySinh).trim();
+      const ddmmyyyy = raw.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+      ngaySinh = ddmmyyyy ? `${ddmmyyyy[3]}-${ddmmyyyy[2]}-${ddmmyyyy[1]}` : raw.split('T')[0];
+    }
     const diaChi = hv.diaChi || null;
     const hangDaoTao = hv.hangDaoTao || null;
     const maKhoaHocFromApi = hv.maKhoaHoc || null;

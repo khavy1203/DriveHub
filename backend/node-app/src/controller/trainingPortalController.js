@@ -228,8 +228,9 @@ export const getTrainingSessionDetail = async (req, res) => {
     if (err.code === 'TRAINING_CONFIG') {
       return res.status(503).json({ EC: -1, EM: err.message, DT: null });
     }
-    console.error('[getTrainingSessionDetail]', err.message);
-    return res.status(500).json({ EC: -1, EM: 'Lỗi khi gọi dịch vụ đào tạo', DT: null });
+    const detail = err.code || err.message || 'Unknown';
+    console.error('[getTrainingSessionDetail]', detail, err.config?.url || '');
+    return res.status(500).json({ EC: -1, EM: `Lỗi khi gọi dịch vụ đào tạo: ${detail}`, DT: null });
   }
 };
 

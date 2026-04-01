@@ -9,10 +9,14 @@ export type TrainingSessionRow = {
   plate: string;
   rank: string;
   gpsCount: number;
-  /** ISO timestamp e.g. "2026-01-17T09:25:48.000Z" — used to call session-detail API */
+  /** ISO timestamp e.g. "2026-01-17T09:25:48.000Z" */
   thoiDiemVao: string | null;
   /** ISO timestamp e.g. "2026-01-17T10:16:21.000Z" */
   thoiDiemRa: string | null;
+  /** Local date from API e.g. "17/01/2026" — for session-detail query */
+  ngayDaoTao: string | null;
+  /** Local time range from API e.g. "09:25–10:16" — for session-detail query */
+  gioDaoTao: string | null;
 };
 
 export type TrainingModuleHistory = {
@@ -39,11 +43,26 @@ export type ThieuDuCriteria = {
   danhGia: string;
 };
 
+export type ConThieu = {
+  gio: number;
+  gioBanDem: number;
+  gioTuDong: number;
+  km: number;
+};
+
 export type ThieuDu = {
   hang: string;
   tongKet: string;
   isEligible: boolean;
   criteria: ThieuDuCriteria[];
+  conThieu: ConThieu | null;
+};
+
+export type GiayToItem = {
+  key: string;
+  tenGiayTo: string;
+  trangThai: string;
+  ghiChu: string;
 };
 
 export type TrainingFullDisplay = {
@@ -56,6 +75,7 @@ export type TrainingFullDisplay = {
   khoaHoc: string;
   instructor: string | null;
   plate: string | null;
+  ketQuaDiemDanh: string;
   dat: {
     soPhienHoc: number;
     tongGio: string;
@@ -76,19 +96,35 @@ export type TrainingFullDisplay = {
     ghiChu: string;
   } | null;
   lyThuyet: TrainingTheoryRow[];
+  giayTo: GiayToItem[];
   /** 0–100: blended from theory, đường trường, cabin, cao tốc when present in API */
   courseProgressPct: number;
   thieuDu: ThieuDu | null;
   moduleHistories: TrainingModuleHistory[];
 };
 
+/** Parse DD/MM/YYYY or ISO date string into display format. */
 const formatDateFromSlash = (raw: unknown): string => {
   if (typeof raw !== 'string' || !raw.trim()) return '—';
   const s = raw.trim();
-  if (/^\d{2}\/\d{2}\/\d{4}$/.test(s)) {
-    const [d, m, y] = s.split('/');
-    return `${d}/${m}/${y}`;
+  // Already DD/MM/YYYY — return as-is
+  if (/^\d{2}\/\d{2}\/\d{4}$/.test(s)) return s;
+  try {
+    const date = new Date(s);
+    if (!Number.isNaN(date.getTime())) return date.toLocaleDateString('vi-VN');
+  } catch {
+    /* ignore */
   }
+  return s;
+};
+
+/** Parse ngaySinh which can be DD/MM/YYYY or ISO string. */
+const parseBirthDate = (raw: unknown): string => {
+  if (typeof raw !== 'string' || !raw.trim()) return '—';
+  const s = raw.trim();
+  // DD/MM/YYYY format from API
+  if (/^\d{2}\/\d{2}\/\d{4}$/.test(s)) return s;
+  // ISO or other parseable format
   try {
     const date = new Date(s);
     if (!Number.isNaN(date.getTime())) return date.toLocaleDateString('vi-VN');
@@ -109,22 +145,29 @@ const parseSessionRow = (item: unknown, idx: number): TrainingSessionRow => {
   const empty: TrainingSessionRow = {
     key: `s-${idx}`, date: '—', timeRange: '—', durationLabel: '—', distanceLabel: '—',
     plate: '—', rank: '—', gpsCount: 0, thoiDiemVao: null, thoiDiemRa: null,
+    ngayDaoTao: null, gioDaoTao: null,
   };
   if (!isRecord(item)) return empty;
   const key = typeof item.sessionId === 'string' ? item.sessionId.slice(0, 16) : `s-${idx}`;
   const date = formatDateFromSlash(item.ngayDaoTao);
-  const timeRange = typeof item.gioDaoTao === 'string' ? item.gioDaoTao.replace('-', ' – ') : '—';
+  const rawGioDaoTao = typeof item.gioDaoTao === 'string' ? item.gioDaoTao.trim() : '';
+  const timeRange = rawGioDaoTao ? rawGioDaoTao.replace('-', ' – ') : '—';
   const h = typeof item.thoiGianGio === 'number' ? item.thoiGianGio : parseFloat(String(item.thoiGianGio ?? ''));
   const durationLabel = Number.isFinite(h) ? formatHours(h) : '—';
   const km = typeof item.quangDuongKm === 'number' ? item.quangDuongKm : parseFloat(String(item.quangDuongKm ?? ''));
-  const distanceLabel = Number.isFinite(km) ? `${km} km` : '—';
+  const distanceLabel = Number.isFinite(km) ? `${Math.round(km * 100) / 100} km` : '—';
   const plate = typeof item.bienSo === 'string' && item.bienSo.trim() ? item.bienSo.trim() : '—';
   const rank = typeof item.hangXe === 'string' && item.hangXe.trim() ? item.hangXe.trim() : '—';
   const loTrinh = isRecord(item.loTrinh) ? item.loTrinh : null;
   const gpsCount = loTrinh && typeof loTrinh.soDiem === 'number' ? loTrinh.soDiem : 0;
   const thoiDiemVao = typeof item.thoiDiemVao === 'string' && item.thoiDiemVao.trim() ? item.thoiDiemVao.trim() : null;
   const thoiDiemRa = typeof item.thoiDiemRa === 'string' && item.thoiDiemRa.trim() ? item.thoiDiemRa.trim() : null;
-  return { key: `${key}-${idx}`, date, timeRange, durationLabel, distanceLabel, plate, rank, gpsCount, thoiDiemVao, thoiDiemRa };
+  const ngayDaoTao = typeof item.ngayDaoTao === 'string' && item.ngayDaoTao.trim() ? item.ngayDaoTao.trim() : null;
+  const gioDaoTao = rawGioDaoTao || null;
+  return {
+    key: `${key}-${idx}`, date, timeRange, durationLabel, distanceLabel,
+    plate, rank, gpsCount, thoiDiemVao, thoiDiemRa, ngayDaoTao, gioDaoTao,
+  };
 };
 
 const parseLyThuyet = (raw: unknown): TrainingTheoryRow[] => {
@@ -139,6 +182,18 @@ const parseLyThuyet = (raw: unknown): TrainingTheoryRow[] => {
   }).filter((x): x is TrainingTheoryRow => x !== null && x.mon !== '—');
 };
 
+const parseGiayTo = (raw: unknown): GiayToItem[] => {
+  if (!Array.isArray(raw)) return [];
+  return raw.map((x, i) => {
+    if (!isRecord(x)) return null;
+    const tenGiayTo = typeof x.tenGiayTo === 'string' ? x.tenGiayTo.trim() : '';
+    const trangThai = typeof x.trangThai === 'string' ? x.trangThai.trim() : '';
+    const ghiChu = typeof x.ghiChu === 'string' ? x.ghiChu.trim() : '';
+    if (!tenGiayTo && !trangThai) return null;
+    return { key: `gt-${i}`, tenGiayTo: tenGiayTo || '—', trangThai, ghiChu };
+  }).filter((x): x is GiayToItem => x !== null);
+};
+
 const parseThieuDu = (raw: unknown): ThieuDu | null => {
   if (!isRecord(raw)) return null;
   const hang = typeof raw.hang === 'string' ? raw.hang.trim() : '';
@@ -149,7 +204,10 @@ const parseThieuDu = (raw: unknown): ThieuDu | null => {
   const tongKet = typeof danhGia.tongKet === 'string' ? danhGia.tongKet.trim() : '—';
   const isEligible = /đủ điều kiện dự thi/i.test(tongKet) && !/chưa/i.test(tongKet);
 
-  const n = (v: unknown): number => (typeof v === 'number' ? v : parseFloat(String(v ?? '0')) || 0);
+  const n = (v: unknown): number => {
+    const raw = typeof v === 'number' ? v : parseFloat(String(v ?? '0')) || 0;
+    return Math.round(raw * 100) / 100;
+  };
 
   const makePct = (actual: number, threshold: number): number =>
     threshold <= 0 ? 100 : Math.min(100, Math.round((actual / threshold) * 100));
@@ -169,8 +227,8 @@ const parseThieuDu = (raw: unknown): ThieuDu | null => {
     {
       key: 'gio',
       label: 'Giờ học',
-      thucTeLabel: `${n(thucTe.tongGioHoc).toFixed(2)} h`,
-      nguongLabel: `${n(nguong.gioToiThieu)} h`,
+      thucTeLabel: formatHours(n(thucTe.tongGioHoc)),
+      nguongLabel: formatHours(n(nguong.gioToiThieu)),
       pct: makePct(n(thucTe.tongGioHoc), n(nguong.gioToiThieu)),
       status: statusFromDanhGia(daGio),
       danhGia: daGio || '—',
@@ -187,8 +245,8 @@ const parseThieuDu = (raw: unknown): ThieuDu | null => {
     {
       key: 'dem',
       label: 'Ban đêm',
-      thucTeLabel: `${n(thucTe.gioBanDem).toFixed(2)} h`,
-      nguongLabel: `${n(nguong.gioBanDemToiThieu)} h`,
+      thucTeLabel: formatHours(n(thucTe.gioBanDem)),
+      nguongLabel: formatHours(n(nguong.gioBanDemToiThieu)),
       pct: makePct(n(thucTe.gioBanDem), n(nguong.gioBanDemToiThieu)),
       status: statusFromDanhGia(daBanDem),
       danhGia: daBanDem || '—',
@@ -196,15 +254,29 @@ const parseThieuDu = (raw: unknown): ThieuDu | null => {
     {
       key: 'tudong',
       label: 'Hộp số tự động',
-      thucTeLabel: `${n(thucTe.gioTuDong).toFixed(2)} h`,
-      nguongLabel: `${n(nguong.gioTuDongToiThieu)} h`,
+      thucTeLabel: formatHours(n(thucTe.gioTuDong)),
+      nguongLabel: formatHours(n(nguong.gioTuDongToiThieu)),
       pct: makePct(n(thucTe.gioTuDong), n(nguong.gioTuDongToiThieu)),
       status: statusFromDanhGia(daTuDong),
       danhGia: daTuDong || '—',
     },
-  ].filter((c) => c.status !== 'na' || n(nguong.gioTuDongToiThieu) > 0 || c.key !== 'tudong');
+  ].filter((c) => {
+    // Always show if has actual training data, even when threshold is 0
+    if (c.status === 'na' && c.key === 'tudong' && n(thucTe.gioTuDong) === 0 && n(nguong.gioTuDongToiThieu) === 0) {
+      return false;
+    }
+    return true;
+  });
 
-  return { hang, tongKet, isEligible, criteria };
+  const conThieuRaw = isRecord(raw.conThieu) ? raw.conThieu : null;
+  const conThieu: ConThieu | null = conThieuRaw ? {
+    gio: n(conThieuRaw.gio),
+    gioBanDem: n(conThieuRaw.gioBanDem),
+    gioTuDong: n(conThieuRaw.gioTuDong),
+    km: n(conThieuRaw.km),
+  } : null;
+
+  return { hang, tongKet, isEligible, criteria, conThieu };
 };
 
 /**
@@ -271,15 +343,7 @@ export function parseTrainingDisplay(dt: Record<string, unknown>): TrainingFullD
   const hoTen = typeof hv.hoTen === 'string' && hv.hoTen.trim() ? hv.hoTen.trim() : '—';
   const maSo = typeof hv.maDK === 'string' && hv.maDK.trim() ? hv.maDK.trim() : '—';
   const rankLabel = typeof hv.hangDaoTao === 'string' && hv.hangDaoTao.trim() ? hv.hangDaoTao.trim() : '—';
-  const ngaySinhRaw = hv.ngaySinh;
-  let ngaySinh = '—';
-  if (typeof ngaySinhRaw === 'string' && ngaySinhRaw.trim()) {
-    try {
-      ngaySinh = new Date(ngaySinhRaw).toLocaleDateString('vi-VN');
-    } catch {
-      ngaySinh = ngaySinhRaw;
-    }
-  }
+  const ngaySinh = parseBirthDate(hv.ngaySinh);
 
   const cccd = typeof hv.cccd === 'string' && hv.cccd.trim() ? hv.cccd.trim() : '—';
   const diaChi = typeof hv.diaChi === 'string' && hv.diaChi.trim() ? hv.diaChi.trim() : '—';
@@ -288,6 +352,8 @@ export function parseTrainingDisplay(dt: Record<string, unknown>): TrainingFullD
   const khoaHoc = tenKhoa && maKhoa ? `${tenKhoa} (${maKhoa})` : tenKhoa || maKhoa || '—';
   const instructor = typeof hv.giaoVien === 'string' && hv.giaoVien.trim() ? hv.giaoVien.trim() : null;
   const plate = typeof hv.phanXe === 'string' && hv.phanXe.trim() ? hv.phanXe.trim() : null;
+  const ketQuaDiemDanh = typeof hv.ketQuaDiemDanh === 'string' && hv.ketQuaDiemDanh.trim()
+    ? hv.ketQuaDiemDanh.trim() : '';
 
   const tk = isRecord(dt.tongKet) ? dt.tongKet : null;
   const duongThuong = tk && isRecord(tk.duongThuong) ? tk.duongThuong : null;
@@ -299,7 +365,7 @@ export function parseTrainingDisplay(dt: Record<string, unknown>): TrainingFullD
     dat = {
       soPhienHoc,
       tongGio: formatHours(h),
-      tongKm: `${km} km`,
+      tongKm: `${Math.round(km * 100) / 100} km`,
       completed: km > 0 || soPhienHoc > 0,
     };
   }
@@ -319,29 +385,18 @@ export function parseTrainingDisplay(dt: Record<string, unknown>): TrainingFullD
   const caoTocRaw = isRecord(dt.caoToc) ? dt.caoToc : (tk && isRecord(tk.caoToc) ? tk.caoToc : null);
   let caoToc: TrainingFullDisplay['caoToc'] = null;
   if (caoTocRaw) {
-    const ctGio = String(caoTocRaw.tongGio ?? '0');
-    const ctKm = String(caoTocRaw.tongKm ?? '0');
-    const ctVanToc = String(caoTocRaw.vanTocTB ?? '0');
-
-    // Local pass criteria: time > 3600s, distance > 60km, avg speed > 60km/h
-    const MIN_SECONDS = 3600;
-    const MIN_KM = 60;
-    const MIN_SPEED = 60;
-    const gioNum = parseFloat(ctGio) || 0;
-    const kmNum = parseFloat(ctKm) || 0;
-    const vanTocNum = parseFloat(ctVanToc) || 0;
-    const localPass = gioNum > MIN_SECONDS && kmNum > MIN_KM && vanTocNum > MIN_SPEED;
-
+    const r2 = (v: unknown) => String(Math.round((parseFloat(String(v ?? '0')) || 0) * 100) / 100);
     caoToc = {
-      tongGio: ctGio,
-      tongKm: ctKm,
-      vanTocTB: ctVanToc,
-      hoanThanh: localPass,
+      tongGio: r2(caoTocRaw.tongGio),
+      tongKm: r2(caoTocRaw.tongKm),
+      vanTocTB: r2(caoTocRaw.vanTocTB),
+      hoanThanh: Boolean(caoTocRaw.hoanThanh),
       ghiChu: typeof caoTocRaw.ghiChu === 'string' ? caoTocRaw.ghiChu.trim() : '',
     };
   }
 
   const lyThuyet = parseLyThuyet(dt.lyThuyet);
+  const giayTo = parseGiayTo(dt.giayTo);
 
   const sessionsRaw = Array.isArray(dt.loTrinhDuongThuong) ? dt.loTrinhDuongThuong : [];
   const sessions = sessionsRaw.map((item, idx) => parseSessionRow(item, idx));
@@ -356,7 +411,7 @@ export function parseTrainingDisplay(dt: Record<string, unknown>): TrainingFullD
 
   return {
     hoTen, maSo, rankLabel, ngaySinh, cccd, diaChi, khoaHoc,
-    instructor, plate, dat, cabin, caoToc, lyThuyet, courseProgressPct,
-    thieuDu, moduleHistories,
+    instructor, plate, ketQuaDiemDanh, dat, cabin, caoToc,
+    lyThuyet, giayTo, courseProgressPct, thieuDu, moduleHistories,
   };
 }

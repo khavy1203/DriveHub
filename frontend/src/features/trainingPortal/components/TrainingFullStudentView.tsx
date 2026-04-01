@@ -1,12 +1,14 @@
-import React, { useState } from 'react';
+import React, { lazy, Suspense, useEffect, useState } from 'react';
 import type {
   TrainingFullDisplay,
   TrainingSessionRow,
   TrainingTheoryRow,
   ThieuDu,
+  GiayToItem,
 } from '../lib/parseTrainingDisplay';
-import SessionRouteModal from './SessionRouteModal';
 import './TrainingFullStudentView.scss';
+
+const SessionRouteModal = lazy(() => import('./SessionRouteModal'));
 
 type Props = {
   display: TrainingFullDisplay;
@@ -208,6 +210,53 @@ const ThieuDuPanel: React.FC<{ data: ThieuDu }> = ({ data }) => (
         </div>
       ))}
     </div>
+    {data.conThieu && (data.conThieu.gio > 0 || data.conThieu.km > 0 || data.conThieu.gioBanDem > 0) ? (
+      <div className="tfs__conthieu">
+        <Icon name="info" className="tfs__conthieu-icon" />
+        <span className="tfs__conthieu-label">Còn thiếu:</span>
+        {data.conThieu.gio > 0 ? <span className="tfs__conthieu-item">{Math.round(data.conThieu.gio * 100) / 100}h giờ học</span> : null}
+        {data.conThieu.km > 0 ? <span className="tfs__conthieu-item">{Math.round(data.conThieu.km * 100) / 100} km</span> : null}
+        {data.conThieu.gioBanDem > 0 ? <span className="tfs__conthieu-item">{Math.round(data.conThieu.gioBanDem * 100) / 100}h ban đêm</span> : null}
+        {data.conThieu.gioTuDong > 0 ? <span className="tfs__conthieu-item">{Math.round(data.conThieu.gioTuDong * 100) / 100}h tự động</span> : null}
+      </div>
+    ) : null}
+  </section>
+);
+
+const GiayToTable: React.FC<{ rows: GiayToItem[] }> = ({ rows }) => (
+  <section className="tfs__history">
+    <div className="tfs__history-head">
+      <div className="tfs__history-title-row">
+        <div className="tfs__history-accent tfs__history-accent--secondary" aria-hidden />
+        <h2 className="tfs__history-title">Giấy tờ</h2>
+      </div>
+    </div>
+    <div className="tfs__table-wrap">
+      <table className="tfs__table">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Tên giấy tờ</th>
+            <th className="tfs__th-center">Trạng thái</th>
+            <th>Ghi chú</th>
+          </tr>
+        </thead>
+        <tbody>
+          {rows.map((r, idx) => (
+            <tr key={r.key}>
+              <td className="tfs__td-muted">{idx + 1}</td>
+              <td className="tfs__td-strong">{r.tenGiayTo}</td>
+              <td className="tfs__td-center">
+                <span className={r.trangThai ? 'tfs__pill tfs__pill--done' : 'tfs__pill tfs__pill--active'}>
+                  {r.trangThai || 'Chưa có'}
+                </span>
+              </td>
+              <td className="tfs__td-muted">{r.ghiChu || '—'}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
   </section>
 );
 
@@ -220,10 +269,12 @@ const TrainingFullStudentView: React.FC<Props> = ({ display, showBreadcrumbs = t
     cccd,
     diaChi,
     khoaHoc,
+    ketQuaDiemDanh,
     dat,
     cabin,
     caoToc,
     lyThuyet,
+    giayTo,
     courseProgressPct,
     thieuDu,
     instructor,
@@ -232,6 +283,11 @@ const TrainingFullStudentView: React.FC<Props> = ({ display, showBreadcrumbs = t
   } = display;
 
   const [activeSession, setActiveSession] = useState<TrainingSessionRow | null>(null);
+
+  // Prefetch map chunk so it's ready when user clicks a session row
+  useEffect(() => {
+    import('./SessionRouteMap');
+  }, []);
 
   const rankChip = rankLabel !== '—'
     ? (/^hạng/i.test(rankLabel) ? rankLabel : `Hạng ${rankLabel}`)
@@ -263,6 +319,9 @@ const TrainingFullStudentView: React.FC<Props> = ({ display, showBreadcrumbs = t
             <ProfileFact icon="badge" label="CCCD" value={cccd} />
             <ProfileFact icon="location_on" label="Địa chỉ" value={diaChi} />
             <ProfileFact icon="school" label="Khóa học" value={khoaHoc} />
+            {ketQuaDiemDanh ? (
+              <ProfileFact icon="fact_check" label="Điểm danh" value={ketQuaDiemDanh} />
+            ) : null}
           </div>
         </div>
 
@@ -290,6 +349,11 @@ const TrainingFullStudentView: React.FC<Props> = ({ display, showBreadcrumbs = t
                 <h3 className="tfs__card-title">Đường trường</h3>
                 <div className="tfs__card-dat-metrics">
                   <span className="tfs__card-dat-num">{dat.tongKm}</span>
+                </div>
+                <div className="tfs__card-dat-sub">
+                  <span>{dat.soPhienHoc} phiên</span>
+                  <span className="tfs__card-dat-sep">·</span>
+                  <span>{dat.tongGio}</span>
                 </div>
               </div>
             ) : null}
@@ -401,6 +465,9 @@ const TrainingFullStudentView: React.FC<Props> = ({ display, showBreadcrumbs = t
       {/* Theory detail table */}
       {lyThuyet.length > 0 ? <TheoryTable rows={lyThuyet} /> : null}
 
+      {/* Giấy tờ table */}
+      {giayTo.length > 0 ? <GiayToTable rows={giayTo} /> : null}
+
       {/* Session history tables */}
       <div className="tfs__history-stack">
         {moduleHistories.length === 0 ? (
@@ -418,14 +485,16 @@ const TrainingFullStudentView: React.FC<Props> = ({ display, showBreadcrumbs = t
       </div>
 
       {/* Route detail modal */}
-      {activeSession !== null ? (
-        <SessionRouteModal
-          session={activeSession}
-          maDK={maSo !== '—' ? maSo : null}
-          studentName={hoTen}
-          onClose={() => setActiveSession(null)}
-        />
-      ) : null}
+      {activeSession !== null && (
+        <Suspense fallback={null}>
+          <SessionRouteModal
+            session={activeSession}
+            maDK={maSo !== '—' ? maSo : null}
+            studentName={hoTen}
+            onClose={() => setActiveSession(null)}
+          />
+        </Suspense>
+      )}
     </div>
   );
 };

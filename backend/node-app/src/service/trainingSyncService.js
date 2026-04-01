@@ -178,7 +178,16 @@ export const syncOneStudent = async (hocVienId) => {
     if (apiHv.hoTen) {
       const hvUpdates = {};
       if (apiHv.hoTen) hvUpdates.HoTen = apiHv.hoTen;
-      if (apiHv.ngaySinh) hvUpdates.NgaySinh = apiHv.ngaySinh.split('T')[0];
+      if (apiHv.ngaySinh) {
+        const raw = String(apiHv.ngaySinh).trim();
+        // API may return DD/MM/YYYY or ISO — normalise to YYYY-MM-DD for DB
+        const ddmmyyyy = raw.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+        if (ddmmyyyy) {
+          hvUpdates.NgaySinh = `${ddmmyyyy[3]}-${ddmmyyyy[2]}-${ddmmyyyy[1]}`;
+        } else {
+          hvUpdates.NgaySinh = raw.split('T')[0];
+        }
+      }
       if (apiHv.diaChi) hvUpdates.DiaChi = apiHv.diaChi;
       if (apiHv.hangDaoTao) hvUpdates.loaibangthi = apiHv.hangDaoTao;
       if (Object.keys(hvUpdates).length > 0) {

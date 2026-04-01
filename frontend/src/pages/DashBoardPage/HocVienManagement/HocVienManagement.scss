@@ -1397,6 +1397,14 @@
   flex-direction: column;
   gap: 12px;
 
+  &--side {
+    @media (min-width: 900px) {
+      position: sticky;
+      top: 0;
+      align-self: start;
+    }
+  }
+
   &--main { gap: 14px; }
 }
 
@@ -1549,15 +1557,6 @@
   flex-direction: column;
   min-height: 0;
   min-width: 0;
-  max-height: min(55vh, 520px);
-
-  @media (min-width: 900px) {
-    max-height: min(68vh, 720px);
-  }
-
-  @media (min-width: 1400px) {
-    max-height: min(72vh, 820px);
-  }
 }
 
 .hvm__dm-training-header {
@@ -1576,12 +1575,8 @@
 }
 
 .hvm__dm-training-scroll {
-  flex: 1 1 auto;
-  min-height: 0;
   min-width: 0;
-  overflow: auto;
   padding: 12px 14px 16px;
-  -webkit-overflow-scrolling: touch;
 
   .tpb,
   .tfs {

@@ -134,6 +134,7 @@ export const getMyStudents = async (superTeacherId) => {
             required: false,
           }],
         }],
+        order: [['createdAt', 'DESC']],
       })
     : [];
 
@@ -161,6 +162,7 @@ export const getMyStudents = async (superTeacherId) => {
       attributes: ['courseProgressPct', 'syncStatus', 'lastSyncAt'],
       required: false,
     }],
+    order: [['createdAt', 'DESC']],
   });
 
   const unassignedResult = unassignedHv.map(hv => ({
@@ -176,7 +178,8 @@ export const getMyStudents = async (superTeacherId) => {
     hocVien: hv.get({ plain: true }),
   }));
 
-  return [...assignedResult, ...unassignedResult];
+  // Unassigned (newly imported) first, then assigned — both sorted by newest first
+  return [...unassignedResult, ...assignedResult];
 };
 
 export const assignStudentToTeacher = async (superTeacherId, hocVienId, teacherId) => {

@@ -956,3 +956,51 @@
   font-weight: 600;
   color: #c25000;
 }
+
+/* ── DAT sub-info (sessions + hours) ──────────────────────── */
+.tfs__card-dat-sub {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--tfs-on-surface-variant);
+  position: relative;
+  z-index: 1;
+}
+
+.tfs__card-dat-sep {
+  opacity: 0.4;
+}
+
+/* ── Còn thiếu row inside ThieuDu panel ───────────────────── */
+.tfs__conthieu {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  margin-top: 0.75rem;
+  background: #fff3e0;
+  border-radius: var(--tfs-radius-lg);
+  border: 1px solid #ffe0b2;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #e65100;
+}
+
+.tfs__conthieu-icon {
+  font-size: 1rem;
+  color: #ef6c00;
+}
+
+.tfs__conthieu-label {
+  font-weight: 700;
+}
+
+.tfs__conthieu-item {
+  padding: 0.2rem 0.5rem;
+  background: #fff8e1;
+  border-radius: 4px;
+  white-space: nowrap;
+}
