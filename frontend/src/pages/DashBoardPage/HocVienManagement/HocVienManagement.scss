@@ -902,12 +902,17 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    z-index: 500;
+    z-index: 1050;
     padding: 20px 12px;
     overflow-y: auto;
     animation: hvm-fade 0.18s ease;
 
     &--detail {
+      @media (max-width: 640px) {
+        padding: 0;
+        align-items: flex-end;
+      }
+
       @media (min-width: 900px) {
         padding: 12px 14px;
         align-items: flex-start;
@@ -915,7 +920,7 @@
       }
     }
 
-    &--above { z-index: 600; }
+    &--above { z-index: 1060; }
   }
 
   // ── Assign modal (small) ───────────────────────────────────
@@ -1125,6 +1130,15 @@
   overflow: hidden;
   animation: hvm-slide-up 0.22s ease;
   isolation: isolate;
+
+  @media (max-width: 640px) {
+    width: 100vw;
+    max-width: 100vw;
+    height: calc(100dvh - env(safe-area-inset-top, 0px));
+    max-height: calc(100dvh - env(safe-area-inset-top, 0px));
+    border-radius: 1rem 1rem 0 0;
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
 
   @media (min-width: 900px) {
     width: min(100%, min(1520px, 96vw));

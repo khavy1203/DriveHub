@@ -491,13 +491,18 @@
 @media (max-width: 768px) {
   .srm__overlay {
     padding: 0;
-    align-items: stretch;
+    align-items: flex-end;
   }
 
   .srm__panel {
-    max-height: 100dvh;
-    height: 100dvh;
-    border-radius: 0;
+    max-height: calc(100dvh - env(safe-area-inset-top, 0px));
+    height: calc(100dvh - env(safe-area-inset-top, 0px));
+    border-radius: 1rem 1rem 0 0;
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+
+  .srm__header {
+    padding-top: 1rem;
   }
 
   .srm__body {

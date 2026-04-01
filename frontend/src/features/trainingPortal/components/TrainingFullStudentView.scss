@@ -1004,3 +1004,58 @@
   border-radius: 4px;
   white-space: nowrap;
 }
+
+/* ── Session table STT circle ─────────────────────────────── */
+.tfs__stt {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.75rem;
+  height: 1.75rem;
+  border-radius: 50%;
+  background: var(--tfs-surface-low);
+  font-size: 0.65rem;
+  font-weight: 800;
+  color: var(--tfs-on-surface-variant);
+}
+
+/* ── Mobile session table ─────────────────────────────────── */
+@media (max-width: 640px) {
+  .tfs__table {
+    font-size: 0.8125rem;
+
+    th:nth-child(4),
+    th:nth-child(5),
+    th:nth-child(7),
+    th:nth-child(8),
+    td:nth-child(4),
+    td:nth-child(5),
+    td:nth-child(7),
+    td:nth-child(8) {
+      display: none;
+    }
+
+    th {
+      padding: 0.65rem 0.5rem;
+      white-space: nowrap;
+    }
+
+    td {
+      padding: 0.75rem 0.5rem;
+    }
+
+    th:first-child,
+    td:first-child {
+      padding-left: 0.75rem;
+    }
+
+    th:last-child,
+    td:last-child {
+      padding-right: 0.75rem;
+    }
+  }
+
+  .tfs__plate-dot {
+    display: none;
+  }
+}

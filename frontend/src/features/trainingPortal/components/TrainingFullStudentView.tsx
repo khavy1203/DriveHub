@@ -85,7 +85,7 @@ const SessionTable: React.FC<{
                   onClick={hasRoute && onRowClick ? () => onRowClick(row) : undefined}
                   title={hasRoute && onRowClick ? 'Xem lộ trình phiên này' : undefined}
                 >
-                  <td className="tfs__td-muted">{idx + 1}</td>
+                  <td><span className="tfs__stt">{String(idx + 1).padStart(2, '0')}</span></td>
                   <td className="tfs__td-strong">{row.date}</td>
                   <td>
                     <span className="tfs__pill-data">{row.timeRange}</span>
@@ -116,7 +116,7 @@ const SessionTable: React.FC<{
                         aria-label="Xem lộ trình"
                         title="Xem lộ trình"
                       >
-                        <span className="material-icons">map</span>
+                        <span className="material-icons">visibility</span>
                       </button>
                     ) : (
                       <span className="tfs__td-muted">—</span>
