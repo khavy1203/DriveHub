@@ -173,6 +173,19 @@ export const syncOneStudent = async (hocVienId) => {
     const dt = data.DT;
     const pct = computeProgressFromDT(dt);
 
+    // Sync student personal info from API into hoc_vien
+    const apiHv = isRecord(dt.hocVien) ? dt.hocVien : {};
+    if (apiHv.hoTen) {
+      const hvUpdates = {};
+      if (apiHv.hoTen) hvUpdates.HoTen = apiHv.hoTen;
+      if (apiHv.ngaySinh) hvUpdates.NgaySinh = apiHv.ngaySinh.split('T')[0];
+      if (apiHv.diaChi) hvUpdates.DiaChi = apiHv.diaChi;
+      if (apiHv.hangDaoTao) hvUpdates.loaibangthi = apiHv.hangDaoTao;
+      if (Object.keys(hvUpdates).length > 0) {
+        await db.hoc_vien.update(hvUpdates, { where: { id: hocVienId } });
+      }
+    }
+
     await db.training_snapshot.upsert({
       hocVienId,
       cccd,
