@@ -16,6 +16,8 @@ import {
   createTeacherByAdmin,
   reassignTeacher,
   getTeachersWithoutSupper,
+  promoteToSuperTeacher,
+  demoteToTeacher,
 } from '../service/superTeacherService.js';
 
 const handleError = (res, err, next) => {
@@ -200,5 +202,23 @@ export const listTeachersWithoutSupper = async (req, res, next) => {
   try {
     const data = await getTeachersWithoutSupper();
     return res.json({ EC: 0, EM: 'OK', DT: data });
+  } catch (err) { handleError(res, err, next); }
+};
+
+export const promoteTeacher = async (req, res, next) => {
+  try {
+    const teacherId = Number(req.params.teacherId);
+    const data = await promoteToSuperTeacher(teacherId);
+    return res.json({ EC: 0, EM: 'Nâng cấp thành SupperTeacher thành công', DT: data });
+  } catch (err) { handleError(res, err, next); }
+};
+
+export const demoteSuperTeacher = async (req, res, next) => {
+  try {
+    const superTeacherId = Number(req.params.id);
+    const { newManagerId } = req.body;
+    if (!newManagerId) return res.status(400).json({ EC: -1, EM: 'Phải chọn SupperTeacher tiếp nhận', DT: null });
+    const data = await demoteToTeacher(superTeacherId, Number(newManagerId));
+    return res.json({ EC: 0, EM: 'Hạ cấp thành giáo viên thành công', DT: data });
   } catch (err) { handleError(res, err, next); }
 };

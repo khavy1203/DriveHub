@@ -1189,11 +1189,15 @@ button:hover {
     }
 
     .sidebar-section .top {
-        flex: 0 0 90%;
+        flex: 1 1 auto;
         max-height: 90%;
         min-height: 0;
-        overflow: hidden;
+        overflow-y: auto;
+        overflow-x: hidden;
         padding-bottom: 4px;
+        scrollbar-width: none;
+        -ms-overflow-style: none;
+        &::-webkit-scrollbar { display: none; }
     }
 
     .time-remaining {

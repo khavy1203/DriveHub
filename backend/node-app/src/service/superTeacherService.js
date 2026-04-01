@@ -507,6 +507,122 @@ export const getRatingsOverview = async (superTeacherId) => {
   };
 };
 
+/**
+ * Promote a teacher to SuperTeacher.
+ * - Changes groupId from TEACHER to SUPPER_TEACHER
+ * - Removes link to old SuperTeacher
+ * - Keeps all student_assignment records (students they teach stay with them)
+ * - Transfers those students' superTeacherId on hoc_vien to the new SuperTeacher
+ */
+export const promoteToSuperTeacher = async (teacherId) => {
+  const { Op } = require('sequelize');
+  const teacher = await db.user.findOne({ where: { id: teacherId, groupId: TEACHER_GROUP_ID } });
+  if (!teacher) throw Object.assign(new Error('Không tìm thấy giáo viên'), { code: 'NOT_FOUND' });
+
+  const oldSuperTeacherId = teacher.superTeacherId;
+
+  // Change role
+  await teacher.update({ groupId: SUPPER_TEACHER_GROUP_ID, superTeacherId: null });
+
+  // Transfer students they directly teach: set hoc_vien.superTeacherId to the new SuperTeacher
+  const assignments = await db.student_assignment.findAll({
+    where: { teacherId, role: 'primary' },
+    attributes: ['hocVienId'],
+    raw: true,
+  });
+  const hocVienIds = assignments.map(a => a.hocVienId);
+  if (hocVienIds.length > 0) {
+    await db.hoc_vien.update(
+      { superTeacherId: teacherId },
+      { where: { id: { [Op.in]: hocVienIds } } },
+    );
+
+    // Remove old supervisor assignments and create new ones pointing to the new SuperTeacher
+    if (oldSuperTeacherId) {
+      await db.student_assignment.destroy({
+        where: { hocVienId: { [Op.in]: hocVienIds }, teacherId: oldSuperTeacherId, role: 'supervisor' },
+      });
+    }
+  }
+
+  const { password: _, ...safe } = teacher.get({ plain: true });
+  return safe;
+};
+
+/**
+ * Demote a SuperTeacher to a regular teacher under a target SuperTeacher.
+ * - Changes groupId from SUPPER_TEACHER to TEACHER
+ * - Sets superTeacherId to the target SuperTeacher
+ * - Keeps all student_assignment records (students they teach stay with them)
+ * - Transfers those students' superTeacherId on hoc_vien to the new managing SuperTeacher
+ * - Reassigns managed teachers (their old team) to the new SuperTeacher
+ */
+export const demoteToTeacher = async (superTeacherId, newManagerId) => {
+  const { Op } = require('sequelize');
+  const st = await db.user.findOne({ where: { id: superTeacherId, groupId: SUPPER_TEACHER_GROUP_ID } });
+  if (!st) throw Object.assign(new Error('Không tìm thấy SupperTeacher'), { code: 'NOT_FOUND' });
+
+  const manager = await db.user.findOne({ where: { id: newManagerId, groupId: SUPPER_TEACHER_GROUP_ID } });
+  if (!manager) throw Object.assign(new Error('SupperTeacher tiếp nhận không tồn tại'), { code: 'NOT_FOUND' });
+  if (superTeacherId === newManagerId) {
+    throw Object.assign(new Error('Không thể hạ cấp cho chính mình'), { code: 'VALIDATION' });
+  }
+
+  // Reassign managed teachers to the new manager
+  await db.user.update(
+    { superTeacherId: newManagerId },
+    { where: { groupId: TEACHER_GROUP_ID, superTeacherId } },
+  );
+
+  // Transfer students owned by this SuperTeacher to the new manager
+  const ownedStudentIds = await db.hoc_vien.findAll({
+    where: { superTeacherId },
+    attributes: ['id'],
+    raw: true,
+  });
+  const hvIds = ownedStudentIds.map(h => h.id);
+  if (hvIds.length > 0) {
+    await db.hoc_vien.update(
+      { superTeacherId: newManagerId },
+      { where: { id: { [Op.in]: hvIds } } },
+    );
+
+    // Replace old supervisor assignments with new manager
+    await db.student_assignment.destroy({
+      where: { hocVienId: { [Op.in]: hvIds }, teacherId: superTeacherId, role: 'supervisor' },
+    });
+
+    // Create supervisor assignments for new manager (skip students they already teach directly)
+    const newManagerPrimary = await db.student_assignment.findAll({
+      where: { hocVienId: { [Op.in]: hvIds }, teacherId: newManagerId, role: 'primary' },
+      attributes: ['hocVienId'],
+      raw: true,
+    });
+    const skipIds = new Set(newManagerPrimary.map(a => a.hocVienId));
+    const toCreate = hvIds.filter(id => !skipIds.has(id));
+
+    const existingSupervisor = await db.student_assignment.findAll({
+      where: { hocVienId: { [Op.in]: toCreate }, teacherId: newManagerId, role: 'supervisor' },
+      attributes: ['hocVienId'],
+      raw: true,
+    });
+    const alreadyHas = new Set(existingSupervisor.map(a => a.hocVienId));
+    const finalCreate = toCreate.filter(id => !alreadyHas.has(id));
+
+    if (finalCreate.length > 0) {
+      await db.student_assignment.bulkCreate(
+        finalCreate.map(hocVienId => ({ hocVienId, teacherId: newManagerId, role: 'supervisor' })),
+      );
+    }
+  }
+
+  // Demote: change role and assign to new manager
+  await st.update({ groupId: TEACHER_GROUP_ID, superTeacherId: newManagerId });
+
+  const { password: _, ...safe } = st.get({ plain: true });
+  return safe;
+};
+
 export const getTeachersWithoutSupper = async () => {
   return db.user.findAll({
     where: { groupId: TEACHER_GROUP_ID, superTeacherId: null },

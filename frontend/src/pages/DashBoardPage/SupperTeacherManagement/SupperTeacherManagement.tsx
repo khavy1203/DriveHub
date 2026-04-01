@@ -11,6 +11,8 @@ import {
   fetchTeachersInTeam,
   reassignTeacherApi,
   createTeacherByAdminApi,
+  promoteTeacherApi,
+  demoteSuperTeacherApi,
 } from '../../../features/superTeacher/services/superTeacherApi';
 import './SupperTeacherManagement.scss';
 
@@ -260,6 +262,105 @@ const DeleteModal: React.FC<DeleteModalProps> = ({ target, preview, loadingPrevi
   );
 };
 
+// ── Demote modal ────────────────────────────────────────────────────────────
+
+type DemoteModalProps = {
+  target: SupperTeacher;
+  supperTeachers: SupperTeacher[];
+  onConfirm: (newManagerId: number) => Promise<void>;
+  onClose: () => void;
+};
+
+const DemoteModal: React.FC<DemoteModalProps> = ({ target, supperTeachers, onConfirm, onClose }) => {
+  const others = supperTeachers.filter(st => st.id !== target.id);
+  const [selectedId, setSelectedId] = useState<number | ''>(others.length === 1 ? others[0].id : '');
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const handleSubmit = async () => {
+    if (!selectedId) return;
+    setSaving(true);
+    setError(null);
+    try {
+      await onConfirm(selectedId as number);
+      onClose();
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Có lỗi xảy ra');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <div className="modal-backdrop" onClick={onClose}>
+      <div className="modal-box modal-confirm" onClick={e => e.stopPropagation()}>
+        <h3 className="modal-title">Hạ cấp SupperTeacher</h3>
+        <p>
+          Hạ <strong>{target.username}</strong> xuống thành giáo viên.
+          Các giáo viên trong đội và học viên sẽ được chuyển sang SupperTeacher tiếp nhận.
+          Học viên do <strong>{target.username}</strong> trực tiếp dạy vẫn được giữ nguyên.
+        </p>
+        <div className="modal-form">
+          <label>SupperTeacher tiếp nhận *</label>
+          <select value={selectedId} onChange={e => setSelectedId(e.target.value ? Number(e.target.value) : '')}>
+            <option value="">— Chọn SupperTeacher —</option>
+            {others.map(st => (
+              <option key={st.id} value={st.id}>{st.username} ({st.email})</option>
+            ))}
+          </select>
+        </div>
+        {error && <p className="modal-error">{error}</p>}
+        <div className="modal-actions">
+          <button className="btn-secondary" onClick={onClose} disabled={saving}>Hủy</button>
+          <button className="btn-primary" onClick={handleSubmit} disabled={!selectedId || saving}>
+            {saving ? 'Đang xử lý...' : 'Xác nhận hạ cấp'}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// ── Promote confirm modal ───────────────────────────────────────────────────
+
+type PromoteModalProps = {
+  teacher: TeacherInTeam;
+  onConfirm: () => Promise<void>;
+  onClose: () => void;
+};
+
+const PromoteModal: React.FC<PromoteModalProps> = ({ teacher, onConfirm, onClose }) => {
+  const [saving, setSaving] = useState(false);
+
+  const handleConfirm = async () => {
+    setSaving(true);
+    try {
+      await onConfirm();
+      onClose();
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <div className="modal-backdrop" onClick={onClose}>
+      <div className="modal-box modal-confirm" onClick={e => e.stopPropagation()}>
+        <h3 className="modal-title">Nâng cấp thành SupperTeacher</h3>
+        <p>
+          Nâng cấp <strong>{teacher.username}</strong> thành SupperTeacher.
+          Học viên do họ trực tiếp dạy vẫn được giữ nguyên.
+        </p>
+        <div className="modal-actions">
+          <button className="btn-secondary" onClick={onClose} disabled={saving}>Hủy</button>
+          <button className="btn-primary" onClick={handleConfirm} disabled={saving}>
+            {saving ? 'Đang xử lý...' : 'Xác nhận nâng cấp'}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 // ── Main page ────────────────────────────────────────────────────────────────
 
 const SupperTeacherManagement: React.FC = () => {
@@ -283,6 +384,10 @@ const SupperTeacherManagement: React.FC = () => {
   const [expandedStId, setExpandedStId] = useState<number | null>(null);
   const [teamTeachers, setTeamTeachers] = useState<TeacherInTeam[]>([]);
   const [loadingTeam, setLoadingTeam] = useState(false);
+
+  // Promote / Demote
+  const [demoteTarget, setDemoteTarget] = useState<SupperTeacher | null>(null);
+  const [promoteTarget, setPromoteTarget] = useState<TeacherInTeam | null>(null);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -398,6 +503,26 @@ const SupperTeacherManagement: React.FC = () => {
     await Promise.all([load(), loadUnassigned(), refreshExpandedTeam()]);
   };
 
+  const handlePromote = async () => {
+    if (!promoteTarget) return;
+    const res = await promoteTeacherApi(promoteTarget.id);
+    if (res.EC !== 0) throw new Error(res.EM);
+    toast.success(`Đã nâng cấp ${promoteTarget.username} thành SupperTeacher`);
+    setExpandedStId(null);
+    setTeamTeachers([]);
+    await Promise.all([load(), loadUnassigned()]);
+  };
+
+  const handleDemote = async (newManagerId: number) => {
+    if (!demoteTarget) return;
+    const res = await demoteSuperTeacherApi(demoteTarget.id, newManagerId);
+    if (res.EC !== 0) throw new Error(res.EM);
+    toast.success(`Đã hạ cấp ${demoteTarget.username} thành giáo viên`);
+    setExpandedStId(null);
+    setTeamTeachers([]);
+    await Promise.all([load(), loadUnassigned()]);
+  };
+
   return (
     <div className="st-page">
       {/* ── SupperTeacher table ──────────────────────────────────────────────── */}
@@ -455,6 +580,9 @@ const SupperTeacherManagement: React.FC = () => {
                   </td>
                   <td className="st-actions">
                     <button className="btn-icon" onClick={() => openEdit(st)} title="Sửa">✏️</button>
+                    <button className="btn-icon" onClick={() => setDemoteTarget(st)} title="Hạ cấp thành giáo viên">
+                      <span className="material-icons" style={{ fontSize: 18, color: '#f59e0b' }}>arrow_downward</span>
+                    </button>
                     <button className="btn-icon btn-danger" onClick={() => openDelete(st)} title="Xóa">🗑️</button>
                   </td>
                 </tr>
@@ -493,13 +621,20 @@ const SupperTeacherManagement: React.FC = () => {
                                       {t.active ? 'Hoạt động' : 'Ngừng'}
                                     </span>
                                   </td>
-                                  <td>
+                                  <td className="st-actions">
                                     <button
                                       className="btn-secondary"
                                       style={{ padding: '4px 12px', fontSize: 13 }}
                                       onClick={() => setReassignTarget(t)}
                                     >
                                       Chuyển đội
+                                    </button>
+                                    <button
+                                      className="btn-secondary"
+                                      style={{ padding: '4px 12px', fontSize: 13, color: '#059669' }}
+                                      onClick={() => setPromoteTarget(t)}
+                                    >
+                                      Nâng cấp
                                     </button>
                                   </td>
                                 </tr>
@@ -589,6 +724,23 @@ const SupperTeacherManagement: React.FC = () => {
           supperTeachers={supperTeachers}
           onSave={handleReassign}
           onClose={() => setReassignTarget(null)}
+        />
+      )}
+
+      {demoteTarget && (
+        <DemoteModal
+          target={demoteTarget}
+          supperTeachers={supperTeachers}
+          onConfirm={handleDemote}
+          onClose={() => setDemoteTarget(null)}
+        />
+      )}
+
+      {promoteTarget && (
+        <PromoteModal
+          teacher={promoteTarget}
+          onConfirm={handlePromote}
+          onClose={() => setPromoteTarget(null)}
         />
       )}
     </div>

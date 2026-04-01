@@ -46,6 +46,7 @@ import {
   listMyStudents, assignStudent, dropStudentHandler, importCccd, ratingsOverview,
   listSupperTeachers, addSupperTeacher, editSupperTeacher, removeSupperTeacher,
   previewDeleteSupperTeacher, addTeacherByAdmin, moveTeacherToSupper, listTeachersInTeam, listTeachersWithoutSupper,
+  promoteTeacher, demoteSuperTeacher,
 } from "../controller/superTeacherController";
 
 
@@ -238,6 +239,8 @@ const initWebRoutes = (app) => {
     routes.post('/admin/teachers-with-super', addTeacherByAdmin);
     routes.put('/admin/teachers/:teacherId/assign-super', moveTeacherToSupper);
     routes.get('/admin/teachers-without-super', listTeachersWithoutSupper);
+    routes.put('/admin/teachers/:teacherId/promote', promoteTeacher);
+    routes.put('/admin/supper-teachers/:id/demote', demoteSuperTeacher);
 
     routes.get("/training/student", getTrainingStudent);
     routes.get("/training/student-cached", getTrainingStudentCached);

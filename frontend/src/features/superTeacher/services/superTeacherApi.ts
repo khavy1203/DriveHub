@@ -70,3 +70,9 @@ export const fetchTeachersInTeam = (superTeacherId: number) =>
 
 export const fetchTeachersWithoutSupper = () =>
   axios.get<ApiRes<TeacherInTeam[]>>('/api/admin/teachers-without-super').then(r => r.data);
+
+export const promoteTeacherApi = (teacherId: number) =>
+  axios.put<ApiRes<unknown>>(`/api/admin/teachers/${teacherId}/promote`).then(r => r.data);
+
+export const demoteSuperTeacherApi = (id: number, newManagerId: number) =>
+  axios.put<ApiRes<unknown>>(`/api/admin/supper-teachers/${id}/demote`, { newManagerId }).then(r => r.data);
