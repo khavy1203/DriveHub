@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { createPortal } from 'react-dom';
 import TrainingProgressBlock from '../../trainingPortal/components/TrainingProgressBlock';
 import './TrainingDetailModal.scss';
 
@@ -51,7 +52,7 @@ const TrainingDetailModal: React.FC<Props> = ({
 
   const currentTeacher = teachers?.find(t => t.id === currentTeacherId);
 
-  return (
+  return createPortal(
     <div className="training-detail__backdrop" onClick={onClose}>
       <div className="training-detail__box" onClick={e => e.stopPropagation()}>
         <div className="training-detail__header">
@@ -145,7 +146,8 @@ const TrainingDetailModal: React.FC<Props> = ({
           </div>
         )}
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 };
 
