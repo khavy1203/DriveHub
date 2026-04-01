@@ -196,6 +196,7 @@
 
     @media (max-width: 768px) {
       border-radius: 12px;
+      overflow-x: hidden;
     }
   }
 
@@ -205,6 +206,11 @@
     font-size: 13px;
     table-layout: fixed;
     min-width: 980px;
+
+    @media (max-width: 768px) {
+      min-width: 0;
+      table-layout: auto;
+    }
 
     thead tr { background: #f2f4f4; }
 
@@ -231,7 +237,16 @@
       &:nth-child(10) { width: 100px; } // Thao tác
 
       @media (max-width: 768px) {
-        padding: 10px 10px;
+        padding: 8px 6px;
+        font-size: 10px;
+
+        // Hide less critical columns on mobile
+        // Khóa học (redundant with group header), Hạng, Giáo viên, Kết quả SH, Thao tác
+        &:nth-child(3),
+        &:nth-child(5),
+        &:nth-child(8),
+        &:nth-child(9),
+        &:nth-child(10) { display: none; }
       }
     }
 
@@ -244,7 +259,13 @@
       text-overflow: ellipsis;
 
       @media (max-width: 768px) {
-        padding: 12px 10px;
+        padding: 10px 6px;
+
+        &:nth-child(3),
+        &:nth-child(5),
+        &:nth-child(8),
+        &:nth-child(9),
+        &:nth-child(10) { display: none; }
       }
     }
 
@@ -280,6 +301,11 @@
     font: inherit;
     text-align: left;
     color: #191c1d;
+
+    @media (max-width: 768px) {
+      padding: 10px 10px;
+      gap: 6px 8px;
+    }
 
     &:hover {
       background: rgba(0, 104, 93, 0.06);
@@ -333,6 +359,12 @@
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+
+    @media (max-width: 768px) {
+      font-size: 11px;
+      white-space: normal;
+      word-break: break-word;
+    }
   }
 
   // ── Student cell ──────────────────────────────────────────
@@ -340,6 +372,10 @@
     display: flex;
     align-items: center;
     gap: 10px;
+
+    @media (max-width: 768px) {
+      gap: 8px;
+    }
   }
 
   &__avatar {
@@ -355,18 +391,33 @@
     align-items: center;
     justify-content: center;
     flex-shrink: 0;
+
+    @media (max-width: 768px) {
+      width: 32px;
+      height: 32px;
+      font-size: 11px;
+    }
   }
 
   &__student-name {
     font-weight: 700;
     font-size: 13px;
     color: #191c1d;
+
+    @media (max-width: 768px) {
+      font-size: 12px;
+      word-break: break-word;
+    }
   }
 
   &__student-id {
     font-size: 11px;
     color: #6d7a77;
     margin-top: 2px;
+
+    @media (max-width: 768px) {
+      font-size: 10px;
+    }
   }
 
   &__rank-badge {
@@ -380,7 +431,11 @@
   }
 
   // ── Progress ──────────────────────────────────────────────
-  &__progress-cell { min-width: 80px; }
+  &__progress-cell {
+    min-width: 80px;
+
+    @media (max-width: 768px) { min-width: 60px; }
+  }
 
   &__progress-labels {
     display: flex;
@@ -417,6 +472,11 @@
     font-size: 11px;
     font-weight: 700;
     white-space: nowrap;
+
+    @media (max-width: 768px) {
+      font-size: 10px;
+      padding: 3px 8px;
+    }
 
     &--waiting { background: #ffdad6; color: #93000a; }
     &--learning { background: #c3ebe2; color: #00685d; }
@@ -506,6 +566,8 @@
     width: 40px;
     text-align: center;
     cursor: pointer;
+
+    @media (max-width: 768px) { width: 32px; }
   }
 
   &__bulk-checkbox {
