@@ -514,14 +514,18 @@
   .srm__map-col {
     border-right: none;
     border-bottom: 1px solid var(--srm-outline-variant);
+    overflow: visible;
   }
 
   .srm__map-wrap {
-    min-height: 300px;
+    flex: none;
+    height: 260px;
+    min-height: 260px;
   }
 
   .srm__map {
-    min-height: 300px;
+    height: 260px;
+    min-height: 260px;
   }
 
   .srm__right-col {
