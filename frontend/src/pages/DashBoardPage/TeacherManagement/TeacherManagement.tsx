@@ -60,6 +60,7 @@ const TeacherManagement: React.FC = () => {
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<{ text: string; ok: boolean } | null>(null);
   const [viewTeacherId, setViewTeacherId] = useState<number | null>(null);
+  const [popupTeacher, setPopupTeacher] = useState<Teacher | null>(null);
 
   // Ranks
   const [ranks, setRanks] = useState<Rank[]>([]);
@@ -291,7 +292,7 @@ const TeacherManagement: React.FC = () => {
             </thead>
             <tbody>
               {filtered.map(t => (
-                <tr key={t.id}>
+                <tr key={t.id} onClick={() => { if (window.innerWidth <= 768) setPopupTeacher(t); }}>
                   <td>
                     <div className="tm__teacher-cell">
                       <div className="tm__avatar">{getInitials(t.username)}</div>
@@ -528,6 +529,57 @@ const TeacherManagement: React.FC = () => {
       )}
       {viewTeacherId != null && (
         <TeacherProfileModal teacherId={viewTeacherId} onClose={() => setViewTeacherId(null)} />
+      )}
+
+      {/* ── Mobile detail popup ──────────────────────────────────────────────── */}
+      {popupTeacher && createPortal(
+        <div className="tm__popup-overlay" onClick={() => setPopupTeacher(null)}>
+          <div className="tm__popup" onClick={e => e.stopPropagation()}>
+            <div className="tm__popup-handle" />
+            <div className="tm__popup-header">
+              <div className="tm__avatar">{getInitials(popupTeacher.username)}</div>
+              <div className="tm__popup-info">
+                <p className="tm__popup-name">{popupTeacher.username}</p>
+                <span className="tm__popup-email">GV-{String(popupTeacher.id).padStart(3, '0')} · {popupTeacher.email}</span>
+              </div>
+            </div>
+            <div className="tm__popup-fields">
+              <div className="tm__popup-field">
+                <span className="material-icons">phone</span>
+                <div>
+                  <div className="tm__popup-field-label">Số điện thoại</div>
+                  <div className="tm__popup-field-value">{popupTeacher.phone || '—'}</div>
+                </div>
+              </div>
+              <div className="tm__popup-field">
+                <span className="material-icons">location_on</span>
+                <div>
+                  <div className="tm__popup-field-label">Địa chỉ</div>
+                  <div className="tm__popup-field-value">{popupTeacher.address || '—'}</div>
+                </div>
+              </div>
+              <div className="tm__popup-field">
+                <span className="material-icons">supervisor_account</span>
+                <div>
+                  <div className="tm__popup-field-label">SupperTeacher</div>
+                  <div className="tm__popup-field-value">{popupTeacher.superTeacher?.username || 'Chưa gán'}</div>
+                </div>
+              </div>
+            </div>
+            <div className="tm__popup-actions">
+              <button className="tm__popup-btn tm__popup-btn--primary" onClick={() => { openProfile(popupTeacher); setPopupTeacher(null); }}>
+                <span className="material-icons">badge</span> Hồ sơ
+              </button>
+              <button className="tm__popup-btn tm__popup-btn--ghost" onClick={() => { openEdit(popupTeacher); setPopupTeacher(null); }}>
+                <span className="material-icons">edit</span> Sửa
+              </button>
+              <button className="tm__popup-btn tm__popup-btn--danger" onClick={() => { handleDelete(popupTeacher.id, popupTeacher.username); setPopupTeacher(null); }}>
+                <span className="material-icons">delete</span> Xóa
+              </button>
+            </div>
+          </div>
+        </div>,
+        document.body
       )}
     </div>
   );

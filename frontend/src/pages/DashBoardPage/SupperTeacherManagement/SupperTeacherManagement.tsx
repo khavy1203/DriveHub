@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useCallback, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { useAdminFilter } from '../../../features/auth/context/AdminFilterContext';
 import { toast } from 'react-toastify';
 import type { SupperTeacher, SupperTeacherFormData, TeacherInTeam, TeacherFormData } from '../../../features/superTeacher/types';
@@ -393,6 +394,9 @@ const SupperTeacherManagement: React.FC = () => {
   const [demoteTarget, setDemoteTarget] = useState<SupperTeacher | null>(null);
   const [promoteTarget, setPromoteTarget] = useState<TeacherInTeam | null>(null);
 
+  // Mobile popup
+  const [popupST, setPopupST] = useState<SupperTeacher | null>(null);
+
   const load = useCallback(async () => {
     setLoading(true);
     try {
@@ -550,6 +554,7 @@ const SupperTeacherManagement: React.FC = () => {
       {loading ? (
         <p className="st-loading">Đang tải...</p>
       ) : (
+        <div className="st-table-wrap">
         <table className="st-table">
           <thead>
             <tr>
@@ -568,7 +573,10 @@ const SupperTeacherManagement: React.FC = () => {
             )}
             {supperTeachers.map((st, i) => (
               <React.Fragment key={st.id}>
-                <tr className={expandedStId === st.id ? 'st-row--expanded' : ''}>
+                <tr
+                  className={expandedStId === st.id ? 'st-row--expanded' : ''}
+                  onClick={() => { if (window.innerWidth <= 768) setPopupST(st); }}
+                >
                   <td>{i + 1}</td>
                   <td>{st.username}</td>
                   <td>{st.email}</td>
@@ -663,6 +671,7 @@ const SupperTeacherManagement: React.FC = () => {
             ))}
           </tbody>
         </table>
+        </div>
       )}
 
       {/* ── Unassigned teachers ──────────────────────────────────────────────── */}
@@ -755,6 +764,72 @@ const SupperTeacherManagement: React.FC = () => {
           onConfirm={handlePromote}
           onClose={() => setPromoteTarget(null)}
         />
+      )}
+
+      {/* ── Mobile popup (bottom-sheet) ─────────────────────────────────────── */}
+      {popupST && createPortal(
+        <div className="st-popup-overlay" onClick={() => setPopupST(null)}>
+          <div className="st-popup" onClick={e => e.stopPropagation()}>
+            <div className="st-popup__handle" />
+            <p className="st-popup__name">{popupST.username}</p>
+            <p className="st-popup__sub">SupperTeacher</p>
+            <div className="st-popup__fields">
+              <div className="st-popup__field">
+                <span className="material-icons">email</span>
+                <div>
+                  <div className="st-popup__field-label">Email</div>
+                  <div className="st-popup__field-value">{popupST.email}</div>
+                </div>
+              </div>
+              <div className="st-popup__field">
+                <span className="material-icons">phone</span>
+                <div>
+                  <div className="st-popup__field-label">SĐT</div>
+                  <div className="st-popup__field-value">{popupST.phone || '—'}</div>
+                </div>
+              </div>
+              <div className="st-popup__field">
+                <span className="material-icons">toggle_on</span>
+                <div>
+                  <div className="st-popup__field-label">Trạng thái</div>
+                  <div className="st-popup__field-value">
+                    <span className={`badge ${popupST.active ? 'badge-active' : 'badge-inactive'}`}>
+                      {popupST.active ? 'Hoạt động' : 'Ngừng'}
+                    </span>
+                  </div>
+                </div>
+              </div>
+              <div className="st-popup__field">
+                <span className="material-icons">groups</span>
+                <div>
+                  <div className="st-popup__field-label">Số giáo viên</div>
+                  <div className="st-popup__field-value">{popupST.teacherCount}</div>
+                </div>
+              </div>
+            </div>
+            <div className="st-popup__actions">
+              <button
+                className="st-popup__btn st-popup__btn--primary"
+                onClick={() => { setPopupST(null); openEdit(popupST); }}
+              >
+                <span className="material-icons" style={{ fontSize: 16 }}>edit</span> Sửa
+              </button>
+              <button
+                className="st-popup__btn st-popup__btn--ghost"
+                onClick={() => { setPopupST(null); setDemoteTarget(popupST); }}
+              >
+                <span className="material-icons" style={{ fontSize: 16 }}>arrow_downward</span> Hạ cấp
+              </button>
+              <button
+                className="st-popup__btn st-popup__btn--danger"
+                onClick={() => { setPopupST(null); openDelete(popupST); }}
+              >
+                <span className="material-icons" style={{ fontSize: 16 }}>delete</span> Xóa
+              </button>
+            </div>
+          </div>
+        </div>,
+        document.body
       )}
     </div>
   );
