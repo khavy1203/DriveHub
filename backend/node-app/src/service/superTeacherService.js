@@ -435,17 +435,17 @@ export const importStudentsByCccd = async (superTeacherId, cccdList) => {
  */
 export const assignStudentToST = async (adminId, hocVienId, stId) => {
   const { Op } = require('sequelize');
-  // Accept students explicitly linked to this admin OR legacy students with no admin link yet
+  // Accept students linked to this admin OR legacy students (adminId null = pre-feature records)
+  // superTeacherId can be non-null — Admin is allowed to reassign between STs
   const hv = await db.hoc_vien.findOne({
     where: {
       id: hocVienId,
-      superTeacherId: null,
       [Op.or]: [{ adminId }, { adminId: null }],
     },
   });
   if (!hv) {
     throw Object.assign(
-      new Error('Học viên không tồn tại, đã được gán SupperTeacher, hoặc không thuộc phạm vi của bạn'),
+      new Error('Học viên không tồn tại hoặc không thuộc phạm vi của bạn'),
       { code: 'FORBIDDEN' },
     );
   }
@@ -453,6 +453,11 @@ export const assignStudentToST = async (adminId, hocVienId, stId) => {
   // Stamp adminId if not set yet (backward compat for legacy students)
   if (!hv.adminId) {
     await hv.update({ adminId });
+  }
+
+  // Clear old assignments when reassigning to a different ST
+  if (hv.superTeacherId && hv.superTeacherId !== stId) {
+    await db.student_assignment.destroy({ where: { hocVienId } });
   }
 
   const st = await db.user.findOne({

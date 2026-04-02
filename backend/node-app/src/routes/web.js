@@ -97,6 +97,16 @@ const uploadStudentAvatar = multer({
     fileFilter: imageFileFilter,
 });
 
+const requireSupperAdmin = (req, res, next) => {
+    if (!req.user) {
+        return res.status(401).json({ EC: -1, DT: null, EM: 'Yêu cầu đăng nhập' });
+    }
+    if (req.user.groupWithRoles?.name !== 'SupperAdmin') {
+        return res.status(403).json({ EC: -1, DT: null, EM: 'Chỉ SupperAdmin mới có quyền này' });
+    }
+    next();
+};
+
 const initWebRoutes = (app) => {
 
     routes.get('/api/test', (req, res) => {
@@ -123,8 +133,8 @@ const initWebRoutes = (app) => {
     // Review sets (bộ đề ôn tập — separate from exam test sets)
     routes.get('/review/sets/:rankId', reviewSetController.getReviewSetsByRank);
     routes.get('/review/set/:setId/questions', reviewSetController.getReviewSetQuestions);
-    routes.post('/review/sets/generate/:rankId', reviewSetController.generateReviewSets);
-    routes.post('/review/tips/import', reviewSetController.batchImportTips);
+    routes.post('/review/sets/generate/:rankId', requireSupperAdmin, reviewSetController.generateReviewSets);
+    routes.post('/review/tips/import', requireSupperAdmin, reviewSetController.batchImportTips);
     routes.get('/subject/:rankId/get-subjects', subjectController.getSubject);
     routes.get('/subject/get-test/:IDSubject', subjectController.getTestFromSubject);
     routes.get('/test/get-test/:IDTest', testStudentController.getTest);
@@ -159,8 +169,8 @@ const initWebRoutes = (app) => {
 
     routes.delete("/course/:id", userStatusController.deleteKhoaHoc);
 
-    routes.post("/import-xml", memoryUpload.single('file'), userStatusController.handleImportXMLStudent); // Đính kèm middleware upload để xử lý file import học sinh
-    routes.post("/import-payment", memoryUpload.single('file'), userStatusController.handleImportPaymentFile); // Đính kèm middleware upload để xử lý file
+    routes.post("/import-xml", requireSupperAdmin, memoryUpload.single('file'), userStatusController.handleImportXMLStudent);
+    routes.post("/import-payment", requireSupperAdmin, memoryUpload.single('file'), userStatusController.handleImportPaymentFile);
 
     //login
     routes.post("/user/login", loginRegisterController.handleLogin);
@@ -198,8 +208,8 @@ const initWebRoutes = (app) => {
     routes.get("/chat/:assignmentId/messages", chatController.getHistory);
 
     routes.get("/student-portal/ket-qua-sat-hanh", getMyKQSH);
-    routes.post("/admin/kqsh/sync", triggerSync);
-    routes.get("/admin/kqsh/test-connection", testMssqlConnection);
+    routes.post("/admin/kqsh/sync", requireSupperAdmin, triggerSync);
+    routes.get("/admin/kqsh/test-connection", requireSupperAdmin, testMssqlConnection);
 
     // ── Permissions management ────────────────────────────────────────────────
     routes.get("/admin/permissions/groups", getGroups);
@@ -254,7 +264,7 @@ const initWebRoutes = (app) => {
     routes.get("/training/student-cached", getTrainingStudentCached);
     routes.get("/training/avatar", getTrainingAvatar);
     routes.get("/training/session-detail", getTrainingSessionDetail);
-    routes.post("/training/sync-all", triggerSyncAll);
+    routes.post("/training/sync-all", requireSupperAdmin, triggerSyncAll);
     routes.post("/training/import-cccd", importByCccdList);
     routes.get("/training/sync-status", getTrainingSyncStatus);
 
@@ -278,8 +288,8 @@ const initWebRoutes = (app) => {
     routes.post("/admin/api-config/:adminId/test", testAdminConnection);
 
     //file 
-    routes.post("/file/namestandardizationfile", fileController.nameStandardizationFile);
-    routes.post("/file/createOrUpdateQuestion", memoryUpload.single('file'), fileController.createOrUpdateQuestion);
+    routes.post("/file/namestandardizationfile", requireSupperAdmin, fileController.nameStandardizationFile);
+    routes.post("/file/createOrUpdateQuestion", requireSupperAdmin, memoryUpload.single('file'), fileController.createOrUpdateQuestion);
     routes.post(
         "/file/qr/decode",
         uploadStorageQR.single('image'), // Middleware để xử lý hình ảnh
@@ -290,22 +300,22 @@ const initWebRoutes = (app) => {
         uploadStorageQR.single('image'), // Middleware để xử lý hình ảnh
         fileController.decodeVNID
     );
-    routes.post("/file/update-rank-student-with-excel", memoryUpload.single('file'), fileController.updateRankStudentWithExcel);
+    routes.post("/file/update-rank-student-with-excel", requireSupperAdmin, memoryUpload.single('file'), fileController.updateRankStudentWithExcel);
 
     //test student - subject
     routes.get("/testStudent/subject", testStudentController.getSubject);
-    routes.post("/testStudent/processExcelAndInsert", memoryUpload.single('file'), testStudentController.processExcelAndInsert); //upload 600 question and test
-    routes.post("/exam-sets/import", memoryUpload.single('file'), examSetImportController.importReviewSets);
+    routes.post("/testStudent/processExcelAndInsert", requireSupperAdmin, memoryUpload.single('file'), testStudentController.processExcelAndInsert);
+    routes.post("/exam-sets/import", requireSupperAdmin, memoryUpload.single('file'), examSetImportController.importReviewSets);
 
     //rank
-    routes.post('/rank/create-rank', rankController.createRank)
-    routes.put('/rank/update-rank/:id', rankController.updateRank)
-    routes.delete('/rank/:id', rankController.deleteRank)
+    routes.post('/rank/create-rank', requireSupperAdmin, rankController.createRank)
+    routes.put('/rank/update-rank/:id', requireSupperAdmin, rankController.updateRank)
+    routes.delete('/rank/:id', requireSupperAdmin, rankController.deleteRank)
 
     //subject
-    routes.post('/subject/create-subject', subjectController.createSubject)
-    routes.put('/subject/update-subject/:IDsubject', subjectController.updateSubject)
-    routes.delete('/subject/:id', subjectController.deleteSubject)
+    routes.post('/subject/create-subject', requireSupperAdmin, subjectController.createSubject)
+    routes.put('/subject/update-subject/:IDsubject', requireSupperAdmin, subjectController.updateSubject)
+    routes.delete('/subject/:id', requireSupperAdmin, subjectController.deleteSubject)
 
     //exam
     routes.delete("/exam/:id", examController.deleteExam)
@@ -328,7 +338,7 @@ const initWebRoutes = (app) => {
     routes.post("/qr", QRController.createQR);
     routes.delete("/qr/:id", QRController.deleteQR);
 
-    routes.post('/gplx/import', memoryUpload.single('file'), gplxController.importExcel);
+    routes.post('/gplx/import', requireSupperAdmin, memoryUpload.single('file'), gplxController.importExcel);
     routes.get('/gplx/list', gplxController.getList);
 
     return app.use("/api", routes);
