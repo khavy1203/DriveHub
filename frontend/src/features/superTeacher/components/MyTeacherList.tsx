@@ -6,6 +6,7 @@ import { useSuperTeacherStudents } from '../hooks/useSuperTeacherStudents';
 import { fetchRatingsOverview } from '../services/superTeacherApi';
 import TeacherFormModal from './TeacherFormModal';
 import type { TeacherInTeam, TeacherFormData, RatingsTeacherCard, TeacherReview } from '../types';
+import { defaultStudentAvatar, defaultTeacherAvatar } from '../../../shared/utils/avatarUtils';
 import './MyTeacherList.scss';
 
 const ITEMS_PER_PAGE = 10;
@@ -67,10 +68,7 @@ const ReviewModal: React.FC<ReviewModalProps> = ({ teacher, rating, onClose }) =
         <div className="teacher-list__rv-header">
           <div className="teacher-list__rv-teacher">
             <div className="teacher-list__rv-avatar">
-              {avatarUrl
-                ? <img src={avatarUrl} alt={teacher.username} />
-                : <span>{getInitials(teacher.username)}</span>
-              }
+              <img src={avatarUrl || defaultTeacherAvatar} alt={teacher.username} />
             </div>
             <div>
               <h3 className="teacher-list__rv-name">{teacher.username}</h3>
@@ -96,7 +94,7 @@ const ReviewModal: React.FC<ReviewModalProps> = ({ teacher, rating, onClose }) =
                   <div className="teacher-list__rv-card-top">
                     <div className="teacher-list__rv-card-author">
                       <div className="teacher-list__rv-card-icon">
-                        <span className="material-symbols-outlined">person</span>
+                        <img src={defaultStudentAvatar} alt="Học viên" />
                       </div>
                       <div>
                         <p className="teacher-list__rv-card-student">{r.studentName ?? 'Học viên'}</p>
@@ -153,7 +151,7 @@ const TeacherDetailDrawer: React.FC<TeacherDetailDrawerProps> = ({
         {/* Hero: avatar + name */}
         <div className="teacher-list__detail-hero">
           <div className="teacher-list__detail-avatar">
-            {url ? <img src={url} alt={teacher.username} /> : getInitials(teacher.username)}
+            <img src={url || defaultTeacherAvatar} alt={teacher.username} />
           </div>
           <div className="teacher-list__detail-hero-info">
             <h2 className="teacher-list__detail-name">
@@ -497,10 +495,7 @@ const MyTeacherList: React.FC = () => {
                     <td>
                       <div className="teacher-list__teacher-info">
                         <div className="teacher-list__teacher-avatar">
-                          {url
-                            ? <img src={url} alt={t.username} />
-                            : getInitials(t.username)
-                          }
+                          <img src={url || defaultTeacherAvatar} alt={t.username} />
                           {t.id === currentUserId && (
                             <span className="teacher-list__verified" title="Tài khoản của bạn">
                               <span className="material-symbols-outlined">verified</span>

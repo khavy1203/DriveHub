@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../../features/auth/hooks/useAuth";
 import ProfileEditModal from "./ProfileEditModal";
+import { getDefaultAvatar } from "../../shared/utils/avatarUtils";
 
 interface DashHeaderProps {
   onToggle: () => void;
@@ -31,7 +32,7 @@ const Header: React.FC<DashHeaderProps> = ({
   const [editOpen, setEditOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
-  const defaultAvatar = 'https://gravatar.com/avatar/d302cbc4526bf50e64befe198736824c?s=400&d=robohash&r=x';
+  const defaultAvatar = getDefaultAvatar(role);
   const resolvedAvatar = avatarUrl || defaultAvatar;
   const pageName = BREADCRUMB_MAP[location.pathname] || 'Dashboard';
 

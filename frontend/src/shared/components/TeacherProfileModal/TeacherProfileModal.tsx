@@ -36,7 +36,9 @@ type Props = {
   onAction?: (teacherId: number) => void;
 };
 
-const DEFAULT_AVATAR = '/assets/images/teacher/tho/1.jpg';
+import { defaultTeacherAvatar, defaultStudentAvatar } from '../../../shared/utils/avatarUtils';
+const DEFAULT_AVATAR = defaultTeacherAvatar;
+const REVIEWER_AVATAR = defaultStudentAvatar;
 
 const timeAgo = (iso: string): string => {
   const diff = Date.now() - new Date(iso).getTime();
@@ -223,11 +225,8 @@ const TeacherProfileModal: React.FC<Props> = ({ teacherId, onClose, actionLabel,
                       <div key={r.id} className="tpm__review">
                         <div className="tpm__review-top">
                           <div className="tpm__review-author">
-                            <div
-                              className="tpm__review-avatar"
-                              style={{ background: FEEDBACK_COLORS[idx % FEEDBACK_COLORS.length] }}
-                            >
-                              <span className="material-icons">person</span>
+                            <div className="tpm__review-avatar">
+                              <img src={REVIEWER_AVATAR} alt="Học viên" />
                             </div>
                             <div>
                               <p className="tpm__review-name">Học viên ẩn danh</p>

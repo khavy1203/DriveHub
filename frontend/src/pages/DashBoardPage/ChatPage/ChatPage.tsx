@@ -3,6 +3,7 @@ import { useAuth } from '../../../features/auth/hooks/useAuth';
 import { useChatSocket } from '../../../features/chat/hooks/useChatSocket';
 import axios from '../../../axios';
 import { useDashboardIsMobile } from '../useDashboardMedia';
+import { defaultStudentAvatar, defaultTeacherAvatar } from '../../../shared/utils/avatarUtils';
 import './ChatPage.scss';
 
 // ── Types ──────────────────────────────────────────────────────────────────
@@ -178,10 +179,7 @@ const ChatArea: React.FC<ChatAreaProps> = ({
           </button>
         )}
         <div className="chp__chat-avatar">
-          {contactAvatar
-            ? <img src={contactAvatar} alt={contactName} />
-            : <span>{getInitials(contactName)}</span>
-          }
+          <img src={contactAvatar || defaultTeacherAvatar} alt={contactName} />
         </div>
         <div className="chp__chat-contact-info">
           <span className="chp__chat-name">{contactName}</span>
@@ -223,10 +221,7 @@ const ChatArea: React.FC<ChatAreaProps> = ({
               <div className={`chp__msg ${isMine ? 'chp__msg--out' : 'chp__msg--in'}`}>
                 {!isMine && (
                   <div className={`chp__msg-av ${showAvatar ? '' : 'chp__msg-av--hidden'}`}>
-                    {contactAvatar
-                      ? <img src={contactAvatar} alt={contactName} />
-                      : <span>{getInitials(contactName)}</span>
-                    }
+                    <img src={contactAvatar || defaultTeacherAvatar} alt={contactName} />
                   </div>
                 )}
                 <div className="chp__msg-wrap">
@@ -412,10 +407,10 @@ const ChatPage: React.FC = () => {
               onClick={() => handlePickContact(c.assignmentId)}
             >
               <div className="chp__contact-av">
-                {c.avatarUrl
-                  ? <img src={c.avatarUrl} alt={c.name} />
-                  : <span>{getInitials(c.name)}</span>
-                }
+                <img
+                  src={c.avatarUrl || (c.role === 'teacher' ? defaultTeacherAvatar : defaultStudentAvatar)}
+                  alt={c.name}
+                />
                 <span className={`chp__status-dot ${STATUS_DOT[c.status] ?? ''}`} />
               </div>
               <div className="chp__contact-meta">

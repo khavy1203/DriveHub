@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { useAuth } from "../../features/auth/hooks/useAuth";
+import { getDefaultAvatar } from "../../shared/utils/avatarUtils";
 
 type SidebarProps = {
   collapsed: boolean;
@@ -94,7 +95,7 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed, isMobile, onNavClick }) =>
     role === 'HocVien'       ? STUDENT_NAV_ITEMS :
     ADMIN_NAV_ITEMS;
 
-  const defaultAvatar = 'https://gravatar.com/avatar/d302cbc4526bf50e64befe198736824c?s=400&d=robohash&r=x';
+  const defaultAvatar = getDefaultAvatar(role);
   const resolvedAvatar = avatarUrl || defaultAvatar;
 
   const isActive = (to: string) => {

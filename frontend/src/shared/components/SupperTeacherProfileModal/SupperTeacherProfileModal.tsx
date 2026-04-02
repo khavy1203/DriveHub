@@ -9,7 +9,9 @@ type Props = {
   onClose: () => void;
 };
 
-const DEFAULT_AVATAR = '/assets/images/teacher/tho/1.jpg';
+import { defaultTeacherAvatar, defaultStudentAvatar } from '../../../shared/utils/avatarUtils';
+const DEFAULT_AVATAR = defaultTeacherAvatar;
+const REVIEWER_AVATAR = defaultStudentAvatar;
 
 const timeAgo = (iso: string): string => {
   const diff = Date.now() - new Date(iso).getTime();
@@ -47,7 +49,7 @@ const ReviewItem: React.FC<{ review: TeacherReview }> = ({ review }) => (
     <div className="stpm__review-top">
       <div className="stpm__review-author">
         <div className="stpm__review-avatar">
-          <span className="material-symbols-outlined">person</span>
+          <img src={REVIEWER_AVATAR} alt="Học viên" />
         </div>
         <div>
           <p className="stpm__review-name">{review.studentName || 'Học viên ẩn danh'}</p>

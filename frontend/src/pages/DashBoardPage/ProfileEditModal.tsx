@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom';
 import { toast } from 'react-toastify';
 import axiosInstance from '../../axios';
 import { useAuth } from '../../features/auth/hooks/useAuth';
+import { getDefaultAvatar } from '../../shared/utils/avatarUtils';
 import './ProfileEditModal.scss';
 
 type ProfileData = {
@@ -17,10 +18,9 @@ type Props = {
   onClose: () => void;
 };
 
-const DEFAULT_AVATAR = 'https://gravatar.com/avatar/d302cbc4526bf50e64befe198736824c?s=400&d=robohash&r=x';
-
 const ProfileEditModal: React.FC<Props> = ({ onClose }) => {
-  const { userId, avatarUrl: ctxAvatar, displayName, refreshAuth } = useAuth();
+  const { userId, avatarUrl: ctxAvatar, displayName, role, refreshAuth } = useAuth();
+  const DEFAULT_AVATAR = getDefaultAvatar(role);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);

@@ -21,7 +21,8 @@ type PublicSupperTeacher = {
   totalRatings: number;
 };
 
-const DEFAULT_AVATAR = '/assets/images/teacher/tho/1.jpg';
+import { defaultTeacherAvatar } from '../../shared/utils/avatarUtils';
+const DEFAULT_AVATAR = defaultTeacherAvatar;
 
 const HalfStars: React.FC<{ avg: string }> = ({ avg }) => {
   const num = parseFloat(avg);

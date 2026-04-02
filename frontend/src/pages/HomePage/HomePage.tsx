@@ -9,7 +9,7 @@ import Pricing from './Pricing';
 import Contact from './Contact';
 import FooterDesc from './FooterDesc';
 
-const DEFAULT_AVATAR = 'https://gravatar.com/avatar/d302cbc4526bf50e64befe198736824c?s=400&d=robohash&r=x';
+import { getDefaultAvatar } from '../../shared/utils/avatarUtils';
 
 /*
  * Helpers for mobile auto Mezon OAuth redirect — keep commented together with
@@ -51,11 +51,12 @@ const buildMezonAuthorizeUrl = (): string | null => {
 
 const HomePage: React.FC = () => {
   const [isMenuOpen, setIsMenuOpen] = React.useState(false);
-  const { isAuthenticated, displayName, avatarUrl, logout } = useAuth();
+  const { isAuthenticated, displayName, avatarUrl, role, logout } = useAuth();
   // Mobile auto Mezon OAuth redirect — disabled; uncomment block below to restore.
   // const autoLoginTriggeredRef = React.useRef<boolean>(false);
 
   const displayUserName = displayName || 'Nguoi dung';
+  const DEFAULT_AVATAR = getDefaultAvatar(role);
   const resolvedAvatar = avatarUrl || DEFAULT_AVATAR;
 
   // Scroll-reveal observer

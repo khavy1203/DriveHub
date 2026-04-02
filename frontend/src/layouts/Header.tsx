@@ -6,12 +6,13 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../features/auth/hooks/useAuth';
+import { getDefaultAvatar } from '../shared/utils/avatarUtils';
 import './Header.scss';
 
 export const Header: React.FC = () => {
   const navigate = useNavigate();
   const { isAuthenticated, role, displayName, avatarUrl, logout } = useAuth();
-  const defaultAvatar = 'https://gravatar.com/avatar/d302cbc4526bf50e64befe198736824c?s=400&d=robohash&r=x';
+  const defaultAvatar = getDefaultAvatar(role);
   const resolvedAvatar = avatarUrl || defaultAvatar;
   const [isProfileOpen, setIsProfileOpen] = useState<boolean>(false);
   const profileMenuRef = useRef<HTMLDivElement | null>(null);

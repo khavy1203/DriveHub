@@ -3,7 +3,8 @@ import { fetchRatingsOverview } from '../services/superTeacherApi';
 import type { RatingsOverviewData, RatingsTeacherCard } from '../types';
 import './RatingsOverview.scss';
 
-const DEFAULT_AVATAR = '/assets/images/teacher/tho/1.jpg';
+import { defaultTeacherAvatar } from '../../../shared/utils/avatarUtils';
+const DEFAULT_AVATAR = defaultTeacherAvatar;
 
 const TeacherCard: React.FC<{ teacher: RatingsTeacherCard }> = ({ teacher }) => {
   const latestReview = teacher.recentReviews[0] ?? null;
