@@ -9,6 +9,13 @@
     justify-content: space-between;
     align-items: flex-end;
     margin-bottom: $st-space-10;
+
+    @media (max-width: 640px) {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: $st-space-4;
+      margin-bottom: $st-space-6;
+    }
   }
 
   &__title {
@@ -45,6 +52,16 @@
     grid-template-columns: repeat(4, 1fr);
     gap: $st-space-6;
     margin-bottom: $st-space-10;
+
+    @media (max-width: 900px) {
+      grid-template-columns: repeat(2, 1fr);
+      gap: $st-space-4;
+    }
+
+    @media (max-width: 480px) {
+      grid-template-columns: 1fr 1fr;
+      gap: $st-space-3;
+    }
   }
 
   &__stat-card {
@@ -153,6 +170,10 @@
     display: grid;
     grid-template-columns: 7fr 5fr;
     gap: $st-space-8;
+
+    @media (max-width: 900px) {
+      grid-template-columns: 1fr;
+    }
   }
 
   &__left,
@@ -173,6 +194,8 @@
     justify-content: space-between;
     align-items: center;
     margin-bottom: $st-space-8;
+    flex-wrap: wrap;
+    gap: $st-space-3;
   }
 
   &__distribution-title {

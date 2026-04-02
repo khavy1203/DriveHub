@@ -2,6 +2,7 @@ import React, { useEffect, useState, useMemo } from 'react';
 import { useSuperTeacherStudents } from '../hooks/useSuperTeacherStudents';
 import { useSuperTeacher } from '../hooks/useSuperTeacher';
 import TrainingDetailModal from './TrainingDetailModal';
+import StudentEditModal from './StudentEditModal';
 import ImportCccdModal from './ImportCccdModal';
 import type { StudentInTeam } from '../types';
 import './MyStudentList.scss';
@@ -15,7 +16,7 @@ const getInitials = (name: string): string => {
 };
 
 const MyStudentList: React.FC = () => {
-  const { students, loading, loadStudents, assignStudent, removeStudent } = useSuperTeacherStudents();
+  const { students, loading, loadStudents, assignStudent, removeStudent, updateStudent } = useSuperTeacherStudents();
   const { teachers, loadTeachers } = useSuperTeacher();
 
   const [search, setSearch] = useState('');
@@ -26,7 +27,7 @@ const MyStudentList: React.FC = () => {
   const [selectedTeacherId, setSelectedTeacherId] = useState<number | ''>('');
   const [assigning, setAssigning] = useState(false);
   const [detailTarget, setDetailTarget] = useState<StudentInTeam | null>(null);
-  const [sortKey, setSortKey] = useState<string>('');
+  const [sortKey, setSortKey] = useState<string>('progress');
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc');
   const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
   const [showImport, setShowImport] = useState(false);
@@ -81,8 +82,8 @@ const MyStudentList: React.FC = () => {
         va = a.teacherName ?? teacherMap.get(a.teacherId) ?? '';
         vb = b.teacherName ?? teacherMap.get(b.teacherId) ?? '';
       } else if (sortKey === 'progress') {
-        va = a.hocVien?.trainingSnapshot?.courseProgressPct ?? -1;
-        vb = b.hocVien?.trainingSnapshot?.courseProgressPct ?? -1;
+        va = a.hocVien?.trainingSnapshot?.courseProgressPct ?? Infinity;
+        vb = b.hocVien?.trainingSnapshot?.courseProgressPct ?? Infinity;
       }
       if (va < vb) return -1 * dir;
       if (va > vb) return 1 * dir;
@@ -444,14 +445,26 @@ const MyStudentList: React.FC = () => {
         </div>
       )}
 
-      {/* Training Detail Modal */}
-      {detailTarget && detailTarget.hocVien?.SoCCCD && (
+      {/* Synced student: show training progress modal (read-only personal info) */}
+      {detailTarget && !!detailTarget.hocVien?.trainingSnapshot && detailTarget.hocVien?.SoCCCD && (
         <TrainingDetailModal
           cccd={detailTarget.hocVien.SoCCCD}
           studentName={detailTarget.hocVien?.HoTen ?? '—'}
           currentTeacherId={detailTarget.teacherId}
           teachers={teachers}
           onAssign={(teacherId) => handleDetailAssign(detailTarget.hocVienId, teacherId)}
+          onDrop={() => removeStudent(detailTarget.hocVienId)}
+          onClose={() => setDetailTarget(null)}
+        />
+      )}
+
+      {/* Pending-sync student: editable personal info */}
+      {detailTarget && !detailTarget.hocVien?.trainingSnapshot && (
+        <StudentEditModal
+          student={detailTarget}
+          teachers={teachers}
+          onSave={updateStudent}
+          onAssign={handleDetailAssign}
           onDrop={() => removeStudent(detailTarget.hocVienId)}
           onClose={() => setDetailTarget(null)}
         />

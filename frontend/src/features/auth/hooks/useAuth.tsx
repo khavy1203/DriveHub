@@ -188,8 +188,35 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const getToken = (): string | null => token;
 
+  const refreshAuth = async (): Promise<void> => {
+    try {
+      const baseUrl = getConfig().API_BASE_URL;
+      const sessionToken = sessionStorage.getItem(AUTH_SESSION_KEYS.token);
+      const response = await fetch(`${baseUrl}/api/account`, {
+        method: 'GET',
+        credentials: 'include',
+        headers: sessionToken ? { Authorization: `Bearer ${sessionToken}` } : undefined,
+      });
+      if (!response.ok) return;
+      const payload = await response.json();
+      if (payload?.EC === 0 && payload?.DT?.access_token) {
+        const d = payload.DT;
+        const nextDisplayName = d.username || null;
+        const nextAvatarUrl = d.avatarUrl || null;
+        setDisplayName(nextDisplayName);
+        setAvatarUrl(nextAvatarUrl);
+        if (nextDisplayName) sessionStorage.setItem(AUTH_SESSION_KEYS.displayName, nextDisplayName);
+        else sessionStorage.removeItem(AUTH_SESSION_KEYS.displayName);
+        if (nextAvatarUrl) sessionStorage.setItem(AUTH_SESSION_KEYS.avatarUrl, nextAvatarUrl);
+        else sessionStorage.removeItem(AUTH_SESSION_KEYS.avatarUrl);
+      }
+    } catch {
+      // silent — don't break the UI
+    }
+  };
+
   return (
-    <AuthContext.Provider value={{ isAuthenticated, isAuthLoading, userId, role, displayName, avatarUrl, setAuth, logout, getToken }}>
+    <AuthContext.Provider value={{ isAuthenticated, isAuthLoading, userId, role, displayName, avatarUrl, setAuth, logout, getToken, refreshAuth }}>
       {children}
     </AuthContext.Provider>
   );

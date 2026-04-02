@@ -43,7 +43,7 @@ import { getTrainingStudentCached, triggerSyncAll, getTrainingSyncStatus, import
 import contactLeadController from "../controller/contactLeadController";
 import {
   listMyTeachers, addTeacher, editTeacher, removeTeacher,
-  listMyStudents, assignStudent, dropStudentHandler, importCccd, ratingsOverview,
+  listMyStudents, assignStudent, dropStudentHandler, updateStudentHandler, importCccd, ratingsOverview,
   listSupperTeachers, addSupperTeacher, editSupperTeacher, removeSupperTeacher,
   previewDeleteSupperTeacher, addTeacherByAdmin, moveTeacherToSupper, listTeachersInTeam, listTeachersWithoutSupper,
   promoteTeacher, demoteSuperTeacher,
@@ -225,6 +225,7 @@ const initWebRoutes = (app) => {
     routes.delete('/super-teacher/teachers/:teacherId', removeTeacher);
     routes.get('/super-teacher/students', listMyStudents);
     routes.post('/super-teacher/assign-student', assignStudent);
+    routes.put('/super-teacher/students/:hocVienId', updateStudentHandler);
     routes.delete('/super-teacher/students/:hocVienId', dropStudentHandler);
     routes.post('/super-teacher/import-cccd', importCccd);
     routes.get('/super-teacher/ratings-overview', ratingsOverview);

@@ -26,6 +26,19 @@ export const assignStudentApi = (hocVienId: number, teacherId: number) =>
 export const dropStudentApi = (hocVienId: number) =>
   axios.delete<ApiRes<null>>(`/api/super-teacher/students/${hocVienId}`).then(r => r.data);
 
+export type StudentEditData = {
+  HoTen?: string;
+  NgaySinh?: string;
+  GioiTinh?: string;
+  phone?: string;
+  DiaChi?: string;
+  GhiChu?: string;
+  SoCCCD?: string;
+};
+
+export const updateStudentApi = (hocVienId: number, data: StudentEditData) =>
+  axios.put<ApiRes<unknown>>(`/api/super-teacher/students/${hocVienId}`, data).then(r => r.data);
+
 type ImportResult = {
   cccd: string;
   ok: boolean;

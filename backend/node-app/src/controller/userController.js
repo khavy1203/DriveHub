@@ -1,4 +1,5 @@
 import userApiServices from "../service/userAPIServices";
+import db from '../models/index.js';
 const readFunc = async (req, res) => {
     try {
 
@@ -97,6 +98,23 @@ const getUserAccount = async (req, res) => {
             },
         });
     }
+    // Prefer teacher_profile.avatarUrl (file upload) over JWT-embedded image URL
+    let avatarUrl = req.user.avatarUrl || null;
+    try {
+        const profile = await db.teacher_profile.findOne({
+            where: { userId: req.user.id },
+            attributes: ['avatarUrl'],
+        });
+        if (profile?.avatarUrl) avatarUrl = profile.avatarUrl;
+    } catch { /* non-critical */ }
+
+    // Also use latest username from DB in case it was updated after JWT was issued
+    let username = req.user.username;
+    try {
+        const u = await db.user.findOne({ where: { id: req.user.id }, attributes: ['username'] });
+        if (u?.username) ({ username } = u);
+    } catch { /* non-critical */ }
+
     return res.status(200).json({
         EM: 'ok',
         EC: 0,
@@ -105,8 +123,8 @@ const getUserAccount = async (req, res) => {
             userId: req.user.id ?? null,
             groupWithRoles: req.user.groupWithRoles,
             email: req.user.email,
-            username: req.user.username,
-            avatarUrl: req.user.avatarUrl || null,
+            username,
+            avatarUrl,
         },
     });
 };

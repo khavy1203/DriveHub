@@ -71,6 +71,12 @@
     grid-template-columns: 3fr 1fr;
     gap: $st-space-6;
     margin-bottom: $st-space-8;
+
+    @media (max-width: 768px) {
+      grid-template-columns: 1fr;
+      gap: $st-space-4;
+      margin-bottom: $st-space-5;
+    }
   }
 
   &__filter-bar {
@@ -85,7 +91,7 @@
 
   &__filter-field {
     flex: 1;
-    min-width: 180px;
+    min-width: 140px;
 
     label {
       display: block;
@@ -299,7 +305,9 @@
     background: $st-surface-container-lowest;
     border-radius: $st-radius-xl;
     overflow: hidden;
+    overflow-x: auto;
     box-shadow: $st-shadow-sm;
+    -webkit-overflow-scrolling: touch;
   }
 
   &__table {
@@ -722,6 +730,46 @@
     &:disabled {
       opacity: 0.4;
       cursor: not-allowed;
+    }
+  }
+
+  // ── Mobile responsive ───────────────────────────────────────────────────
+  @media (max-width: 640px) {
+    &__header {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: $st-space-3;
+      margin-bottom: $st-space-5;
+    }
+
+    &__filter-bar {
+      flex-direction: column;
+      gap: $st-space-3;
+    }
+
+    &__filter-field {
+      min-width: 0;
+      width: 100%;
+    }
+
+    &__filter-field--small,
+    &__filter-field--medium {
+      width: 100%;
+    }
+
+    // Hide less important table columns on small screens
+    &__table {
+      min-width: 500px;
+
+      th, td {
+        padding: $st-space-3 $st-space-3;
+      }
+    }
+
+    &__pagination {
+      flex-direction: column;
+      gap: $st-space-3;
+      padding: $st-space-3 $st-space-4;
     }
   }
 

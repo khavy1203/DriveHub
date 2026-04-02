@@ -66,6 +66,10 @@ $st-space-12: 3rem;
   font-family: $st-font-body;
   color: $st-on-surface;
   background: $st-surface;
+
+  @media (max-width: 640px) {
+    padding: $st-space-4 $st-space-4 $st-space-8;
+  }
 }
 
 @mixin st-card {

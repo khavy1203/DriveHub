@@ -32,7 +32,10 @@ export type StudentInTeam = {
     HoTen: string;
     SoCCCD: string;
     NgaySinh?: string;
+    GioiTinh?: string;
     phone?: string;
+    DiaChi?: string;
+    GhiChu?: string;
     trainingSnapshot?: TrainingSnapshot | null;
   } | null;
 };

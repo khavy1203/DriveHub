@@ -6,6 +6,7 @@ import {
   getMyStudents,
   assignStudentToTeacher,
   dropStudent,
+  updateStudentInfo,
   importStudentsByCccd,
   getRatingsOverview,
   getAllSupperTeachers,
@@ -113,6 +114,20 @@ export const importCccd = async (req, res, next) => {
       DT: result.results,
     });
   } catch (err) { handleError(res, err, next); }
+};
+
+export const updateStudentHandler = async (req, res, next) => {
+  try {
+    const superTeacherId = req.user?.id;
+    if (!superTeacherId) return res.status(401).json({ EC: -1, EM: 'Không xác thực', DT: null });
+    const hocVienId = Number(req.params.hocVienId);
+    if (!hocVienId) return res.status(400).json({ EC: -1, EM: 'Thiếu hocVienId', DT: null });
+    const data = await updateStudentInfo(superTeacherId, hocVienId, req.body);
+    return res.json({ EC: 0, EM: 'Cập nhật thành công', DT: data });
+  } catch (err) {
+    if (err.code === 'FORBIDDEN') return res.status(403).json({ EC: -1, EM: err.message, DT: null });
+    handleError(res, err, next);
+  }
 };
 
 export const dropStudentHandler = async (req, res, next) => {

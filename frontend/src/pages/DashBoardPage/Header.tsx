@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../../features/auth/hooks/useAuth";
+import ProfileEditModal from "./ProfileEditModal";
 
 interface DashHeaderProps {
   onToggle: () => void;
@@ -27,6 +28,7 @@ const Header: React.FC<DashHeaderProps> = ({
   const location  = useLocation();
   const { displayName, role, avatarUrl, logout } = useAuth();
   const [menuOpen, setMenuOpen] = useState(false);
+  const [editOpen, setEditOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
   const defaultAvatar = 'https://gravatar.com/avatar/d302cbc4526bf50e64befe198736824c?s=400&d=robohash&r=x';
@@ -100,6 +102,11 @@ const Header: React.FC<DashHeaderProps> = ({
                 </div>
               </div>
               <div className="db-profile-menu-divider" />
+              <button className="db-pm-item" onClick={() => { setMenuOpen(false); setEditOpen(true); }}>
+                <i className="material-icons">manage_accounts</i>
+                Chỉnh sửa hồ sơ
+              </button>
+              <div className="db-profile-menu-divider" />
               <button className="db-pm-item db-pm-logout" onClick={handleLogout}>
                 <i className="material-icons">logout</i>
                 Đăng xuất
@@ -108,6 +115,8 @@ const Header: React.FC<DashHeaderProps> = ({
           )}
         </div>
       </div>
+
+      {editOpen && <ProfileEditModal onClose={() => setEditOpen(false)} />}
     </header>
   );
 };

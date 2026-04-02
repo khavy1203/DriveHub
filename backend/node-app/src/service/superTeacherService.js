@@ -125,7 +125,7 @@ export const getMyStudents = async (superTeacherId) => {
         include: [{
           model: db.hoc_vien,
           as: 'hocVien',
-          attributes: ['id', 'HoTen', 'SoCCCD', 'NgaySinh', 'phone'],
+          attributes: ['id', 'HoTen', 'SoCCCD', 'NgaySinh', 'GioiTinh', 'phone', 'DiaChi', 'GhiChu'],
           required: false,
           include: [{
             model: db.training_snapshot,
@@ -155,7 +155,7 @@ export const getMyStudents = async (superTeacherId) => {
 
   const unassignedHv = await db.hoc_vien.findAll({
     where: unassignedWhere,
-    attributes: ['id', 'HoTen', 'SoCCCD', 'NgaySinh', 'phone'],
+    attributes: ['id', 'HoTen', 'SoCCCD', 'NgaySinh', 'GioiTinh', 'phone', 'DiaChi', 'GhiChu'],
     include: [{
       model: db.training_snapshot,
       as: 'trainingSnapshot',
@@ -243,6 +243,35 @@ export const dropStudent = async (superTeacherId, hocVienId, isAdmin = false) =>
   await db.training_snapshot.destroy({ where: { hocVienId } });
 
   return { hocVienId };
+};
+
+/**
+ * Update a pending-sync student's personal info.
+ * Blocked once the student has a trainingSnapshot (data is owned by sync).
+ */
+export const updateStudentInfo = async (superTeacherId, hocVienId, data) => {
+  const student = await db.hoc_vien.findOne({
+    where: { id: hocVienId, superTeacherId },
+    include: [{ model: db.training_snapshot, as: 'trainingSnapshot', required: false }],
+  });
+  if (!student) {
+    const err = new Error('Không tìm thấy học viên hoặc không có quyền');
+    err.code = 'NOT_FOUND';
+    throw err;
+  }
+  if (student.trainingSnapshot) {
+    const err = new Error('Học viên đã đồng bộ, không thể chỉnh sửa thông tin cá nhân');
+    err.code = 'FORBIDDEN';
+    throw err;
+  }
+
+  const ALLOWED = ['HoTen', 'NgaySinh', 'GioiTinh', 'phone', 'DiaChi', 'GhiChu', 'SoCCCD'];
+  const updates = {};
+  for (const key of ALLOWED) {
+    if (data[key] !== undefined) updates[key] = data[key] || null;
+  }
+  if (Object.keys(updates).length > 0) await student.update(updates);
+  return student.get({ plain: true });
 };
 
 // ── SupperAdmin helpers ──────────────────────────────────────────────────────

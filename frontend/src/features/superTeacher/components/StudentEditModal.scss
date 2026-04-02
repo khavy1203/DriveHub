@@ -1,0 +1,360 @@
+@use '../tokens' as *;
+
+.sem {
+  &__overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 1300;
+    background: rgba(11, 28, 48, 0.45);
+    backdrop-filter: blur(6px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: $st-space-4;
+    animation: semFadeIn 0.18s ease;
+  }
+
+  &__panel {
+    background: $st-surface-container-lowest;
+    border-radius: $st-radius-xl;
+    box-shadow: $st-shadow-md;
+    width: 100%;
+    max-width: 600px;
+    max-height: 90vh;
+    display: flex;
+    flex-direction: column;
+    animation: semSlideUp 0.22s ease;
+
+    @media (max-width: 640px) {
+      max-height: 95vh;
+      border-radius: $st-radius-xl $st-radius-xl 0 0;
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      max-width: 100%;
+    }
+  }
+
+  // ── Header ───────────────────────────────────────────────────────────────
+  &__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding: $st-space-6;
+    border-bottom: 1px solid rgba($st-outline-variant, 0.12);
+    flex-shrink: 0;
+  }
+
+  &__status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: $st-space-1;
+    background: rgba($st-outline, 0.08);
+    color: $st-outline;
+    border-radius: $st-radius-full;
+    padding: 0.2rem 0.625rem;
+    font-size: 0.6875rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-bottom: $st-space-2;
+
+    .material-symbols-outlined {
+      font-size: 14px;
+    }
+  }
+
+  &__title {
+    @include st-heading-md;
+    margin: 0;
+  }
+
+  &__close {
+    background: none;
+    border: none;
+    padding: $st-space-2;
+    cursor: pointer;
+    color: $st-outline;
+    border-radius: $st-radius-sm;
+    transition: all 0.15s;
+    flex-shrink: 0;
+
+    &:hover {
+      background: $st-surface-container-low;
+      color: $st-on-surface;
+    }
+
+    .material-symbols-outlined { font-size: 20px; }
+  }
+
+  // ── Info banner ──────────────────────────────────────────────────────────
+  &__banner {
+    display: flex;
+    align-items: flex-start;
+    gap: $st-space-3;
+    padding: $st-space-3 $st-space-6;
+    background: rgba($st-tertiary, 0.06);
+    border-left: 3px solid $st-tertiary;
+    flex-shrink: 0;
+
+    .material-symbols-outlined {
+      font-size: 18px;
+      color: $st-tertiary;
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+
+    p {
+      font-size: 0.8125rem;
+      color: $st-on-surface-variant;
+      line-height: 1.5;
+      margin: 0;
+    }
+  }
+
+  // ── Body ─────────────────────────────────────────────────────────────────
+  &__body {
+    flex: 1;
+    overflow-y: auto;
+    padding: $st-space-6;
+
+    &::-webkit-scrollbar { width: 4px; }
+    &::-webkit-scrollbar-thumb {
+      background: $st-outline-variant;
+      border-radius: 2px;
+    }
+  }
+
+  &__section-label {
+    @include st-label-sm;
+    margin-bottom: $st-space-4;
+
+    & + & {
+      margin-top: $st-space-6;
+    }
+  }
+
+  // ── Form grid ────────────────────────────────────────────────────────────
+  &__grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: $st-space-4;
+    margin-bottom: $st-space-6;
+
+    @media (max-width: 480px) {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  &__field {
+    display: flex;
+    flex-direction: column;
+    gap: $st-space-2;
+
+    &--full {
+      grid-column: 1 / -1;
+    }
+  }
+
+  &__label {
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: $st-on-surface-variant;
+  }
+
+  &__input {
+    width: 100%;
+    padding: $st-space-3 $st-space-4;
+    background: $st-surface-container-low;
+    border: 1px solid rgba($st-outline-variant, 0.2);
+    border-radius: $st-radius-md;
+    font-size: 0.875rem;
+    font-family: $st-font-body;
+    color: $st-on-surface;
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    box-sizing: border-box;
+
+    &:focus {
+      border-color: $st-primary;
+      box-shadow: 0 0 0 3px rgba($st-primary, 0.08);
+    }
+
+    &::placeholder {
+      color: $st-outline-variant;
+    }
+  }
+
+  &__select {
+    appearance: none;
+    cursor: pointer;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='%236d7a77'%3E%3Cpath d='M7 10l5 5 5-5z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 0.75rem center;
+    padding-right: 2rem;
+  }
+
+  &__textarea {
+    resize: vertical;
+    min-height: 64px;
+  }
+
+  // ── Assign section ────────────────────────────────────────────────────────
+  &__assign {
+    background: $st-surface-container-low;
+    border-radius: $st-radius-lg;
+    padding: $st-space-5;
+    display: flex;
+    flex-direction: column;
+    gap: $st-space-3;
+  }
+
+  &__assign-current {
+    display: flex;
+    align-items: center;
+    gap: $st-space-3;
+    font-size: 0.875rem;
+    color: $st-on-surface-variant;
+
+    .material-symbols-outlined {
+      font-size: 18px;
+      color: $st-primary;
+    }
+
+    strong { color: $st-on-surface; }
+    em { color: $st-outline-variant; font-style: normal; }
+  }
+
+  &__assign-form {
+    display: flex;
+    gap: $st-space-3;
+
+    @media (max-width: 480px) {
+      flex-direction: column;
+    }
+  }
+
+  &__assign-select {
+    flex: 1;
+    padding: $st-space-3 $st-space-4;
+    background: $st-surface-container-lowest;
+    border: 1px solid rgba($st-outline-variant, 0.2);
+    border-radius: $st-radius-md;
+    font-size: 0.875rem;
+    font-family: $st-font-body;
+    color: $st-on-surface;
+    outline: none;
+    cursor: pointer;
+
+    &:focus {
+      border-color: $st-primary;
+    }
+  }
+
+  &__assign-btn {
+    @include st-btn-primary;
+    white-space: nowrap;
+
+    .material-symbols-outlined { font-size: 18px; }
+  }
+
+  // ── Footer ────────────────────────────────────────────────────────────────
+  &__footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: $st-space-5 $st-space-6;
+    border-top: 1px solid rgba($st-outline-variant, 0.12);
+    gap: $st-space-3;
+    flex-shrink: 0;
+    flex-wrap: wrap;
+  }
+
+  &__footer-left,
+  &__footer-right {
+    display: flex;
+    align-items: center;
+    gap: $st-space-3;
+  }
+
+  &__drop-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: $st-space-2;
+    background: none;
+    border: 1px solid rgba($st-error, 0.25);
+    color: $st-error;
+    padding: $st-space-2 $st-space-4;
+    border-radius: $st-radius-sm;
+    font-family: $st-font-body;
+    font-size: 0.8125rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+
+    &:hover {
+      background: rgba($st-error, 0.06);
+    }
+
+    .material-symbols-outlined { font-size: 16px; }
+  }
+
+  &__drop-confirm {
+    display: flex;
+    align-items: center;
+    gap: $st-space-2;
+    font-size: 0.8125rem;
+    color: $st-error;
+    font-weight: 600;
+  }
+
+  &__drop-cancel {
+    background: none;
+    border: none;
+    font-size: 0.8125rem;
+    font-weight: 700;
+    color: $st-outline;
+    cursor: pointer;
+    font-family: $st-font-body;
+    padding: $st-space-1 $st-space-2;
+
+    &:hover { color: $st-on-surface; }
+  }
+
+  &__drop-execute {
+    background: $st-error;
+    color: $st-on-primary;
+    border: none;
+    padding: $st-space-2 $st-space-4;
+    border-radius: $st-radius-sm;
+    font-family: $st-font-body;
+    font-size: 0.8125rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: opacity 0.2s;
+
+    &:hover { opacity: 0.9; }
+    &:disabled { opacity: 0.6; cursor: not-allowed; }
+  }
+
+  &__cancel-btn {
+    @include st-btn-secondary;
+  }
+
+  &__save-btn {
+    @include st-btn-primary;
+
+    .material-symbols-outlined { font-size: 18px; }
+  }
+}
+
+@keyframes semFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes semSlideUp {
+  from { opacity: 0; transform: translateY(12px) scale(0.98); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}

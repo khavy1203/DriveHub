@@ -1,7 +1,7 @@
 import { useState, useCallback } from 'react';
 import { toast } from 'react-toastify';
 import type { StudentInTeam } from '../types';
-import { fetchMyStudents, assignStudentApi, dropStudentApi } from '../services/superTeacherApi';
+import { fetchMyStudents, assignStudentApi, dropStudentApi, updateStudentApi, type StudentEditData } from '../services/superTeacherApi';
 
 export const useSuperTeacherStudents = () => {
   const [students, setStudents] = useState<StudentInTeam[]>([]);
@@ -34,5 +34,12 @@ export const useSuperTeacherStudents = () => {
     await loadStudents();
   }, [loadStudents]);
 
-  return { students, loading, loadStudents, assignStudent, removeStudent };
+  const updateStudent = useCallback(async (hocVienId: number, data: StudentEditData) => {
+    const res = await updateStudentApi(hocVienId, data);
+    if (res.EC !== 0) throw new Error(res.EM);
+    toast.success('Cập nhật thành công');
+    await loadStudents();
+  }, [loadStudents]);
+
+  return { students, loading, loadStudents, assignStudent, removeStudent, updateStudent };
 };

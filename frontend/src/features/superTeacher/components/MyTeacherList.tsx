@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useMemo, useCallback } from 'react';
+import { createPortal } from 'react-dom';
 import { useAuth } from '../../../features/auth/hooks/useAuth';
 import { useSuperTeacher } from '../hooks/useSuperTeacher';
 import { useSuperTeacherStudents } from '../hooks/useSuperTeacherStudents';
@@ -59,7 +60,7 @@ type ReviewModalProps = {
 
 const ReviewModal: React.FC<ReviewModalProps> = ({ teacher, rating, onClose }) => {
   const avatarUrl = teacher.teacherProfile?.avatarUrl || null;
-  return (
+  return createPortal(
     <div className="teacher-list__rv-overlay" onClick={onClose}>
       <div className="teacher-list__rv-panel" onClick={e => e.stopPropagation()}>
         {/* Header */}
@@ -118,7 +119,123 @@ const ReviewModal: React.FC<ReviewModalProps> = ({ teacher, rating, onClose }) =
           )}
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
+  );
+};
+
+type TeacherDetailDrawerProps = {
+  teacher: TeacherInTeam;
+  count: number;
+  rating: RatingsTeacherCard | undefined;
+  currentUserId: number | null | undefined;
+  onClose: () => void;
+  onEdit: () => void;
+  onDelete: () => void;
+  onReview: () => void;
+};
+
+const TeacherDetailDrawer: React.FC<TeacherDetailDrawerProps> = ({
+  teacher, count, rating, currentUserId, onClose, onEdit, onDelete, onReview,
+}) => {
+  const url = teacher.teacherProfile?.avatarUrl || null;
+  return createPortal(
+    <div className="teacher-list__detail-overlay" onClick={onClose}>
+      <div className="teacher-list__detail-drawer" onClick={e => e.stopPropagation()}>
+        {/* Top bar */}
+        <div className="teacher-list__detail-head">
+          <span className="teacher-list__detail-label">Thông tin giáo viên</span>
+          <button className="teacher-list__rv-close" onClick={onClose} type="button">
+            <span className="material-symbols-outlined">close</span>
+          </button>
+        </div>
+
+        {/* Hero: avatar + name */}
+        <div className="teacher-list__detail-hero">
+          <div className="teacher-list__detail-avatar">
+            {url ? <img src={url} alt={teacher.username} /> : getInitials(teacher.username)}
+          </div>
+          <div className="teacher-list__detail-hero-info">
+            <h2 className="teacher-list__detail-name">
+              {teacher.username}
+              {teacher.id === currentUserId && (
+                <span className="teacher-list__you-tag">Bạn</span>
+              )}
+            </h2>
+            <p className="teacher-list__detail-id">ID: {teacher.id}</p>
+            <div className="teacher-list__status">
+              <span className={`teacher-list__status-dot ${teacher.active ? 'teacher-list__status-dot--active' : 'teacher-list__status-dot--inactive'}`} />
+              <span className="teacher-list__status-text">
+                {teacher.active ? 'Đang hoạt động' : 'Đã khóa'}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        {/* Info rows */}
+        <div className="teacher-list__detail-body">
+          <div className="teacher-list__detail-row">
+            <span className="material-symbols-outlined">mail</span>
+            <div>
+              <p className="teacher-list__detail-row-label">Email</p>
+              <p className="teacher-list__detail-row-val">{teacher.email}</p>
+            </div>
+          </div>
+          {teacher.phone && (
+            <div className="teacher-list__detail-row">
+              <span className="material-symbols-outlined">call</span>
+              <div>
+                <p className="teacher-list__detail-row-label">Điện thoại</p>
+                <p className="teacher-list__detail-row-val">{teacher.phone}</p>
+              </div>
+            </div>
+          )}
+          <div className="teacher-list__detail-row">
+            <span className="material-symbols-outlined">group</span>
+            <div>
+              <p className="teacher-list__detail-row-label">Học viên quản lý</p>
+              <span className={`teacher-list__student-pill ${getStudentLoadClass(count)}`}>
+                {count} Học viên
+              </span>
+            </div>
+          </div>
+          {rating ? (
+            <div className="teacher-list__detail-row">
+              <span className="material-symbols-outlined">star</span>
+              <div>
+                <p className="teacher-list__detail-row-label">Đánh giá</p>
+                <button className="teacher-list__rating-cell" onClick={onReview} type="button">
+                  <StarDisplay avg={rating.avgStars} />
+                  <span className="teacher-list__rating-val">{rating.avgStars}</span>
+                  <span className="teacher-list__rating-count">({rating.totalRatings} đánh giá)</span>
+                </button>
+              </div>
+            </div>
+          ) : (
+            <div className="teacher-list__detail-row">
+              <span className="material-symbols-outlined">star</span>
+              <div>
+                <p className="teacher-list__detail-row-label">Đánh giá</p>
+                <span className="teacher-list__rating-empty">Chưa có đánh giá</span>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Footer actions */}
+        <div className="teacher-list__detail-footer">
+          <button className="teacher-list__detail-btn-edit" onClick={onEdit} type="button">
+            <span className="material-symbols-outlined">edit</span>
+            Chỉnh sửa thông tin
+          </button>
+          <button className="teacher-list__detail-btn-delete" onClick={onDelete} type="button">
+            <span className="material-symbols-outlined">delete</span>
+            Xóa giáo viên
+          </button>
+        </div>
+      </div>
+    </div>,
+    document.body
   );
 };
 
@@ -136,6 +253,7 @@ const MyTeacherList: React.FC = () => {
   const [reviewTeacher, setReviewTeacher] = useState<TeacherInTeam | null>(null);
   const [sortKey, setSortKey] = useState<SortKey>('name');
   const [sortDir, setSortDir] = useState<SortDir>('asc');
+  const [detailTeacher, setDetailTeacher] = useState<TeacherInTeam | null>(null);
 
   const loadRatings = useCallback(async () => {
     try {
@@ -372,7 +490,7 @@ const MyTeacherList: React.FC = () => {
                 const count = studentCount(t);
                 const rating = ratingsMap.get(t.id);
                 return (
-                  <tr key={t.id}>
+                  <tr key={t.id} onClick={() => setDetailTeacher(t)} className="teacher-list__table-row">
                     <td className="teacher-list__row-index">
                       {String(idx).padStart(2, '0')}
                     </td>
@@ -423,7 +541,7 @@ const MyTeacherList: React.FC = () => {
                       {rating ? (
                         <button
                           className="teacher-list__rating-cell"
-                          onClick={() => openReview(t)}
+                          onClick={e => { e.stopPropagation(); openReview(t); }}
                           type="button"
                         >
                           <StarDisplay avg={rating.avgStars} />
@@ -446,14 +564,14 @@ const MyTeacherList: React.FC = () => {
                       <div className="teacher-list__actions">
                         <button
                           className="teacher-list__action-btn"
-                          onClick={() => openEdit(t)}
+                          onClick={e => { e.stopPropagation(); openEdit(t); }}
                           title="Sửa"
                         >
                           <span className="material-symbols-outlined">edit</span>
                         </button>
                         <button
                           className="teacher-list__action-btn teacher-list__action-btn--danger"
-                          onClick={() => setConfirmDelete(t)}
+                          onClick={e => { e.stopPropagation(); setConfirmDelete(t); }}
                           title="Xóa"
                         >
                           <span className="material-symbols-outlined">delete</span>
@@ -527,7 +645,7 @@ const MyTeacherList: React.FC = () => {
       )}
 
       {/* Delete Confirm Modal */}
-      {confirmDelete && (
+      {confirmDelete && createPortal(
         <div className="teacher-list__modal-backdrop" onClick={() => setConfirmDelete(null)}>
           <div className="teacher-list__modal-box" onClick={e => e.stopPropagation()}>
             <h3 className="teacher-list__modal-title">Xác nhận xóa</h3>
@@ -539,7 +657,8 @@ const MyTeacherList: React.FC = () => {
               <button className="teacher-list__modal-danger" onClick={handleDelete}>Xóa</button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* Review Popup Modal */}
@@ -548,6 +667,20 @@ const MyTeacherList: React.FC = () => {
           teacher={reviewTeacher}
           rating={ratingsMap.get(reviewTeacher.id)!}
           onClose={() => setReviewTeacher(null)}
+        />
+      )}
+
+      {/* Teacher Detail Drawer */}
+      {detailTeacher && (
+        <TeacherDetailDrawer
+          teacher={detailTeacher}
+          count={studentCount(detailTeacher)}
+          rating={ratingsMap.get(detailTeacher.id)}
+          currentUserId={currentUserId}
+          onClose={() => setDetailTeacher(null)}
+          onEdit={() => { openEdit(detailTeacher); setDetailTeacher(null); }}
+          onDelete={() => { setConfirmDelete(detailTeacher); setDetailTeacher(null); }}
+          onReview={() => { openReview(detailTeacher); setDetailTeacher(null); }}
         />
       )}
     </div>

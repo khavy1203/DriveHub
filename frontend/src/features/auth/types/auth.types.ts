@@ -13,6 +13,7 @@ export interface AuthContextType {
   setAuth: (token: string, role: string, displayName?: string, avatarUrl?: string | null, userId?: number | null) => void;
   logout: () => void;
   getToken: () => string | null;
+  refreshAuth: () => Promise<void>;
 }
 
 export interface LoginCredentials {
