@@ -27,26 +27,15 @@ const assertOwnership = async (superTeacherId, teacherId) => {
 };
 
 export const getMyTeachers = async (superTeacherId) => {
-  // Include the SuperTeacher themselves (they can also teach directly)
-  const [self, assistants] = await Promise.all([
-    db.user.findByPk(superTeacherId, {
-      attributes: ['id', 'email', 'username', 'address', 'phone', 'active', 'superTeacherId'],
-      include: [
-        { model: db.teacher_profile, as: 'teacherProfile', attributes: ['bio', 'licenseTypes', 'locationName', 'yearsExp', 'avatarUrl', 'isActive'], required: false },
-      ],
-    }),
-    db.user.findAll({
-      where: { groupId: TEACHER_GROUP_ID, superTeacherId },
-      attributes: ['id', 'email', 'username', 'address', 'phone', 'active', 'superTeacherId'],
-      include: [
-        { model: db.teacher_profile, as: 'teacherProfile', attributes: ['bio', 'licenseTypes', 'locationName', 'yearsExp', 'avatarUrl', 'isActive'], required: false },
-      ],
-      order: [['id', 'ASC']],
-    }),
-  ]);
-  const result = assistants.map(t => t.get({ plain: true }));
-  if (self) result.unshift(self.get({ plain: true }));
-  return result;
+  const assistants = await db.user.findAll({
+    where: { groupId: TEACHER_GROUP_ID, superTeacherId },
+    attributes: ['id', 'email', 'username', 'address', 'phone', 'active', 'superTeacherId'],
+    include: [
+      { model: db.teacher_profile, as: 'teacherProfile', attributes: ['bio', 'licenseTypes', 'locationName', 'yearsExp', 'avatarUrl', 'isActive'], required: false },
+    ],
+    order: [['id', 'ASC']],
+  });
+  return assistants.map(t => t.get({ plain: true }));
 };
 
 export const createTeacher = async (superTeacherId, data) => {
@@ -276,10 +265,13 @@ export const updateStudentInfo = async (superTeacherId, hocVienId, data) => {
 
 // ── SupperAdmin helpers ──────────────────────────────────────────────────────
 
-export const getAllSupperTeachers = async () => {
+export const getAllSupperTeachers = async (adminId = null) => {
+  const where = { groupId: SUPPER_TEACHER_GROUP_ID };
+  if (adminId) where.adminId = adminId;
+
   const list = await db.user.findAll({
-    where: { groupId: SUPPER_TEACHER_GROUP_ID },
-    attributes: ['id', 'email', 'username', 'phone', 'address', 'active'],
+    where,
+    attributes: ['id', 'email', 'username', 'phone', 'address', 'active', 'adminId'],
     order: [['id', 'ASC']],
   });
 
@@ -290,7 +282,7 @@ export const getAllSupperTeachers = async () => {
   }));
 };
 
-export const createSupperTeacher = async (data) => {
+export const createSupperTeacher = async (data, adminId = null) => {
   const { email, username, password, phone, address } = data;
   if (!email || !username) throw Object.assign(new Error('Email và tên không được để trống'), { code: 'VALIDATION' });
 
@@ -311,6 +303,7 @@ export const createSupperTeacher = async (data) => {
     address: address || null,
     groupId: SUPPER_TEACHER_GROUP_ID,
     superTeacherId: null,
+    adminId: adminId || null,
     setupToken,
     setupTokenExpiry,
     active: 1,
@@ -381,7 +374,10 @@ export const reassignTeacher = async (teacherId, newSuperTeacherId) => {
 export const importStudentsByCccd = async (superTeacherId, cccdList) => {
   const { importAndSyncByCccdList } = require('../service/trainingSyncService.js');
 
-  const result = await importAndSyncByCccdList(cccdList);
+  const st = await db.user.findByPk(superTeacherId, { attributes: ['adminId'] });
+  const adminId = st?.adminId ?? null;
+
+  const result = await importAndSyncByCccdList(cccdList, adminId);
   if (result.error) return result;
 
   // Stamp superTeacherId on all successfully imported/existing hoc_vien
@@ -391,52 +387,96 @@ export const importStudentsByCccd = async (superTeacherId, cccdList) => {
 
   if (successIds.length > 0) {
     const { Op } = require('sequelize');
+
+    // Pull all students to this ST — clear old assignments and fully reassign
+    await db.student_assignment.destroy({ where: { hocVienId: { [Op.in]: successIds } } });
     await db.hoc_vien.update(
-      { superTeacherId },
+      { superTeacherId, adminId: adminId || null },
       { where: { id: { [Op.in]: successIds } } },
     );
 
-    // Auto-assign imported students to the SuperTeacher themselves
-    const existing = await db.student_assignment.findAll({
+    // Create fresh primary assignments to this ST
+    await db.student_assignment.bulkCreate(
+      successIds.map(hocVienId => ({ hocVienId, teacherId: superTeacherId })),
+    );
+
+    // Sync assignment status from training snapshot
+    const snapshots = await db.training_snapshot.findAll({
       where: { hocVienId: { [Op.in]: successIds } },
-      attributes: ['hocVienId'],
+      attributes: ['hocVienId', 'courseProgressPct'],
       raw: true,
     });
-    const alreadyAssigned = new Set(existing.map(e => e.hocVienId));
-    const toAssign = successIds.filter(id => !alreadyAssigned.has(id));
-    if (toAssign.length > 0) {
-      await db.student_assignment.bulkCreate(
-        toAssign.map(hocVienId => ({ hocVienId, teacherId: superTeacherId })),
-      );
-
-      // Sync assignment status from training snapshot (assignment was created
-      // after the training sync, so the 100% check inside sync missed it)
-      const snapshots = await db.training_snapshot.findAll({
-        where: { hocVienId: { [Op.in]: toAssign } },
-        attributes: ['hocVienId', 'courseProgressPct'],
-        raw: true,
-      });
-      for (const snap of snapshots) {
-        if (snap.courseProgressPct > 0) {
-          const updates = { progressPercent: snap.courseProgressPct };
-          if (snap.courseProgressPct >= 100) {
-            updates.status = 'completed';
-            await db.hoc_vien.update(
-              { status: 'dat_completed' },
-              { where: { id: snap.hocVienId } },
-            );
-          } else {
-            updates.status = 'learning';
-          }
-          await db.student_assignment.update(updates, {
-            where: { hocVienId: snap.hocVienId, role: 'primary' },
-          });
+    for (const snap of snapshots) {
+      if (snap.courseProgressPct > 0) {
+        const updates = { progressPercent: snap.courseProgressPct };
+        if (snap.courseProgressPct >= 100) {
+          updates.status = 'completed';
+          await db.hoc_vien.update(
+            { status: 'dat_completed' },
+            { where: { id: snap.hocVienId } },
+          );
+        } else {
+          updates.status = 'learning';
         }
+        await db.student_assignment.update(updates, {
+          where: { hocVienId: snap.hocVienId, role: 'primary' },
+        });
       }
     }
   }
 
   return result;
+};
+
+/**
+ * Admin assigns a student from their pool to a SupperTeacher.
+ * Student must have adminId = adminId and superTeacherId = null.
+ * ST must belong to the same admin.
+ */
+export const assignStudentToST = async (adminId, hocVienId, stId) => {
+  const { Op } = require('sequelize');
+  // Accept students explicitly linked to this admin OR legacy students with no admin link yet
+  const hv = await db.hoc_vien.findOne({
+    where: {
+      id: hocVienId,
+      superTeacherId: null,
+      [Op.or]: [{ adminId }, { adminId: null }],
+    },
+  });
+  if (!hv) {
+    throw Object.assign(
+      new Error('Học viên không tồn tại, đã được gán SupperTeacher, hoặc không thuộc phạm vi của bạn'),
+      { code: 'FORBIDDEN' },
+    );
+  }
+
+  // Stamp adminId if not set yet (backward compat for legacy students)
+  if (!hv.adminId) {
+    await hv.update({ adminId });
+  }
+
+  const st = await db.user.findOne({
+    where: { id: stId, groupId: SUPPER_TEACHER_GROUP_ID, adminId },
+  });
+  if (!st) {
+    throw Object.assign(
+      new Error('SupperTeacher không thuộc đơn vị của bạn'),
+      { code: 'FORBIDDEN' },
+    );
+  }
+
+  await hv.update({ superTeacherId: stId });
+
+  const existing = await db.student_assignment.findOne({
+    where: { hocVienId, role: 'primary' },
+  });
+  if (!existing) {
+    await db.student_assignment.create({ hocVienId, teacherId: stId, role: 'primary' });
+  } else {
+    await existing.update({ teacherId: stId });
+  }
+
+  return { hocVienId, stId };
 };
 
 export const getRatingsOverview = async (superTeacherId) => {
@@ -655,7 +695,10 @@ export const demoteToTeacher = async (superTeacherId, newManagerId) => {
   return safe;
 };
 
-export const getTeachersWithoutSupper = async () => {
+export const getTeachersWithoutSupper = async (adminId = null) => {
+  // For Admin: all teachers visible to them are already linked through their STs — none are "unassigned"
+  if (adminId) return [];
+
   return db.user.findAll({
     where: { groupId: TEACHER_GROUP_ID, superTeacherId: null },
     attributes: ['id', 'email', 'username', 'phone', 'active'],

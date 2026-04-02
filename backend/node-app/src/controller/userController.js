@@ -14,7 +14,13 @@ const readFunc = async (req, res) => {
             });
         }
         else {
-            let data = await userApiServices.getAllUsers();
+            const role = req.user?.groupWithRoles?.name;
+            let adminId = role === 'Admin' ? req.user?.id : null;
+            if (role === 'SupperAdmin' && req.query.filterAdminId) {
+              const n = parseInt(req.query.filterAdminId, 10);
+              if (Number.isFinite(n)) adminId = n;
+            }
+            let data = await userApiServices.getAllUsers(adminId);
             res.status(200).json({
                 EM: data.EM,
                 EC: data.EC,

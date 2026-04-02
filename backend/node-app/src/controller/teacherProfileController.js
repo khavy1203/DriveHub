@@ -315,6 +315,13 @@ const updateMyProfile = async (req, res) => {
     const userId = req.user.id;
     const { username, email, phone, address, genderId, bio, licenseTypes, locationName, yearsExp, avatarUrl } = req.body;
 
+    if (email !== undefined && email !== null && email !== '') {
+      const taken = await db.user.findOne({ where: { email, id: { [Op.ne]: userId } } });
+      if (taken) {
+        return res.status(400).json({ EM: 'Email đã tồn tại trong hệ thống', EC: 1, DT: 'email' });
+      }
+    }
+
     await db.user.update(
       {
         username: username ?? undefined,

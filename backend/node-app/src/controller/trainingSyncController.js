@@ -8,7 +8,7 @@ import {
   isSnapshotStale,
   getSyncStats,
 } from '../service/trainingSyncService.js';
-import { getTrainingApiDebugMeta, isTrainingApiConfigured } from '../service/trainingPortalService.js';
+import { getTrainingApiDebugMeta, isTrainingApiConfigured, isTrainingApiConfiguredForAdmin } from '../service/trainingPortalService.js';
 
 const ALLOWED_GROUPS = new Set(['HocVien', 'GiaoVien', 'SupperTeacher', 'Admin', 'SupperAdmin']);
 const ADMIN_GROUPS = new Set(['Admin', 'SupperAdmin']);
@@ -57,7 +57,19 @@ export const getTrainingStudentCached = async (req, res) => {
     let snapshot = await getSnapshotByCccd(targetCccd);
 
     if (!snapshot || isSnapshotStale(snapshot)) {
-      if (!isTrainingApiConfigured()) {
+      const hv = await db.hoc_vien.findOne({ where: { SoCCCD: targetCccd }, attributes: ['id', 'superTeacherId'] });
+
+      // Resolve adminId from the student's ST chain so the correct API server is used
+      let adminId = null;
+      if (hv?.superTeacherId) {
+        const st = await db.user.findByPk(hv.superTeacherId, { attributes: ['adminId'] });
+        adminId = st?.adminId ?? null;
+      } else if (groupName === 'Admin') {
+        adminId = decoded.id;
+      }
+
+      const apiConfigured = await isTrainingApiConfiguredForAdmin(adminId);
+      if (!apiConfigured) {
         // API chưa được cấu hình — trả về snapshot cũ nếu có, không log lỗi liên tục
         if (!snapshot) {
           return res.status(503).json({
@@ -67,12 +79,9 @@ export const getTrainingStudentCached = async (req, res) => {
           });
         }
         // Có snapshot cũ → trả luôn, không sync
-      } else {
-        const hv = await db.hoc_vien.findOne({ where: { SoCCCD: targetCccd }, attributes: ['id'] });
-        if (hv) {
-          await syncOneStudent(hv.id);
-          snapshot = await getSnapshotByCccd(targetCccd);
-        }
+      } else if (hv) {
+        await syncOneStudent(hv.id);
+        snapshot = await getSnapshotByCccd(targetCccd);
       }
     }
 
@@ -162,7 +171,8 @@ export const importByCccdList = async (req, res) => {
       return res.status(400).json({ EC: -1, EM: 'Tối đa 100 CCCD mỗi lần', DT: null });
     }
 
-    const result = await importAndSyncByCccdList(cccdList);
+    const adminId = groupName === 'Admin' ? decoded.id : null;
+    const result = await importAndSyncByCccdList(cccdList, adminId);
 
     if (result.error) {
       return res.status(503).json({ EC: -1, EM: result.error, DT: null });

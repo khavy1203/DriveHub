@@ -1,6 +1,7 @@
 import db from '../models/index.js';
 import { verifyToken } from '../middleware/JWTaction.js';
 import * as trainingPortalService from '../service/trainingPortalService.js';
+import { isTrainingApiConfiguredForAdmin } from '../service/trainingPortalService.js';
 
 const ALLOWED_GROUPS = new Set(['HocVien', 'GiaoVien', 'SupperTeacher', 'Admin', 'SupperAdmin']);
 
@@ -14,6 +15,30 @@ const resolveTokenContext = (req) => {
 };
 
 const normalizeDigits = (s) => String(s || '').replace(/\D/g, '');
+
+/**
+ * Resolve the adminId that governs the training API URL for a given caller.
+ * Admin → their own id. SupperTeacher → their adminId field.
+ * GiaoVien → their ST's adminId. HocVien → their hoc_vien's ST's adminId.
+ * SupperAdmin → null (env fallback).
+ */
+const resolveAdminId = async (groupName, account) => {
+  if (groupName === 'Admin') return account.id;
+  if (groupName === 'SupperAdmin') return null;
+  if (groupName === 'SupperTeacher') return account.adminId || null;
+  if (groupName === 'GiaoVien') {
+    if (!account.superTeacherId) return null;
+    const st = await db.user.findByPk(account.superTeacherId, { attributes: ['adminId'] });
+    return st?.adminId || null;
+  }
+  if (groupName === 'HocVien') {
+    const hv = await db.hoc_vien.findOne({ where: { userId: account.id }, attributes: ['superTeacherId'] });
+    if (!hv?.superTeacherId) return null;
+    const st = await db.user.findByPk(hv.superTeacherId, { attributes: ['adminId'] });
+    return st?.adminId || null;
+  }
+  return null;
+};
 
 /**
  * Extract storage path for upstream /api/public/avatar from a string field.
@@ -133,20 +158,22 @@ export const getTrainingStudent = async (req, res) => {
       return res.status(403).json({ EC: -1, EM: 'Không có quyền truy cập', DT: null });
     }
 
-    if (!trainingPortalService.isTrainingApiConfigured()) {
+    const account = await db.user.findOne({
+      where: { email: decoded.email },
+      attributes: ['id', 'adminId', 'superTeacherId'],
+    });
+    if (!account) {
+      return res.status(401).json({ EC: -1, EM: 'Không tìm thấy tài khoản', DT: null });
+    }
+
+    const adminId = await resolveAdminId(groupName, account);
+
+    if (!await isTrainingApiConfiguredForAdmin(adminId)) {
       return res.status(503).json({
         EC: -1,
         EM: 'Dịch vụ tiến độ đào tạo chưa được cấu hình (TRAINING_API_BASE_URL)',
         DT: null,
       });
-    }
-
-    const account = await db.user.findOne({
-      where: { email: decoded.email },
-      attributes: ['id'],
-    });
-    if (!account) {
-      return res.status(401).json({ EC: -1, EM: 'Không tìm thấy tài khoản', DT: null });
     }
 
     const resolved = await resolveEffectiveCccd({
@@ -158,7 +185,7 @@ export const getTrainingStudent = async (req, res) => {
       return res.status(resolved.error.status).json(resolved.error.body);
     }
 
-    const upstream = await trainingPortalService.fetchPublicStudent(resolved.cccd);
+    const upstream = await trainingPortalService.fetchPublicStudent(resolved.cccd, adminId);
     const payload = upstream.data;
     const httpStatus = upstream.status < 400 ? 200 : upstream.status >= 500 ? 502 : upstream.status;
 
@@ -192,10 +219,6 @@ export const getTrainingSessionDetail = async (req, res) => {
     if (!ALLOWED_GROUPS.has(groupName)) {
       return res.status(403).json({ EC: -1, EM: 'Không có quyền truy cập', DT: null });
     }
-    if (!trainingPortalService.isTrainingApiConfigured()) {
-      return res.status(503).json({ EC: -1, EM: 'Dịch vụ tiến độ đào tạo chưa được cấu hình', DT: null });
-    }
-
     const { ngay, thoiDiemDangNhap, thoiDiemDangXuat, maDK, cccd: queryCccd } = req.query;
     if (!ngay || !thoiDiemDangNhap || !thoiDiemDangXuat) {
       return res.status(400).json({ EC: -1, EM: 'Thiếu tham số ngay, thoiDiemDangNhap hoặc thoiDiemDangXuat', DT: null });
@@ -206,22 +229,28 @@ export const getTrainingSessionDetail = async (req, res) => {
       return res.status(400).json({ EC: -1, EM: 'Cần ít nhất maDK hoặc cccd', DT: null });
     }
 
-    const account = await db.user.findOne({ where: { email: decoded.email }, attributes: ['id'] });
+    const account = await db.user.findOne({ where: { email: decoded.email }, attributes: ['id', 'adminId', 'superTeacherId'] });
     if (!account) {
       return res.status(401).json({ EC: -1, EM: 'Không tìm thấy tài khoản', DT: null });
+    }
+
+    const adminId = await resolveAdminId(groupName, account);
+
+    if (!await isTrainingApiConfiguredForAdmin(adminId)) {
+      return res.status(503).json({ EC: -1, EM: 'Dịch vụ tiến độ đào tạo chưa được cấu hình', DT: null });
     }
 
     if (!maDK) {
       const resolved = await resolveEffectiveCccd({ groupName, userId: account.id, queryCccd });
       if (resolved.error) return res.status(resolved.error.status).json(resolved.error.body);
       const upstream = await trainingPortalService.fetchPublicSessionDetail({
-        cccd: resolved.cccd, ngay, thoiDiemDangNhap, thoiDiemDangXuat,
+        cccd: resolved.cccd, ngay, thoiDiemDangNhap, thoiDiemDangXuat, adminId,
       });
       return res.status(upstream.status < 400 ? 200 : upstream.status >= 500 ? 502 : upstream.status).json(upstream.data);
     }
 
     const upstream = await trainingPortalService.fetchPublicSessionDetail({
-      maDK, ngay, thoiDiemDangNhap, thoiDiemDangXuat,
+      maDK, ngay, thoiDiemDangNhap, thoiDiemDangXuat, adminId,
     });
     return res.status(upstream.status < 400 ? 200 : upstream.status >= 500 ? 502 : upstream.status).json(upstream.data);
   } catch (err) {
@@ -250,11 +279,17 @@ export const getTrainingAvatar = async (req, res) => {
       return res.status(400).send('Bad request');
     }
 
-    if (!trainingPortalService.isTrainingApiConfigured()) {
+    const account = await db.user.findOne({
+      where: { email: decoded.email },
+      attributes: ['id', 'adminId', 'superTeacherId'],
+    });
+    const adminId = account ? await resolveAdminId(groupName, account) : null;
+
+    if (!await isTrainingApiConfiguredForAdmin(adminId)) {
       return res.status(503).send('Service unavailable');
     }
 
-    const { buffer, contentType } = await trainingPortalService.fetchPublicAvatar(pathParam.trim());
+    const { buffer, contentType } = await trainingPortalService.fetchPublicAvatar(pathParam.trim(), adminId);
     res.setHeader('Content-Type', contentType);
     res.setHeader('Cache-Control', 'private, max-age=300');
     return res.send(buffer);

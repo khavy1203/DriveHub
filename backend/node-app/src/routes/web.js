@@ -41,12 +41,18 @@ import {
 import { getTrainingStudent, getTrainingAvatar, getTrainingSessionDetail } from "../controller/trainingPortalController";
 import { getTrainingStudentCached, triggerSyncAll, getTrainingSyncStatus, importByCccdList } from "../controller/trainingSyncController";
 import contactLeadController from "../controller/contactLeadController";
+import { getAdminConfig, saveAdminConfig, testAdminConnection } from "../controller/adminConfigController";
+import {
+  listAdmins, getAdmin, createAdminHandler, updateAdminHandler,
+  toggleAdminHandler, deleteAdminHandler,
+  assignSupperTeacherHandler, detachSupperTeacherHandler,
+} from "../controller/adminController";
 import {
   listMyTeachers, addTeacher, editTeacher, removeTeacher,
   listMyStudents, assignStudent, dropStudentHandler, updateStudentHandler, importCccd, ratingsOverview,
   listSupperTeachers, addSupperTeacher, editSupperTeacher, removeSupperTeacher,
   previewDeleteSupperTeacher, addTeacherByAdmin, moveTeacherToSupper, listTeachersInTeam, listTeachersWithoutSupper,
-  promoteTeacher, demoteSuperTeacher,
+  promoteTeacher, demoteSuperTeacher, assignStudentToSTHandler,
 } from "../controller/superTeacherController";
 
 
@@ -242,6 +248,7 @@ const initWebRoutes = (app) => {
     routes.get('/admin/teachers-without-super', listTeachersWithoutSupper);
     routes.put('/admin/teachers/:teacherId/promote', promoteTeacher);
     routes.put('/admin/supper-teachers/:id/demote', demoteSuperTeacher);
+    routes.post('/admin/assign-student-to-st', assignStudentToSTHandler);
 
     routes.get("/training/student", getTrainingStudent);
     routes.get("/training/student-cached", getTrainingStudentCached);
@@ -250,6 +257,25 @@ const initWebRoutes = (app) => {
     routes.post("/training/sync-all", triggerSyncAll);
     routes.post("/training/import-cccd", importByCccdList);
     routes.get("/training/sync-status", getTrainingSyncStatus);
+
+    // Admin management (SupperAdmin only)
+    routes.get("/admins", listAdmins);
+    routes.post("/admins", createAdminHandler);
+    // Static sub-paths must come before /:adminId param routes
+    routes.delete("/admins/supper-teachers/:supperTeacherId", detachSupperTeacherHandler);
+    routes.get("/admins/:adminId", getAdmin);
+    routes.put("/admins/:adminId", updateAdminHandler);
+    routes.patch("/admins/:adminId/toggle-active", toggleAdminHandler);
+    routes.delete("/admins/:adminId", deleteAdminHandler);
+    routes.post("/admins/:adminId/supper-teachers", assignSupperTeacherHandler);
+
+    // Admin server config
+    routes.get("/admin/api-config", getAdminConfig);
+    routes.put("/admin/api-config", saveAdminConfig);
+    routes.post("/admin/api-config/test", testAdminConnection);
+    // SupperAdmin can query any admin's config
+    routes.get("/admin/api-config/:adminId", getAdminConfig);
+    routes.post("/admin/api-config/:adminId/test", testAdminConnection);
 
     //file 
     routes.post("/file/namestandardizationfile", fileController.nameStandardizationFile);

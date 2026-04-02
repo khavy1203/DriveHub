@@ -44,10 +44,21 @@ const getUserWithPagination = async (page, limit) => {
 }
 const TEACHER_GROUP_ID = 3;
 
-const getAllUsers = async () => {
+const getAllUsers = async (adminId = null) => {
     try {
+        const where = { groupId: TEACHER_GROUP_ID };
+        if (adminId) {
+            const { Op } = require('sequelize');
+            const stIds = await db.user.findAll({
+                where: { groupId: 6, adminId },
+                attributes: ['id'],
+                raw: true,
+            }).then(rows => rows.map(r => r.id));
+            where.superTeacherId = stIds.length > 0 ? { [Op.in]: stIds } : -1;
+        }
+
         let users = await db.user.findAll({
-            where: { groupId: TEACHER_GROUP_ID },
+            where,
             attributes: ['id', 'email', 'username', 'address', 'phone', 'groupId', 'active', 'superTeacherId'],
             include: [
                 {

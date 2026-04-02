@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { getApiBaseUrlForAdmin } from './adminConfigService.js';
 
 const DEFAULT_TIMEOUT_MS = 15000;
 
@@ -14,6 +15,25 @@ const getBaseUrl = () => {
 };
 
 export const isTrainingApiConfigured = () => Boolean(getBaseUrl());
+
+/**
+ * Resolves the base URL for the given adminId (DB config first, env fallback).
+ * @param {number|null|undefined} adminId
+ * @returns {Promise<string|null>}
+ */
+const resolveBaseUrl = async (adminId) => {
+  if (adminId) return getApiBaseUrlForAdmin(adminId);
+  return getBaseUrl();
+};
+
+/**
+ * Async version of isTrainingApiConfigured — checks DB config for adminId first,
+ * then falls back to env. Use this wherever adminId context is available.
+ * @param {number|null|undefined} adminId
+ * @returns {Promise<boolean>}
+ */
+export const isTrainingApiConfiguredForAdmin = async (adminId) =>
+  Boolean(await resolveBaseUrl(adminId));
 
 /**
  * Safe summary for admin / deploy checks (no secrets, host only).
@@ -39,10 +59,11 @@ export const getTrainingApiDebugMeta = () => {
 
 /**
  * @param {string} cccd
+ * @param {number|null|undefined} [adminId]
  * @returns {Promise<import('axios').AxiosResponse<unknown>>}
  */
-export const fetchPublicStudent = async (cccd) => {
-  const base = getBaseUrl();
+export const fetchPublicStudent = async (cccd, adminId) => {
+  const base = await resolveBaseUrl(adminId);
   if (!base) {
     const err = new Error('TRAINING_API_BASE_URL is not set');
     err.code = 'TRAINING_CONFIG';
@@ -57,11 +78,11 @@ export const fetchPublicStudent = async (cccd) => {
 };
 
 /**
- * @param {{ maDK?: string, cccd?: string, ngay: string, thoiDiemDangNhap: string, thoiDiemDangXuat: string }} params
+ * @param {{ maDK?: string, cccd?: string, ngay: string, thoiDiemDangNhap: string, thoiDiemDangXuat: string, adminId?: number }} params
  * @returns {Promise<import('axios').AxiosResponse<unknown>>}
  */
-export const fetchPublicSessionDetail = async ({ maDK, cccd, ngay, thoiDiemDangNhap, thoiDiemDangXuat }) => {
-  const base = getBaseUrl();
+export const fetchPublicSessionDetail = async ({ maDK, cccd, ngay, thoiDiemDangNhap, thoiDiemDangXuat, adminId }) => {
+  const base = await resolveBaseUrl(adminId);
   if (!base) {
     const err = new Error('TRAINING_API_BASE_URL is not set');
     err.code = 'TRAINING_CONFIG';
@@ -76,10 +97,11 @@ export const fetchPublicSessionDetail = async ({ maDK, cccd, ngay, thoiDiemDangN
 
 /**
  * @param {string} pathParam
+ * @param {number|null|undefined} [adminId]
  * @returns {Promise<{ buffer: Buffer, contentType: string }>}
  */
-export const fetchPublicAvatar = async (pathParam) => {
-  const base = getBaseUrl();
+export const fetchPublicAvatar = async (pathParam, adminId) => {
+  const base = await resolveBaseUrl(adminId);
   if (!base) {
     const err = new Error('TRAINING_API_BASE_URL is not set');
     err.code = 'TRAINING_CONFIG';

@@ -117,6 +117,18 @@ const computeProgressFromDT = (dt) => {
   return Math.round((weights.reduce((a, b) => a + b, 0) / weights.length) * 100);
 };
 
+/**
+ * Resolves the adminId for a hocVien by looking up:
+ * hoc_vien.superTeacherId → user(superTeacher).adminId
+ * @param {object} hv - hoc_vien instance
+ * @returns {Promise<number|null>}
+ */
+const resolveAdminIdForStudent = async (hv) => {
+  if (!hv.superTeacherId) return null;
+  const superTeacher = await db.user.findByPk(hv.superTeacherId, { attributes: ['adminId'] });
+  return superTeacher?.adminId ?? null;
+};
+
 export const syncOneStudent = async (hocVienId) => {
   const hv = await db.hoc_vien.findByPk(hocVienId);
   if (!hv) return { ok: false, error: 'Student not found' };
@@ -136,10 +148,11 @@ export const syncOneStudent = async (hocVienId) => {
     return { ok: false, error: 'No CCCD' };
   }
 
-  logSyncDebug('sync start', { hocVienId, cccd: maskCccd(cccd) });
+  const adminId = await resolveAdminIdForStudent(hv);
+  logSyncDebug('sync start', { hocVienId, cccd: maskCccd(cccd), adminId });
 
   try {
-    const upstream = await fetchPublicStudent(cccd);
+    const upstream = await fetchPublicStudent(cccd, adminId);
     const data = upstream.data;
 
     logSyncDebug('upstream response', {
@@ -290,8 +303,10 @@ export const syncAllIncomplete = async () => {
 
 /**
  * Import + sync danh sách CCCD: tra cứu API → tạo hoc_vien/user nếu chưa có → sync training data.
+ * @param {string[]} cccdList
+ * @param {number|null|undefined} [adminId]
  */
-export const importAndSyncByCccdList = async (cccdList) => {
+export const importAndSyncByCccdList = async (cccdList, adminId) => {
   if (!isTrainingApiConfigured()) {
     return { results: [], error: 'TRAINING_API_BASE_URL not configured' };
   }
@@ -303,7 +318,7 @@ export const importAndSyncByCccdList = async (cccdList) => {
     if (!cccd) continue;
 
     try {
-      const upstream = await fetchPublicStudent(cccd);
+      const upstream = await fetchPublicStudent(cccd, adminId);
       const data = upstream.data;
 
       if (!isRecord(data) || data.EC !== 0 || !isRecord(data.DT)) {
@@ -318,6 +333,18 @@ export const importAndSyncByCccdList = async (cccdList) => {
         results.push({ cccd, ok: false, error: importResult.error });
         await sleep(SYNC_DELAY_MS);
         continue;
+      }
+
+      // Pull student to admin's pool — always overwrite ownership (handles existing students too)
+      if (adminId) {
+        if (!importResult.created) {
+          // Existing student being claimed — clear old ST assignments
+          await db.student_assignment.destroy({ where: { hocVienId: importResult.hocVienId } });
+        }
+        await db.hoc_vien.update(
+          { adminId, superTeacherId: null },
+          { where: { id: importResult.hocVienId } },
+        );
       }
 
       const pct = computeProgressFromDT(dt);

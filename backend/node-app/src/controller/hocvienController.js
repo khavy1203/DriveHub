@@ -22,16 +22,24 @@ const registerStudent = async (req, res) => {
   if (!HoTen || !loaibangthi) {
     return res.status(400).json({ EM: 'HoTen và loaibangthi là bắt buộc', EC: -1, DT: null });
   }
+  const role = req.user?.groupWithRoles?.name;
+  const adminId = role === 'Admin' ? req.user.id : null;
   const result = await hocvienService.registerStudent({
     HoTen, NgaySinh, GioiTinh, SoCCCD, phone, email,
-    DiaChi, loaibangthi, GplxDaCo, GhiChu, IDKhoaHoc,
+    DiaChi, loaibangthi, GplxDaCo, GhiChu, IDKhoaHoc, adminId,
   });
   return res.status(result.EC === -1 ? 500 : 200).json(result);
 };
 
 const listHocVien = async (req, res) => {
   const { courseId } = req.query;
-  const result = await hocvienService.listByKhoaHoc(courseId);
+  const role = req.user?.groupWithRoles?.name;
+  let adminId = role === 'Admin' ? req.user?.id : null;
+  if (role === 'SupperAdmin' && req.query.filterAdminId) {
+    const n = parseInt(req.query.filterAdminId, 10);
+    if (Number.isFinite(n)) adminId = n;
+  }
+  const result = await hocvienService.listByKhoaHoc(courseId, adminId);
   return res.status(200).json(result);
 };
 

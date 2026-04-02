@@ -34,6 +34,22 @@ module.exports = (sequelize, DataTypes) => {
         foreignKey: 'superTeacherId',
         as: 'superTeacher',
       });
+      // Admin → manages many SupperTeachers
+      user.hasMany(models.user, {
+        foreignKey: 'adminId',
+        as: 'managedSupperTeachers',
+        onDelete: 'SET NULL',
+      });
+      // SupperTeacher → belongs to one Admin
+      user.belongsTo(models.user, {
+        foreignKey: 'adminId',
+        as: 'adminOwner',
+      });
+      // Admin → has one server config
+      user.hasOne(models.admin_server_config, {
+        foreignKey: 'adminId',
+        as: 'serverConfig',
+      });
     }
   }
 
@@ -117,6 +133,11 @@ module.exports = (sequelize, DataTypes) => {
         defaultValue: null,
       },
       superTeacherId: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+        defaultValue: null,
+      },
+      adminId: {
         type: DataTypes.INTEGER,
         allowNull: true,
         defaultValue: null,

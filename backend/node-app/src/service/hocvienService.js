@@ -20,7 +20,7 @@ const buildSetupLink = (token) => {
 // ── Register new student (creates hoc_vien + user account) ───────────────────
 const registerStudent = async ({
   HoTen, NgaySinh, GioiTinh, SoCCCD, phone, email,
-  DiaChi, loaibangthi, GplxDaCo, GhiChu, IDKhoaHoc,
+  DiaChi, loaibangthi, GplxDaCo, GhiChu, IDKhoaHoc, adminId = null,
 }) => {
   const t = await db.sequelize.transaction();
   try {
@@ -38,6 +38,7 @@ const registerStudent = async ({
       DiaChi: DiaChi || null, loaibangthi: loaibangthi || null,
       GplxDaCo: GplxDaCo || null, GhiChu: GhiChu || null,
       IDKhoaHoc: IDKhoaHoc || null,
+      adminId: adminId || null,
       status: 'registered',
     }, { transaction: t });
 
@@ -87,14 +88,28 @@ const registerStudent = async ({
 };
 
 // ── List học viên theo khoá học ───────────────────────────────────────────────
-const listByKhoaHoc = async (courseId) => {
+const listByKhoaHoc = async (courseId, adminId = null) => {
   try {
     const where = courseId ? { IDKhoaHoc: courseId } : {};
+
+    if (adminId) {
+      const { Op } = require('sequelize');
+      const stIds = await db.user.findAll({
+        where: { groupId: 6, adminId },
+        attributes: ['id'],
+        raw: true,
+      }).then(rows => rows.map(r => r.id));
+
+      // Include: students under admin's STs, OR unassigned students imported directly by admin
+      const orConditions = [{ adminId, superTeacherId: null }];
+      if (stIds.length > 0) orConditions.push({ superTeacherId: { [Op.in]: stIds } });
+      where[Op.or] = orConditions;
+    }
     const rows = await db.hoc_vien.findAll({
       where,
       attributes: ['id', 'HoTen', 'NgaySinh', 'GioiTinh', 'SoCCCD',
         'phone', 'email', 'DiaChi', 'loaibangthi', 'GplxDaCo',
-        'GhiChu', 'IDKhoaHoc', 'userId', 'status', 'createdAt'],
+        'GhiChu', 'IDKhoaHoc', 'userId', 'status', 'createdAt', 'superTeacherId', 'adminId'],
       include: [
         {
           model: db.khoahoc,
@@ -353,7 +368,17 @@ const updateOwnProfile = async (userId, fields) => {
     if (!hocVien) return { EM: 'Không tìm thấy hồ sơ học viên', EC: 1, DT: null };
 
     const updates = {};
-    if (fields.email !== undefined) updates.email = fields.email || null;
+    if (fields.email !== undefined) {
+      const newEmail = fields.email || null;
+      if (newEmail) {
+        const { Op } = require('sequelize');
+        const emailTakenInUsers = await db.user.findOne({ where: { email: newEmail } });
+        if (emailTakenInUsers) return { EM: 'Email đã tồn tại trong hệ thống', EC: 1, DT: 'email' };
+        const emailTakenInHv = await db.hoc_vien.findOne({ where: { email: newEmail, id: { [Op.ne]: hocVien.id } } });
+        if (emailTakenInHv) return { EM: 'Email đã tồn tại trong hệ thống', EC: 1, DT: 'email' };
+      }
+      updates.email = newEmail;
+    }
 
     if (Object.keys(updates).length === 0) {
       return { EM: 'Không có thay đổi', EC: 0, DT: null };

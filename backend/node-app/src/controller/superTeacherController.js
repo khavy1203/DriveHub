@@ -1,3 +1,4 @@
+import db from '../models/index.js';
 import {
   getMyTeachers,
   createTeacher,
@@ -19,6 +20,7 @@ import {
   getTeachersWithoutSupper,
   promoteToSuperTeacher,
   demoteToTeacher,
+  assignStudentToST,
 } from '../service/superTeacherService.js';
 
 const handleError = (res, err, next) => {
@@ -155,14 +157,22 @@ export const ratingsOverview = async (req, res, next) => {
 
 export const listSupperTeachers = async (req, res, next) => {
   try {
-    const data = await getAllSupperTeachers();
+    const role = req.user?.groupWithRoles?.name;
+    let adminId = role === 'Admin' ? req.user.id : null;
+    if (role === 'SupperAdmin' && req.query.filterAdminId) {
+      const n = parseInt(req.query.filterAdminId, 10);
+      if (Number.isFinite(n)) adminId = n;
+    }
+    const data = await getAllSupperTeachers(adminId);
     return res.json({ EC: 0, EM: 'OK', DT: data });
   } catch (err) { handleError(res, err, next); }
 };
 
 export const addSupperTeacher = async (req, res, next) => {
   try {
-    const data = await createSupperTeacher(req.body);
+    const role = req.user?.groupWithRoles?.name;
+    const callerAdminId = role === 'Admin' ? req.user.id : (req.body.adminId ?? null);
+    const data = await createSupperTeacher(req.body, callerAdminId);
     return res.json({ EC: 0, EM: 'Tạo SupperTeacher thành công', DT: data });
   } catch (err) { handleError(res, err, next); }
 };
@@ -208,6 +218,14 @@ export const moveTeacherToSupper = async (req, res, next) => {
 export const listTeachersInTeam = async (req, res, next) => {
   try {
     const superTeacherId = Number(req.params.id);
+    const role = req.user?.groupWithRoles?.name;
+    if (role === 'Admin') {
+      const st = await db.user.findOne({
+        where: { id: superTeacherId, adminId: req.user.id },
+        attributes: ['id'],
+      });
+      if (!st) return res.status(403).json({ EC: -1, EM: 'SupperTeacher không thuộc đơn vị của bạn', DT: null });
+    }
     const data = await getMyTeachers(superTeacherId);
     return res.json({ EC: 0, EM: 'OK', DT: data });
   } catch (err) { handleError(res, err, next); }
@@ -215,7 +233,9 @@ export const listTeachersInTeam = async (req, res, next) => {
 
 export const listTeachersWithoutSupper = async (req, res, next) => {
   try {
-    const data = await getTeachersWithoutSupper();
+    const role = req.user?.groupWithRoles?.name;
+    const adminId = role === 'Admin' ? req.user.id : null;
+    const data = await getTeachersWithoutSupper(adminId);
     return res.json({ EC: 0, EM: 'OK', DT: data });
   } catch (err) { handleError(res, err, next); }
 };
@@ -225,6 +245,18 @@ export const promoteTeacher = async (req, res, next) => {
     const teacherId = Number(req.params.teacherId);
     const data = await promoteToSuperTeacher(teacherId);
     return res.json({ EC: 0, EM: 'Nâng cấp thành SupperTeacher thành công', DT: data });
+  } catch (err) { handleError(res, err, next); }
+};
+
+export const assignStudentToSTHandler = async (req, res, next) => {
+  try {
+    const role = req.user?.groupWithRoles?.name;
+    if (role !== 'Admin') return res.status(403).json({ EC: -1, EM: 'Chỉ Admin mới có quyền này', DT: null });
+    const adminId = req.user.id;
+    const { hocVienId, stId } = req.body;
+    if (!hocVienId || !stId) return res.status(400).json({ EC: -1, EM: 'Thiếu hocVienId hoặc stId', DT: null });
+    const data = await assignStudentToST(adminId, Number(hocVienId), Number(stId));
+    return res.json({ EC: 0, EM: 'Đã gán học viên cho SupperTeacher', DT: data });
   } catch (err) { handleError(res, err, next); }
 };
 

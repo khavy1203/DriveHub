@@ -109,8 +109,9 @@ const checkUserPermission = async (req, res, next) => {
 
     if (req.user.email === ADMIN_ACCOUNT.email) return next();
 
-    // SupperAdmin: full access — bypass API registry + group_api (still subject to JWT + route registration).
+    // SupperAdmin + Admin: bypass API registry — access is already controlled at controller/route level.
     if (req.user.groupWithRoles?.name === 'SupperAdmin') return next();
+    if (req.user.groupWithRoles?.name === 'Admin') return next();
 
     const groupId = req.user.groupWithRoles?.id;
     if (!groupId) {
