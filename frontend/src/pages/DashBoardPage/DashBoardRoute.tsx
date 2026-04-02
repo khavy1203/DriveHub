@@ -60,9 +60,9 @@ const DashBoardRoute: React.FC = () => {
           }
         />
 
-        {/* Quản lý thi */}
-        <Route path="/exam-results" element={<ExamResultsTable />} />
-        <Route path="/students" element={<StudentsList />} />
+        {/* Quản lý thi — SupperAdmin only */}
+        {isSupperAdmin && <Route path="/exam-results" element={<ExamResultsTable />} />}
+        {isSupperAdmin && <Route path="/students" element={<StudentsList />} />}
         <Route path="/hoc-vien" element={<HocVienManagement />} />
         <Route path="/dang-ky-hoc-vien" element={<DangKyHocVien />} />
 
@@ -74,12 +74,12 @@ const DashBoardRoute: React.FC = () => {
         <Route path="/manual-assign" element={<ManualAssign />} />
         {(isTeacher || isSupperTeacher) && <Route path="/my-profile" element={<TeacherProfileEdit />} />}
 
-        {/* Cài đặt */}
-        <Route path="/setting" element={<Setting />} />
-        <Route path="/upload" element={<UploadFiles />} />
-        <Route path="/printer" element={<Printer />} />
-        <Route path="/review-sets" element={<ReviewSetManager />} />
-        <Route path="/exam-sets-import" element={<ExamSetImporter />} />
+        {/* Cài đặt — SupperAdmin only */}
+        {isSupperAdmin && <Route path="/setting" element={<Setting />} />}
+        {isSupperAdmin && <Route path="/upload" element={<UploadFiles />} />}
+        {isSupperAdmin && <Route path="/printer" element={<Printer />} />}
+        {isSupperAdmin && <Route path="/review-sets" element={<ReviewSetManager />} />}
+        {isSupperAdmin && <Route path="/exam-sets-import" element={<ExamSetImporter />} />}
 
         {/* Kết quả sát hạch */}
         <Route path="/ket-qua-sat-hanh" element={<KQSHPage />} />

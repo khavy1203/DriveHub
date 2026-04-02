@@ -1374,17 +1374,18 @@
 .hvm__dm-body {
   flex: 1 1 auto;
   min-height: 0;
+  // Mobile: single column scrolls normally
   overflow-y: auto;
   overflow-x: hidden;
   padding: 16px 20px 22px;
   -webkit-overflow-scrolling: touch;
 
+  // Desktop: delegate scrolling to each column independently
   @media (min-width: 900px) {
-    padding: 20px 28px 28px;
-  }
-
-  @media (min-width: 1200px) {
-    padding: 22px 32px 32px;
+    overflow: hidden;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
   }
 }
 
@@ -1394,14 +1395,17 @@
   min-width: 0;
 
   @media (min-width: 900px) {
+    flex: 1 1 auto;
+    min-height: 0;
+    height: 100%;
     grid-template-columns: minmax(300px, 400px) minmax(0, 1fr);
-    gap: 22px;
-    align-items: start;
+    grid-template-rows: 1fr;
+    gap: 0;
+    align-items: stretch;
   }
 
   @media (min-width: 1200px) {
     grid-template-columns: minmax(320px, 440px) minmax(0, 1fr);
-    gap: 26px;
   }
 }
 
@@ -1411,11 +1415,21 @@
   flex-direction: column;
   gap: 12px;
 
+  @media (min-width: 900px) {
+    overflow-y: auto;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
+    padding: 20px 24px 28px;
+    gap: 14px;
+  }
+
+  @media (min-width: 1200px) {
+    padding: 22px 28px 32px;
+  }
+
   &--side {
     @media (min-width: 900px) {
-      position: sticky;
-      top: 0;
-      align-self: start;
+      border-right: 1px solid var(--dm-outline);
     }
   }
 

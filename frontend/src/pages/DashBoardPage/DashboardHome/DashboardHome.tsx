@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import useApiService from '../../../services/useApiService';
+import { useAuth } from '../../../features/auth/hooks/useAuth';
 import KQSHSyncPanel from '../KQSHPage/KQSHSyncPanel';
 import './DashboardHome.scss';
 
@@ -15,9 +16,20 @@ type StatCard = {
 type Course = { IDKhoaHoc: string; TenKhoaHoc?: string };
 type RankItem = { id: number; name: string };
 
+const SUPPER_ADMIN_ONLY_ROUTES = new Set([
+  '/dashboard/exam-results',
+  '/dashboard/review-sets',
+  '/dashboard/exam-sets-import',
+  '/dashboard/upload',
+  '/dashboard/setting',
+  '/dashboard/printer',
+]);
+
 const DashboardHome: React.FC = () => {
   const navigate = useNavigate();
   const { get } = useApiService();
+  const { role } = useAuth();
+  const isSupperAdmin = role === 'SupperAdmin';
 
   const [courses, setCourses] = useState<Course[]>([]);
   const [ranks, setRanks] = useState<RankItem[]>([]);
@@ -43,22 +55,24 @@ const DashboardHome: React.FC = () => {
       label: 'Quản lý thí sinh',
       value: '—',
       color: 'blue',
-      to: '/dashboard/students',
+      to: isSupperAdmin ? '/dashboard/students' : '/dashboard/hoc-vien',
     },
-    {
-      icon: 'school',
-      label: 'Khoá học',
-      value: loading ? '...' : courses.length,
-      color: 'green',
-      to: '/dashboard/exam-results',
-    },
-    {
-      icon: 'badge',
-      label: 'Hạng bằng lái',
-      value: loading ? '...' : ranks.length,
-      color: 'orange',
-      to: '/dashboard/exam-results',
-    },
+    ...(isSupperAdmin ? [
+      {
+        icon: 'school',
+        label: 'Khoá học',
+        value: loading ? '...' : courses.length,
+        color: 'green',
+        to: '/dashboard/exam-results',
+      },
+      {
+        icon: 'badge',
+        label: 'Hạng bằng lái',
+        value: loading ? '...' : ranks.length,
+        color: 'orange',
+        to: '/dashboard/exam-results',
+      },
+    ] as StatCard[] : []),
     {
       icon: 'manage_accounts',
       label: 'Giáo viên / Tài khoản',
@@ -68,17 +82,17 @@ const DashboardHome: React.FC = () => {
     },
   ];
 
-  const quickLinks = [
-    { icon: 'assignment',      label: 'Kết quả thi',     to: '/dashboard/exam-results' },
-    // { icon: 'assignment_ind',  label: 'Thí sinh thi',    to: '/dashboard/students' },
-    { icon: 'school',          label: 'Học viên',        to: '/dashboard/hoc-vien' },
-    { icon: 'manage_accounts', label: 'Giáo viên',       to: '/dashboard/teachers' },
-    { icon: 'menu_book',    label: 'Bộ đề ôn tập',        to: '/dashboard/review-sets' },
-    { icon: 'file_upload',  label: 'Import bộ ôn tập',    to: '/dashboard/exam-sets-import' },
-    { icon: 'upload_file',  label: 'Upload dữ liệu',      to: '/dashboard/upload' },
-    { icon: 'tune',         label: 'Thiết lập chung',     to: '/dashboard/setting' },
-    { icon: 'print',        label: 'Máy in',              to: '/dashboard/printer' },
+  const allQuickLinks = [
+    { icon: 'assignment',      label: 'Kết quả thi',      to: '/dashboard/exam-results' },
+    { icon: 'school',          label: 'Học viên',          to: '/dashboard/hoc-vien' },
+    { icon: 'manage_accounts', label: 'Giáo viên',         to: '/dashboard/teachers' },
+    { icon: 'menu_book',       label: 'Bộ đề ôn tập',      to: '/dashboard/review-sets' },
+    { icon: 'file_upload',     label: 'Import bộ ôn tập',  to: '/dashboard/exam-sets-import' },
+    { icon: 'upload_file',     label: 'Upload dữ liệu',    to: '/dashboard/upload' },
+    { icon: 'tune',            label: 'Thiết lập chung',   to: '/dashboard/setting' },
+    { icon: 'print',           label: 'Máy in',            to: '/dashboard/printer' },
   ];
+  const quickLinks = allQuickLinks.filter(l => isSupperAdmin || !SUPPER_ADMIN_ONLY_ROUTES.has(l.to));
 
   return (
     <div className="dbh">
@@ -124,11 +138,13 @@ const DashboardHome: React.FC = () => {
         </div>
       </div>
 
-      {/* KQSH Sync */}
-      <div className="dbh__section">
-        <h2 className="dbh__section-title">Đồng bộ dữ liệu</h2>
-        <KQSHSyncPanel />
-      </div>
+      {/* KQSH Sync — SupperAdmin only */}
+      {isSupperAdmin && (
+        <div className="dbh__section">
+          <h2 className="dbh__section-title">Đồng bộ dữ liệu</h2>
+          <KQSHSyncPanel />
+        </div>
+      )}
     </div>
   );
 };

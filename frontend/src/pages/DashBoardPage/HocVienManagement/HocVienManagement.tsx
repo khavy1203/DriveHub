@@ -11,7 +11,7 @@ import { buildClassGroups, extractDistrictLine, shortCourseName, sortStudentsInG
 import './HocVienManagement.scss';
 
 type Teacher = { id: number; username: string; email: string; phone?: string; address?: string | null };
-type STOption = { id: number; username: string };
+type STOption = { id: number; username: string; address?: string | null };
 
 type Assignment = {
   id: number;
@@ -72,7 +72,7 @@ const formatDate = (raw?: string) => {
   try { return new Date(raw).toLocaleDateString('vi-VN'); } catch { return raw; }
 };
 
-const teacherMatchScore = (teacher: Teacher, selected: HocVien[]): number => {
+const teacherMatchScore = (teacher: { address?: string | null }, selected: HocVien[]): number => {
   const addr = (teacher.address ?? '').toLowerCase();
   if (!addr) return 68;
   let pts = 0;
@@ -220,32 +220,44 @@ const HocVienManagement: React.FC = () => {
     [hocVienList, bulkSelected],
   );
 
+  const bulkTargetList = role === 'Admin' ? stList : teachers;
+
   const teacherSuggestions = useMemo(() => {
     if (bulkSelectedStudents.length === 0) return [];
-    const scored = teachers.map(t => ({
+    const list = role === 'Admin' ? stList : teachers;
+    const scored = list.map(t => ({
       teacher: t,
       score: teacherMatchScore(t, bulkSelectedStudents),
     }));
     scored.sort((a, b) => b.score - a.score);
     return scored.slice(0, 5);
-  }, [teachers, bulkSelectedStudents]);
+  }, [teachers, stList, role, bulkSelectedStudents]);
 
-  const bulkTeacher = teachers.find(t => t.id === bulkTeacherId);
+  const bulkTeacher = bulkTargetList.find(t => t.id === bulkTeacherId);
 
   const runBulkAssign = async () => {
     if (!bulkTeacherId || bulkSelected.size === 0) return;
     setBulkSaving(true);
     try {
       const ids = [...bulkSelected];
-      const results = await Promise.all(
-        ids.map(hocVienId =>
-          post<{ EC: number; EM?: string }>('/api/student-assignment', {
-            hocVienId,
-            teacherId: bulkTeacherId,
-            courseId: null,
-          }),
-        ),
-      );
+      const results = role === 'Admin'
+        ? await Promise.all(
+            ids.map(hocVienId =>
+              post<{ EC: number; EM?: string }>('/api/admin/assign-student-to-st', {
+                hocVienId,
+                stId: bulkTeacherId,
+              }),
+            ),
+          )
+        : await Promise.all(
+            ids.map(hocVienId =>
+              post<{ EC: number; EM?: string }>('/api/student-assignment', {
+                hocVienId,
+                teacherId: bulkTeacherId,
+                courseId: null,
+              }),
+            ),
+          );
       const failed = results.filter(r => r.EC !== 0);
       if (failed.length > 0) {
         toast.error(failed[0]?.EM || `Có ${failed.length} lượt phân công thất bại.`);
@@ -629,8 +641,10 @@ const HocVienManagement: React.FC = () => {
           item={modalItem}
           teachers={teachers}
           canEditProgress={canEditProgress}
+          role={role}
           onClose={() => setModalItem(null)}
           onAssign={(s, e) => openAssign(s, e)}
+          onAssignST={s => { setModalItem(null); setAssignSTTarget(s); setAssignSTId(''); }}
           onDelete={(s, e) => handleDelete(s, e)}
           onRefresh={async (updatedFields?: Partial<HocVien>) => {
             await fetchData();
@@ -806,7 +820,7 @@ const HocVienManagement: React.FC = () => {
             </button>
           </div>
           <div className="hvm__bulk-panel-center">
-            <span className="hvm__bulk-label">Gợi ý GV:</span>
+            <span className="hvm__bulk-label">{role === 'Admin' ? 'Gợi ý ST:' : 'Gợi ý GV:'}</span>
             <div className="hvm__bulk-suggestions">
               {teacherSuggestions.map(({ teacher: t, score }) => (
                 <button
@@ -826,8 +840,8 @@ const HocVienManagement: React.FC = () => {
               value={bulkTeacherId}
               onChange={e => setBulkTeacherId(e.target.value ? +e.target.value : '')}
             >
-              <option value="">— Chọn GV —</option>
-              {teachers.map(t => (
+              <option value="">{role === 'Admin' ? '— Chọn ST —' : '— Chọn GV —'}</option>
+              {bulkTargetList.map(t => (
                 <option key={t.id} value={t.id}>{t.username}</option>
               ))}
             </select>
@@ -839,7 +853,7 @@ const HocVienManagement: React.FC = () => {
             onClick={() => setBulkConfirmOpen(true)}
           >
             <span className="material-icons">assignment_turned_in</span>
-            Assign {bulkSelected.size} học viên
+            {role === 'Admin' ? `Gán ${bulkSelected.size} HV cho ST` : `Assign ${bulkSelected.size} học viên`}
           </button>
         </div>
       )}
@@ -852,8 +866,9 @@ const HocVienManagement: React.FC = () => {
               <div>
                 <h3>Xác nhận phân công hàng loạt</h3>
                 <p className="hvm__modal-subtitle">
-                  Phân công <strong>{bulkSelected.size}</strong> học viên cho{' '}
-                  <strong>{bulkTeacher?.username ?? 'giáo viên'}</strong>
+                  {role === 'Admin' ? 'Gán' : 'Phân công'}{' '}
+                  <strong>{bulkSelected.size}</strong> học viên cho{' '}
+                  <strong>{bulkTeacher?.username ?? (role === 'Admin' ? 'SupperTeacher' : 'giáo viên')}</strong>
                 </p>
               </div>
               <button className="hvm__modal-close" onClick={() => setBulkConfirmOpen(false)}>
@@ -888,18 +903,22 @@ type HocVienModalProps = {
   item: HocVien;
   teachers: Teacher[];
   canEditProgress: boolean;
+  role: string | null;
   onClose: () => void;
   onAssign: (s: HocVien, e: React.MouseEvent) => void;
+  onAssignST: (s: HocVien) => void;
   onDelete: (s: HocVien, e: React.MouseEvent) => void;
   onRefresh: (updatedFields?: Partial<HocVien>) => Promise<void>;
   put: <T>(url: string, data?: object) => Promise<T>;
 };
 
 const HocVienModal: React.FC<HocVienModalProps> = ({
-  item: initialItem, teachers, canEditProgress, onClose, onAssign, onDelete, onRefresh, put,
+  item: initialItem, teachers, canEditProgress, role, onClose, onAssign, onAssignST, onDelete, onRefresh, put,
 }) => {
   const [item, setItem] = useState(initialItem);
   const bodyRef = useRef<HTMLDivElement>(null);
+  const colLeftRef = useRef<HTMLDivElement>(null);
+  const colRightRef = useRef<HTMLDivElement>(null);
 
   const [editingInfo, setEditingInfo] = useState(false);
   const [editFields, setEditFields] = useState<Partial<HocVien>>({});
@@ -925,6 +944,8 @@ const HocVienModal: React.FC<HocVienModalProps> = ({
     setEditStatus(initialItem.assignment?.status ?? 'learning');
     setEditDatHours(initialItem.assignment?.datHoursCompleted ?? 0);
     bodyRef.current?.scrollTo(0, 0);
+    colLeftRef.current?.scrollTo(0, 0);
+    colRightRef.current?.scrollTo(0, 0);
   }, [initialItem]);
 
   const formatDateForInput = (raw?: string): string => {
@@ -1055,10 +1076,17 @@ const HocVienModal: React.FC<HocVienModalProps> = ({
             ) : null}
           </div>
           <div className="hvm__dm-toolbar">
-            <button type="button" className="hvm__dm-btn hvm__dm-btn--primary" onClick={e => onAssign(item, e)}>
-              <span className="material-icons">assignment_turned_in</span>
-              {a ? 'Đổi giáo viên' : 'Phân công GV'}
-            </button>
+            {role === 'Admin' && item.superTeacherId === null ? (
+              <button type="button" className="hvm__dm-btn hvm__dm-btn--primary" onClick={() => onAssignST(item)}>
+                <span className="material-icons">assignment_turned_in</span>
+                {item.assignment ? 'Đổi SupperTeacher' : 'Gán SupperTeacher'}
+              </button>
+            ) : role !== 'Admin' ? (
+              <button type="button" className="hvm__dm-btn hvm__dm-btn--primary" onClick={e => onAssign(item, e)}>
+                <span className="material-icons">assignment_turned_in</span>
+                {a ? 'Đổi giáo viên' : 'Phân công GV'}
+              </button>
+            ) : null}
             {editingInfo ? (
               <>
                 <button type="button" className="hvm__dm-btn hvm__dm-btn--save" onClick={handleSaveInfo} disabled={savingInfo}>
@@ -1125,7 +1153,7 @@ const HocVienModal: React.FC<HocVienModalProps> = ({
         <div className="hvm__dm-body" ref={bodyRef}>
           <div className="hvm__dm-layout">
 
-            <div className="hvm__dm-col hvm__dm-col--side">
+            <div className="hvm__dm-col hvm__dm-col--side" ref={colLeftRef}>
               <div className="hvm__dm-info-grid">
                 {editingInfo ? (
                   <>
@@ -1269,7 +1297,7 @@ const HocVienModal: React.FC<HocVienModalProps> = ({
 
             </div>
 
-            <div className="hvm__dm-col hvm__dm-col--main">
+            <div className="hvm__dm-col hvm__dm-col--main" ref={colRightRef}>
               <div className="hvm__dm-training">
                 <div className="hvm__dm-training-header">
                   <span className="material-icons">route</span>
