@@ -516,6 +516,10 @@
     border-bottom: 1px solid var(--srm-outline-variant);
   }
 
+  .srm__map-wrap {
+    min-height: 300px;
+  }
+
   .srm__map {
     min-height: 300px;
   }
