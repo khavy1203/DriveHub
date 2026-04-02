@@ -27,15 +27,21 @@ import DangKyHocVien from './DangKyHocVien/DangKyHocVien';
 import ChatPage from './ChatPage/ChatPage';
 import KQSHPage from './KQSHPage/KQSHPage';
 import PermissionPage from './PermissionPage/PermissionPage';
+import AdminApiConfigPage from './AdminApiConfigPage/AdminApiConfigPage';
+import AdminManagement from './AdminManagement/AdminManagement';
 import { StudentsList } from '../../features/student';
+import { AdminFilterProvider } from '../../features/auth/context/AdminFilterContext';
 
 const DashBoardRoute: React.FC = () => {
   const { role } = useAuth();
   const isTeacher = role === 'GiaoVien';
   const isSupperTeacher = role === 'SupperTeacher';
   const isStudent = role === 'HocVien';
+  const isSupperAdmin = role === 'SupperAdmin';
+  const isAdmin = role === 'Admin';
 
   return (
+    <AdminFilterProvider>
     <DashBoardLayout>
       <Routes>
         <Route path="/" element={<Navigate to="home" replace />} />
@@ -78,8 +84,14 @@ const DashBoardRoute: React.FC = () => {
         {/* Kết quả sát hạch */}
         <Route path="/ket-qua-sat-hanh" element={<KQSHPage />} />
 
-        {/* Phân quyền — Admin/SupperAdmin */}
-        {!isStudent && <Route path="/phan-quyen" element={<PermissionPage />} />}
+        {/* Phân quyền — SupperAdmin only */}
+        {isSupperAdmin && <Route path="/phan-quyen" element={<PermissionPage />} />}
+
+        {/* Admin management — SupperAdmin only */}
+        {isSupperAdmin && <Route path="/admin-management" element={<AdminManagement />} />}
+
+        {/* API config — Admin only */}
+        {isAdmin && <Route path="/api-config" element={<AdminApiConfigPage />} />}
 
         {/* Chat */}
         <Route path="/chat" element={<ChatPage />} />
@@ -94,6 +106,7 @@ const DashBoardRoute: React.FC = () => {
         <Route path="*" element={<Navigate to="home" replace />} />
       </Routes>
     </DashBoardLayout>
+    </AdminFilterProvider>
   );
 };
 

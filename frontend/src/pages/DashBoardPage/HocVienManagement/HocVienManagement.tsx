@@ -4,12 +4,14 @@ import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import useApiService from '../../../services/useApiService';
 import { useAuth } from '../../../features/auth/hooks/useAuth';
+import { useAdminFilter } from '../../../features/auth/context/AdminFilterContext';
 import { KQSHDrawerSection, KetQuaBadge } from '../../../features/kqsh';
 import { TrainingProgressBlock } from '../../../features/trainingPortal';
 import { buildClassGroups, extractDistrictLine, shortCourseName, sortStudentsInGroup, type KhoaHocBrief } from '../../../shared/studentClassGrouping';
 import './HocVienManagement.scss';
 
 type Teacher = { id: number; username: string; email: string; phone?: string; address?: string | null };
+type STOption = { id: number; username: string };
 
 type Assignment = {
   id: number;
@@ -36,6 +38,8 @@ type HocVien = {
   IDKhoaHoc?: string | null;
   khoahoc?: KhoaHocBrief | null;
   createdAt?: string;
+  superTeacherId?: number | null;
+  adminId?: number | null;
   /** Tiến độ % từ đồng bộ CSĐT (training_snapshot) */
   trainingProgressPct?: number | null;
   status: 'registered' | 'assigned' | 'learning' | 'dat_completed' | 'exam_ready';
@@ -86,11 +90,13 @@ const teacherMatchScore = (teacher: Teacher, selected: HocVien[]): number => {
 const HocVienManagement: React.FC = () => {
   const { get, post, put, del } = useApiService();
   const { role } = useAuth();
+  const { selectedAdminId } = useAdminFilter();
   const navigate = useNavigate();
   const canEditProgress = canEditAssignmentProgressRole(role);
 
   const [hocVienList, setHocVienList] = useState<HocVien[]>([]);
   const [teachers, setTeachers] = useState<Teacher[]>([]);
+  const [stList, setStList] = useState<STOption[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadingData, setLoadingData] = useState(false);
   const [search, setSearch] = useState('');
@@ -118,6 +124,11 @@ const HocVienManagement: React.FC = () => {
   const [assignSaving, setAssignSaving] = useState(false);
   const [collapsedCourses, setCollapsedCourses] = useState<Set<string>>(new Set());
 
+  // Assign to ST modal (Admin only)
+  const [assignSTTarget, setAssignSTTarget] = useState<HocVien | null>(null);
+  const [assignSTId, setAssignSTId] = useState<number | ''>('');
+  const [assignSTSaving, setAssignSTSaving] = useState(false);
+
   // Bulk assign state
   const [bulkSelected, setBulkSelected] = useState<Set<number>>(new Set());
   const [bulkTeacherId, setBulkTeacherId] = useState<number | ''>('');
@@ -126,16 +137,22 @@ const HocVienManagement: React.FC = () => {
 
   const fetchData = useCallback(() => {
     setLoadingData(true);
-    get<{ EC: number; DT: HocVien[] }>('/api/hocvien')
+    const url = selectedAdminId ? `/api/hocvien?filterAdminId=${selectedAdminId}` : '/api/hocvien';
+    get<{ EC: number; DT: HocVien[] }>(url)
       .then(res => { if (res.EC === 0) setHocVienList(res.DT ?? []); })
       .finally(() => setLoadingData(false));
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [selectedAdminId]);
 
   useEffect(() => {
-    get<{ EC: number; DT: Teacher[] }>('/api/users')
+    const usersUrl = selectedAdminId ? `/api/users?filterAdminId=${selectedAdminId}` : '/api/users';
+    get<{ EC: number; DT: Teacher[] }>(usersUrl)
       .then(res => { if (res.EC === 0) setTeachers(res.DT ?? []); })
       .finally(() => setLoading(false));
+    if (role === 'Admin') {
+      get<{ EC: number; DT: STOption[] }>('/api/admin/supper-teachers')
+        .then(res => { if (res.EC === 0) setStList(res.DT ?? []); });
+    }
     fetchData();
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -320,6 +337,28 @@ const HocVienManagement: React.FC = () => {
       // httpClient handles toast
     } finally {
       setImporting(false);
+    }
+  };
+
+  const handleAssignToST = async () => {
+    if (!assignSTTarget || !assignSTId) return;
+    setAssignSTSaving(true);
+    try {
+      const res = await post<{ EC: number; EM: string }>('/api/admin/assign-student-to-st', {
+        hocVienId: assignSTTarget.id,
+        stId: assignSTId,
+      });
+      if (res.EC === 0) {
+        toast.success('Đã gán học viên cho SupperTeacher');
+        setAssignSTTarget(null);
+        await fetchData();
+      } else {
+        toast.error(res.EM || 'Lỗi khi gán SupperTeacher');
+      }
+    } catch {
+      // httpClient handles toast
+    } finally {
+      setAssignSTSaving(false);
     }
   };
 
@@ -553,9 +592,19 @@ const HocVienManagement: React.FC = () => {
                           </td>
                           <td>
                             <div className="hvm__row-actions">
-                              <button className="hvm__btn-assign" onClick={e => openAssign(s, e)}>
-                                {a ? 'Đổi GV' : 'Phân công'}
-                              </button>
+                              {role === 'Admin' && s.superTeacherId === null ? (
+                                <button
+                                  className="hvm__btn-assign"
+                                  onClick={e => { e.stopPropagation(); setAssignSTTarget(s); setAssignSTId(''); }}
+                                  title="Gán cho SupperTeacher"
+                                >
+                                  Gán ST
+                                </button>
+                              ) : role !== 'Admin' ? (
+                                <button className="hvm__btn-assign" onClick={e => openAssign(s, e)}>
+                                  {a ? 'Đổi GV' : 'Phân công'}
+                                </button>
+                              ) : null}
                               <button className="hvm__btn-delete" onClick={e => handleDelete(s, e)} title="Xoá học viên">
                                 <span className="material-icons">delete</span>
                               </button>
@@ -629,6 +678,46 @@ const HocVienManagement: React.FC = () => {
               <button className="hvm__btn-primary" onClick={handleAssignSave}
                 disabled={assignSaving || !assignTeacherId}>
                 {assignSaving
+                  ? <><span className="material-icons hvm__spin">sync</span>Đang lưu...</>
+                  : <><span className="material-icons">assignment_turned_in</span>Xác nhận</>
+                }
+              </button>
+            </div>
+          </div>
+        </div>,
+        document.body
+      )}
+
+      {/* Assign to ST Modal (Admin only) */}
+      {assignSTTarget && createPortal(
+        <div className="hvm__overlay hvm__overlay--above" onClick={() => setAssignSTTarget(null)}>
+          <div className="hvm__modal" onClick={e => e.stopPropagation()}>
+            <div className="hvm__modal-header">
+              <div>
+                <h3>Gán cho SupperTeacher</h3>
+                <p className="hvm__modal-subtitle">Học viên: <strong>{assignSTTarget.HoTen}</strong></p>
+              </div>
+              <button className="hvm__modal-close" onClick={() => setAssignSTTarget(null)}>
+                <span className="material-icons">close</span>
+              </button>
+            </div>
+            <div className="hvm__modal-body">
+              <label className="hvm__edit-label">
+                Chọn SupperTeacher
+                <select className="hvm__edit-select" value={assignSTId}
+                  onChange={e => setAssignSTId(+e.target.value)}>
+                  <option value="">-- Chọn SupperTeacher --</option>
+                  {stList.map(st => (
+                    <option key={st.id} value={st.id}>{st.username}</option>
+                  ))}
+                </select>
+              </label>
+            </div>
+            <div className="hvm__modal-footer">
+              <button className="hvm__btn-ghost" onClick={() => setAssignSTTarget(null)}>Huỷ</button>
+              <button className="hvm__btn-primary" onClick={handleAssignToST}
+                disabled={assignSTSaving || !assignSTId}>
+                {assignSTSaving
                   ? <><span className="material-icons hvm__spin">sync</span>Đang lưu...</>
                   : <><span className="material-icons">assignment_turned_in</span>Xác nhận</>
                 }

@@ -40,6 +40,7 @@ type HocVien = {
   createdAt?: string;
   trainingProgressPct?: number | null;
   assignment?: Assignment;
+  superTeacherId?: number | null;
 };
 
 const STATUS_LABEL: Record<string, string> = {
@@ -135,18 +136,21 @@ const ManualAssign: React.FC = () => {
   }, [get]);
 
   useEffect(() => {
-    get<{ EC: number; DT: Teacher[] }>('/api/users')
+    const targetUrl = role === 'Admin' ? '/api/admin/supper-teachers' : '/api/users';
+    get<{ EC: number; DT: Teacher[] }>(targetUrl)
       .then(res => {
         if (res.EC === 0) setTeachers(res.DT ?? []);
       })
       .finally(() => setLoadingInit(false));
     fetchStudents();
-  }, [fetchStudents, get]);
+  }, [fetchStudents, get, role]);
 
-  const unassignedCount = useMemo(
-    () => students.filter(s => !s.assignment || s.assignment.status === 'waiting').length,
-    [students],
-  );
+  const unassignedCount = useMemo(() => {
+    const pool = role === 'Admin'
+      ? students.filter(s => s.superTeacherId === null || s.superTeacherId === undefined)
+      : students;
+    return pool.filter(s => !s.assignment || s.assignment.status === 'waiting').length;
+  }, [students, role]);
 
   const districtOptions = useMemo(() => {
     const set = new Set<string>();
@@ -173,6 +177,11 @@ const ManualAssign: React.FC = () => {
 
   const pipelineFiltered = useMemo(() => {
     let list = students;
+
+    // Admin sees only their pool (not yet assigned to any ST)
+    if (role === 'Admin') {
+      list = list.filter(s => s.superTeacherId === null || s.superTeacherId === undefined);
+    }
 
     if (filterStatus === 'pending_assign') {
       list = list.filter(s => !s.assignment || s.assignment.status === 'waiting');
@@ -303,15 +312,24 @@ const ManualAssign: React.FC = () => {
     setSaving(true);
     try {
       const ids = [...selected];
-      const results = await Promise.all(
-        ids.map(hocVienId =>
-          post<{ EC: number; EM?: string }>('/api/student-assignment', {
-            hocVienId,
-            teacherId: targetTeacherId,
-            courseId: null,
-          }),
-        ),
-      );
+      const results = role === 'Admin'
+        ? await Promise.all(
+            ids.map(hocVienId =>
+              post<{ EC: number; EM?: string }>('/api/admin/assign-student-to-st', {
+                hocVienId,
+                stId: targetTeacherId,
+              }),
+            ),
+          )
+        : await Promise.all(
+            ids.map(hocVienId =>
+              post<{ EC: number; EM?: string }>('/api/student-assignment', {
+                hocVienId,
+                teacherId: targetTeacherId,
+                courseId: null,
+              }),
+            ),
+          );
       const failed = results.filter(r => r.EC !== 0);
       if (failed.length > 0) {
         toast.error(failed[0]?.EM || `Có ${failed.length} lượt phân công thất bại.`);
@@ -359,7 +377,10 @@ const ManualAssign: React.FC = () => {
         <div>
           <h1 className="assign-page__title">Quản lý phân công</h1>
           <p className="assign-page__lead">
-            Assign thủ công hàng loạt — <strong>{unassignedCount}</strong> học viên đang chờ phân công
+            {role === 'Admin'
+              ? <>Gán học viên cho SupperTeacher — <strong>{unassignedCount}</strong> học viên trong pool chờ phân công</>
+              : <>Assign thủ công hàng loạt — <strong>{unassignedCount}</strong> học viên đang chờ phân công</>
+            }
           </p>
         </div>
         <div className="assign-page__badge-info">
@@ -584,7 +605,9 @@ const ManualAssign: React.FC = () => {
 
         <aside className={`assign-page__panel ${selected.size > 0 ? 'assign-page__panel--active' : ''}`}>
           <div className="assign-page__panel-inner">
-            <h3 className="assign-page__panel-title">Gợi ý giáo viên</h3>
+            <h3 className="assign-page__panel-title">
+              {role === 'Admin' ? 'Gợi ý SupperTeacher' : 'Gợi ý giáo viên'}
+            </h3>
             <p className="assign-page__panel-desc">
               Chọn học viên bên trái để xem điểm phù hợp (match score) theo khu vực.
             </p>
@@ -620,13 +643,17 @@ const ManualAssign: React.FC = () => {
 
                 <div className="assign-page__panel-divider" />
 
-                <label className="assign-page__label">Hoặc chọn giáo viên</label>
+                <label className="assign-page__label">
+                  {role === 'Admin' ? 'Hoặc chọn SupperTeacher' : 'Hoặc chọn giáo viên'}
+                </label>
                 <select
                   className="assign-page__select assign-page__select--block"
                   value={targetTeacherId}
                   onChange={e => setTargetTeacherId(e.target.value ? +e.target.value : '')}
                 >
-                  <option value="">— Chọn giáo viên —</option>
+                  <option value="">
+                    {role === 'Admin' ? '— Chọn SupperTeacher —' : '— Chọn giáo viên —'}
+                  </option>
                   {teachers.map(t => (
                     <option key={t.id} value={t.id}>
                       {t.username}
@@ -636,7 +663,8 @@ const ManualAssign: React.FC = () => {
 
                 {selectedTeacher && (
                   <p className="assign-page__teacher-pick">
-                    Giáo viên được chọn: <strong>{selectedTeacher.username}</strong>
+                    {role === 'Admin' ? 'SupperTeacher được chọn' : 'Giáo viên được chọn'}:{' '}
+                    <strong>{selectedTeacher.username}</strong>
                   </p>
                 )}
 
@@ -646,7 +674,8 @@ const ManualAssign: React.FC = () => {
                   disabled={saving || !targetTeacherId || selected.size === 0}
                   onClick={() => setConfirmOpen(true)}
                 >
-                  Assign {selected.size} học viên cho giáo viên này
+                  Gán {selected.size} học viên cho{' '}
+                  {role === 'Admin' ? 'SupperTeacher' : 'giáo viên'} này
                 </button>
               </>
             )}
@@ -667,8 +696,8 @@ const ManualAssign: React.FC = () => {
               Xác nhận phân công
             </h2>
             <p className="assign-page__modal-text">
-              Bạn sắp phân công <strong>{selected.size}</strong> học viên cho{' '}
-              <strong>{selectedTeacher?.username ?? 'giáo viên'}</strong>. Tiếp tục?
+              Bạn sắp gán <strong>{selected.size}</strong> học viên cho{' '}
+              <strong>{selectedTeacher?.username ?? (role === 'Admin' ? 'SupperTeacher' : 'giáo viên')}</strong>. Tiếp tục?
             </p>
             <div className="assign-page__modal-actions">
               <button type="button" className="assign-page__btn-secondary" onClick={() => setConfirmOpen(false)}>

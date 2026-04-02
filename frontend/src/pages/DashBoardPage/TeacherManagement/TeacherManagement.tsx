@@ -5,6 +5,7 @@ import axios from '../../../axios';
 import { TeacherProfileModal } from '../../../shared/components/TeacherProfileModal';
 import { fetchSupperTeachers, reassignTeacherApi } from '../../../features/superTeacher/services/superTeacherApi';
 import type { SupperTeacher } from '../../../features/superTeacher/types';
+import { useAdminFilter } from '../../../features/auth/context/AdminFilterContext';
 import './TeacherManagement.scss';
 
 type Rank = { id: number; name: string };
@@ -49,6 +50,7 @@ const getInitials = (name: string) =>
 
 const TeacherManagement: React.FC = () => {
   const { get, post, put, del } = useApiService();
+  const { selectedAdminId } = useAdminFilter();
 
   const [teachers, setTeachers] = useState<Teacher[]>([]);
   const [loading, setLoading] = useState(true);
@@ -68,10 +70,11 @@ const TeacherManagement: React.FC = () => {
     axios.get<{ EC: number; DT: Rank[] }>('/api/rank/getRank')
       .then(res => { if (res.data.EC === 0) setRanks(res.data.DT ?? []); })
       .catch(() => {});
-    fetchSupperTeachers()
+    fetchSupperTeachers(selectedAdminId)
       .then(res => { if (res.EC === 0) setSupperTeachers(res.DT ?? []); })
       .catch(() => {});
-  }, []);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedAdminId]);
 
   // Profile modal
   const [showProfile, setShowProfile] = useState(false);
@@ -85,13 +88,14 @@ const TeacherManagement: React.FC = () => {
   const fetchTeachers = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await get<{ EC: number; DT: Teacher[] }>('/api/users');
+      const url = selectedAdminId ? `/api/users?filterAdminId=${selectedAdminId}` : '/api/users';
+      const res = await get<{ EC: number; DT: Teacher[] }>(url);
       if (res.EC === 0) setTeachers(res.DT ?? []);
     } finally {
       setLoading(false);
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [selectedAdminId]);
 
   useEffect(() => { fetchTeachers(); }, [fetchTeachers]);
 

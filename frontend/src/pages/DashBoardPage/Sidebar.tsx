@@ -16,31 +16,42 @@ interface NavItem {
   children?: { label: string; to: string; icon: string }[];
 }
 
-const ADMIN_NAV_ITEMS: NavItem[] = [
+const SHARED_MGMT_ITEMS: NavItem[] = [
   { label: 'Tổng quan', icon: 'dashboard', to: '/dashboard/home' },
   {
     label: 'Quản lý thi', icon: 'assignment',
     children: [
-      { label: 'Kết quả thi',      icon: 'fact_check',      to: '/dashboard/exam-results' },
-      { label: 'Học viên',         icon: 'school',          to: '/dashboard/hoc-vien' },
-      { label: 'Đăng ký học viên', icon: 'person_add',      to: '/dashboard/dang-ky-hoc-vien' },
-      { label: 'Phân công',         icon: 'assignment_ind',   to: '/dashboard/manual-assign' },
-      { label: 'Giáo viên',        icon: 'manage_accounts',  to: '/dashboard/teachers' },
-      { label: 'SupperTeacher',    icon: 'supervisor_account', to: '/dashboard/supper-teachers' },
+      { label: 'Học viên',         icon: 'school',            to: '/dashboard/hoc-vien' },
+      { label: 'Đăng ký học viên', icon: 'person_add',        to: '/dashboard/dang-ky-hoc-vien' },
+      { label: 'Phân công',        icon: 'assignment_ind',    to: '/dashboard/manual-assign' },
+      { label: 'Giáo viên',        icon: 'manage_accounts',   to: '/dashboard/teachers' },
+      { label: 'SupperTeacher',    icon: 'supervisor_account',to: '/dashboard/supper-teachers' },
     ],
   },
-  {
-    label: 'Cài đặt', icon: 'settings',
-    children: [
-      { label: 'Thiết lập chung',  icon: 'tune',        to: '/dashboard/setting' },
-      { label: 'Upload File',      icon: 'upload_file', to: '/dashboard/upload' },
-      { label: 'Máy in',           icon: 'print',       to: '/dashboard/printer' },
-      { label: 'Bộ đề ôn tập',    icon: 'menu_book',   to: '/dashboard/review-sets' },
-      { label: 'Import bộ ôn tập', icon: 'file_upload', to: '/dashboard/exam-sets-import' },
-    ],
-  },
-  { label: 'Phân quyền', icon: 'admin_panel_settings', to: '/dashboard/phan-quyen' },
   { label: 'Tra cứu', icon: 'manage_search', to: '/lookup' },
+];
+
+const SETTINGS_ITEM: NavItem = {
+  label: 'Cài đặt', icon: 'settings',
+  children: [
+    { label: 'Thiết lập chung',  icon: 'tune',        to: '/dashboard/setting' },
+    { label: 'Upload File',      icon: 'upload_file', to: '/dashboard/upload' },
+    { label: 'Máy in',           icon: 'print',       to: '/dashboard/printer' },
+    { label: 'Bộ đề ôn tập',    icon: 'menu_book',   to: '/dashboard/review-sets' },
+    { label: 'Import bộ ôn tập', icon: 'file_upload', to: '/dashboard/exam-sets-import' },
+  ],
+};
+
+const SUPPER_ADMIN_NAV_ITEMS: NavItem[] = [
+  ...SHARED_MGMT_ITEMS,
+  SETTINGS_ITEM,
+  { label: 'Quản lý Admin',  icon: 'domain',               to: '/dashboard/admin-management' },
+  { label: 'Phân quyền',     icon: 'admin_panel_settings', to: '/dashboard/phan-quyen' },
+];
+
+const ADMIN_NAV_ITEMS: NavItem[] = [
+  ...SHARED_MGMT_ITEMS,
+  { label: 'Kết nối API', icon: 'cable', to: '/dashboard/api-config' },
 ];
 
 const TEACHER_NAV_ITEMS: NavItem[] = [
@@ -93,6 +104,7 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed, isMobile, onNavClick }) =>
     role === 'SupperTeacher' ? SUPPER_TEACHER_NAV_ITEMS :
     role === 'GiaoVien'      ? TEACHER_NAV_ITEMS :
     role === 'HocVien'       ? STUDENT_NAV_ITEMS :
+    role === 'SupperAdmin'   ? SUPPER_ADMIN_NAV_ITEMS :
     ADMIN_NAV_ITEMS;
 
   const defaultAvatar = getDefaultAvatar(role);

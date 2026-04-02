@@ -57,8 +57,10 @@ export const fetchRatingsOverview = () =>
 
 // ── SupperAdmin: manage SupperTeachers ───────────────────────────────────────
 
-export const fetchSupperTeachers = () =>
-  axios.get<ApiRes<SupperTeacher[]>>('/api/admin/supper-teachers').then(r => r.data);
+export const fetchSupperTeachers = (filterAdminId?: number | null) =>
+  axios.get<ApiRes<SupperTeacher[]>>('/api/admin/supper-teachers', {
+    params: filterAdminId ? { filterAdminId } : undefined,
+  }).then(r => r.data);
 
 export const createSupperTeacherApi = (data: SupperTeacherFormData) =>
   axios.post<ApiRes<SupperTeacher>>('/api/admin/supper-teachers', data).then(r => r.data);
@@ -89,3 +91,6 @@ export const promoteTeacherApi = (teacherId: number) =>
 
 export const demoteSuperTeacherApi = (id: number, newManagerId: number) =>
   axios.put<ApiRes<unknown>>(`/api/admin/supper-teachers/${id}/demote`, { newManagerId }).then(r => r.data);
+
+export const assignStudentToSTApi = (hocVienId: number, stId: number) =>
+  axios.post<ApiRes<{ hocVienId: number; stId: number }>>('/api/admin/assign-student-to-st', { hocVienId, stId }).then(r => r.data);

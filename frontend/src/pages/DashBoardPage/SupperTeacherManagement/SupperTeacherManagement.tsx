@@ -1,4 +1,5 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, useRef } from 'react';
+import { useAdminFilter } from '../../../features/auth/context/AdminFilterContext';
 import { toast } from 'react-toastify';
 import type { SupperTeacher, SupperTeacherFormData, TeacherInTeam, TeacherFormData } from '../../../features/superTeacher/types';
 import {
@@ -364,6 +365,9 @@ const PromoteModal: React.FC<PromoteModalProps> = ({ teacher, onConfirm, onClose
 // ── Main page ────────────────────────────────────────────────────────────────
 
 const SupperTeacherManagement: React.FC = () => {
+  const { selectedAdminId } = useAdminFilter();
+  const prevAdminIdRef = useRef(selectedAdminId);
+
   const [supperTeachers, setSupperTeachers] = useState<SupperTeacher[]>([]);
   const [loading, setLoading] = useState(false);
   const [showSTForm, setShowSTForm] = useState(false);
@@ -392,7 +396,7 @@ const SupperTeacherManagement: React.FC = () => {
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await fetchSupperTeachers();
+      const res = await fetchSupperTeachers(selectedAdminId);
       if (res.EC === 0) setSupperTeachers(res.DT ?? []);
       else toast.error(res.EM);
     } catch {
@@ -400,7 +404,7 @@ const SupperTeacherManagement: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [selectedAdminId]);
 
   const loadUnassigned = useCallback(async () => {
     setLoadingUnassigned(true);
@@ -415,6 +419,15 @@ const SupperTeacherManagement: React.FC = () => {
   }, []);
 
   useEffect(() => { load(); loadUnassigned(); }, [load, loadUnassigned]);
+
+  // Reload when admin filter changes
+  useEffect(() => {
+    if (prevAdminIdRef.current !== selectedAdminId) {
+      prevAdminIdRef.current = selectedAdminId;
+      setExpandedStId(null);
+      load();
+    }
+  }, [selectedAdminId, load]);
 
   const toggleTeamExpand = async (stId: number) => {
     if (expandedStId === stId) {
