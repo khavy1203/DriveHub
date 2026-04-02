@@ -82,8 +82,13 @@ const MyStudentList: React.FC = () => {
         va = a.teacherName ?? teacherMap.get(a.teacherId) ?? '';
         vb = b.teacherName ?? teacherMap.get(b.teacherId) ?? '';
       } else if (sortKey === 'progress') {
-        va = a.hocVien?.trainingSnapshot?.courseProgressPct ?? Infinity;
-        vb = b.hocVien?.trainingSnapshot?.courseProgressPct ?? Infinity;
+        // Group 0: đang học (has snapshot, pct < 100)  → 0–99
+        // Group 1: chờ đồng bộ (no snapshot)           → 1000
+        // Group 2: hoàn thành (has snapshot, pct >= 100) → 2000+
+        const snapA = a.hocVien?.trainingSnapshot;
+        const snapB = b.hocVien?.trainingSnapshot;
+        va = !snapA ? 1000 : snapA.courseProgressPct >= 100 ? 2000 + snapA.courseProgressPct : snapA.courseProgressPct;
+        vb = !snapB ? 1000 : snapB.courseProgressPct >= 100 ? 2000 + snapB.courseProgressPct : snapB.courseProgressPct;
       }
       if (va < vb) return -1 * dir;
       if (va > vb) return 1 * dir;
