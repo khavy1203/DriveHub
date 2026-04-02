@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useCallback, useMemo, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import useApiService from '../../../services/useApiService';
@@ -593,7 +594,7 @@ const HocVienManagement: React.FC = () => {
       )}
 
       {/* Assign Modal */}
-      {assignTarget && (
+      {assignTarget && createPortal(
         <div className="hvm__overlay hvm__overlay--above" onClick={() => setAssignTarget(null)}>
           <div className="hvm__modal" onClick={e => e.stopPropagation()}>
             <div className="hvm__modal-header">
@@ -634,11 +635,12 @@ const HocVienManagement: React.FC = () => {
               </button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* Import CCCD Modal */}
-      {importOpen && (
+      {importOpen && createPortal(
         <div className="hvm__overlay hvm__overlay--above" onClick={() => setImportOpen(false)}>
           <div className="hvm__modal hvm__modal--wide" onClick={e => e.stopPropagation()}>
             <div className="hvm__modal-header">
@@ -694,7 +696,8 @@ const HocVienManagement: React.FC = () => {
               </button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* Bulk Assign Panel */}
@@ -753,7 +756,7 @@ const HocVienManagement: React.FC = () => {
       )}
 
       {/* Bulk Assign Confirm Modal */}
-      {bulkConfirmOpen && (
+      {bulkConfirmOpen && createPortal(
         <div className="hvm__overlay hvm__overlay--above" onClick={() => setBulkConfirmOpen(false)}>
           <div className="hvm__modal" onClick={e => e.stopPropagation()}>
             <div className="hvm__modal-header">
@@ -783,7 +786,8 @@ const HocVienManagement: React.FC = () => {
               </button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );
@@ -922,7 +926,7 @@ const HocVienModal: React.FC<HocVienModalProps> = ({
   const summaryProgressPct = Math.max(assignPct, trainPct);
   const khoaSummary = shortCourseName(item.khoahoc?.TenKhoaHoc?.trim() || item.IDKhoaHoc);
 
-  return (
+  return createPortal(
     <div className="hvm__overlay hvm__overlay--detail" onClick={onClose} role="dialog" aria-modal="true" aria-labelledby="hvm-dm-title">
       <div className="hvm__detail-modal" onClick={e => e.stopPropagation()}>
 
@@ -1201,7 +1205,8 @@ const HocVienModal: React.FC<HocVienModalProps> = ({
           </div>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 };
 

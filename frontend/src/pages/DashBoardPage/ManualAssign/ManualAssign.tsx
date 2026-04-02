@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { toast } from 'react-toastify';
 import useApiService from '../../../services/useApiService';
 import { useAuth } from '../../../features/auth/hooks/useAuth';
@@ -653,7 +654,7 @@ const ManualAssign: React.FC = () => {
         </aside>
       </div>
 
-      {confirmOpen && (
+      {confirmOpen && createPortal(
         <div className="assign-page__modal-backdrop" role="presentation" onClick={() => setConfirmOpen(false)}>
           <div
             className="assign-page__modal"
@@ -683,10 +684,11 @@ const ManualAssign: React.FC = () => {
               </button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
-      {drawerStudent && (
+      {drawerStudent && createPortal(
         <aside className="assign-page__drawer">
           <div className="assign-page__drawer-head">
             <h3>Chi tiết học viên</h3>
@@ -757,7 +759,8 @@ const ManualAssign: React.FC = () => {
               </div>
             ) : null}
           </div>
-        </aside>
+        </aside>,
+        document.body
       )}
     </div>
   );

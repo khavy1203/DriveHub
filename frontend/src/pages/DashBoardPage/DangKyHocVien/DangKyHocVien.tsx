@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
+import { createPortal } from 'react-dom';
 import useApiService from '../../../services/useApiService';
 import './DangKyHocVien.scss';
 
@@ -386,7 +387,7 @@ const DangKyHocVien: React.FC = () => {
       </div>
 
       {/* Success Modal */}
-      {success && (
+      {success && createPortal(
         <div className="dkhv__overlay" onClick={handleReset}>
           <div className="dkhv__modal" onClick={e => e.stopPropagation()}>
             <div className="dkhv__modal-hero">
@@ -443,7 +444,8 @@ const DangKyHocVien: React.FC = () => {
               <button className="dkhv__btn-text" onClick={handleReset}>Đóng thông báo</button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );

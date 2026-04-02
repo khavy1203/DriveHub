@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useCallback, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import useApiService from '../../../services/useApiService';
 import axios from '../../../axios';
 import { TeacherProfileModal } from '../../../shared/components/TeacherProfileModal';
@@ -326,7 +327,7 @@ const TeacherManagement: React.FC = () => {
       )}
 
       {/* ── Account modal ────────────────────────────────────────────────────── */}
-      {showModal && (
+      {showModal && createPortal(
         <div className="tm__overlay" onClick={() => setShowModal(false)}>
           <div className="tm__modal" onClick={e => e.stopPropagation()}>
             <div className="tm__modal-header">
@@ -387,11 +388,12 @@ const TeacherManagement: React.FC = () => {
               </button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* ── Profile modal ────────────────────────────────────────────────────── */}
-      {showProfile && profileTeacher && (
+      {showProfile && profileTeacher && createPortal(
         <div className="tm__overlay" onClick={() => setShowProfile(false)}>
           <div className="tm__modal tm__modal--profile" onClick={e => e.stopPropagation()}>
             <div className="tm__modal-header">
@@ -517,7 +519,8 @@ const TeacherManagement: React.FC = () => {
               </button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
       {viewTeacherId != null && (
         <TeacherProfileModal teacherId={viewTeacherId} onClose={() => setViewTeacherId(null)} />
