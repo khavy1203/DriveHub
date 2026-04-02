@@ -1,7 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import axios from '../../../axios';
+import { defaultTeacherAvatar, defaultStudentAvatar } from '../../../shared/utils/avatarUtils';
 import './TeacherProfileModal.scss';
+
+const DEFAULT_AVATAR = defaultTeacherAvatar;
+const REVIEWER_AVATAR = defaultStudentAvatar;
 
 type TeacherProfile = {
   bio?: string | null;
@@ -35,10 +39,6 @@ type Props = {
   actionLabel?: string;
   onAction?: (teacherId: number) => void;
 };
-
-import { defaultTeacherAvatar, defaultStudentAvatar } from '../../../shared/utils/avatarUtils';
-const DEFAULT_AVATAR = defaultTeacherAvatar;
-const REVIEWER_AVATAR = defaultStudentAvatar;
 
 const timeAgo = (iso: string): string => {
   const diff = Date.now() - new Date(iso).getTime();
@@ -84,11 +84,6 @@ const HalfStarRow: React.FC<{ avg: number }> = ({ avg }) => {
   );
 };
 
-const FEEDBACK_COLORS = [
-  'var(--tpm-secondary-container)',
-  'var(--tpm-primary-container)',
-  'var(--tpm-surface-container)',
-];
 
 const TeacherProfileModal: React.FC<Props> = ({ teacherId, onClose, actionLabel, onAction }) => {
   const [loading, setLoading] = useState(true);

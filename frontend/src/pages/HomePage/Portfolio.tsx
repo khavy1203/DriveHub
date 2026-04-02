@@ -1,8 +1,11 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import axios from '../../axios';
 import { SupperTeacherProfileModal } from '../../shared/components/SupperTeacherProfileModal';
+import { defaultTeacherAvatar } from '../../shared/utils/avatarUtils';
 import './mainpages.scss';
 import './Portfolio.scss';
+
+const DEFAULT_AVATAR = defaultTeacherAvatar;
 
 type PublicSupperTeacher = {
   id: number;
@@ -20,9 +23,6 @@ type PublicSupperTeacher = {
   avgStars: string;
   totalRatings: number;
 };
-
-import { defaultTeacherAvatar } from '../../shared/utils/avatarUtils';
-const DEFAULT_AVATAR = defaultTeacherAvatar;
 
 const HalfStars: React.FC<{ avg: string }> = ({ avg }) => {
   const num = parseFloat(avg);

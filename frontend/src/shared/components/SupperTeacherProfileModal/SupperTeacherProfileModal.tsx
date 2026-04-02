@@ -2,16 +2,16 @@ import React, { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import axios from '../../../axios';
 import type { SupperTeacherDetail, AssistantDetail, TeacherReview } from '../../../features/superTeacher/types';
+import { defaultTeacherAvatar, defaultStudentAvatar } from '../../../shared/utils/avatarUtils';
 import './SupperTeacherProfileModal.scss';
+
+const DEFAULT_AVATAR = defaultTeacherAvatar;
+const REVIEWER_AVATAR = defaultStudentAvatar;
 
 type Props = {
   teacherId: number;
   onClose: () => void;
 };
-
-import { defaultTeacherAvatar, defaultStudentAvatar } from '../../../shared/utils/avatarUtils';
-const DEFAULT_AVATAR = defaultTeacherAvatar;
-const REVIEWER_AVATAR = defaultStudentAvatar;
 
 const timeAgo = (iso: string): string => {
   const diff = Date.now() - new Date(iso).getTime();
