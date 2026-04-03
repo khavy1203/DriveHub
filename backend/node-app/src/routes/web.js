@@ -29,6 +29,7 @@ import gplxController from "../controller/gplxController";
 import reviewSetController from "../controller/reviewSetController";
 import examSetImportController from "../controller/examSetImportController";
 import chatController from "../controller/chatController";
+import notificationController from "../controller/notificationController";
 import { triggerSync, getMyKQSH, testMssqlConnection, getHocVienKQSH, getTeacherStudentKQSH } from "../controller/kqshController";
 import {
   getGroups, createGroup, updateGroup, deleteGroup,
@@ -95,6 +96,16 @@ const uploadStudentAvatar = multer({
     storage: createDiskStorage(path.join(__dirname, '../upload/student-avatars')),
     limits: { fileSize: 5 * 1024 * 1024 },
     fileFilter: imageFileFilter,
+});
+
+const NOTIFICATION_ALLOWED_TYPES = /^(image\/(jpeg|png|webp|gif)|application\/pdf|application\/vnd\.openxmlformats-officedocument\.(spreadsheetml\.sheet|wordprocessingml\.document)|application\/vnd\.ms-excel|application\/msword)$/;
+const uploadNotificationFiles = multer({
+    storage: createDiskStorage(path.join(__dirname, '../upload/notifications')),
+    limits: { fileSize: 10 * 1024 * 1024 },
+    fileFilter: (req, file, cb) => {
+        if (NOTIFICATION_ALLOWED_TYPES.test(file.mimetype)) cb(null, true);
+        else cb(new Error('Chỉ chấp nhận file ảnh, PDF, Excel hoặc Word'));
+    },
 });
 
 const requireSupperAdmin = (req, res, next) => {
@@ -206,6 +217,15 @@ const initWebRoutes = (app) => {
     routes.delete("/student-assignment/:id", studentAssignmentController.deleteAssignment);
 
     routes.get("/chat/:assignmentId/messages", chatController.getHistory);
+
+    // ── Notifications ────────────────────────────────────────────────────────
+    routes.post("/notification", uploadNotificationFiles.array('files', 5), notificationController.create);
+    routes.get("/notification/admin-history", notificationController.adminHistory);
+    routes.delete("/notification/:id", notificationController.remove);
+    routes.get("/notification/my", notificationController.my);
+    routes.get("/notification/unread-count", notificationController.unreadCount);
+    routes.put("/notification/read/:recipientId", notificationController.markRead);
+    routes.put("/notification/read-all", notificationController.markAllRead);
 
     routes.get("/student-portal/ket-qua-sat-hanh", getMyKQSH);
     routes.post("/admin/kqsh/sync", requireSupperAdmin, triggerSync);

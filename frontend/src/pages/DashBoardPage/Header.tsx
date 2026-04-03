@@ -3,6 +3,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../../features/auth/hooks/useAuth";
 import ProfileEditModal from "./ProfileEditModal";
 import { getDefaultAvatar } from "../../shared/utils/avatarUtils";
+import NotificationBell from "../../features/notification/components/NotificationBell";
 
 interface DashHeaderProps {
   onToggle: () => void;
@@ -80,6 +81,7 @@ const Header: React.FC<DashHeaderProps> = ({
 
       <div className="db-header-right">
         <div className="db-header-page-name">{pageName}</div>
+        <NotificationBell />
         <div className="db-profile" ref={menuRef}>
           <button className="db-profile-btn" onClick={() => setMenuOpen(o => !o)}>
             <img

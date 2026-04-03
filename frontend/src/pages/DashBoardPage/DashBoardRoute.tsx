@@ -31,6 +31,7 @@ import AdminApiConfigPage from './AdminApiConfigPage/AdminApiConfigPage';
 import AdminManagement from './AdminManagement/AdminManagement';
 import { StudentsList } from '../../features/student';
 import { AdminFilterProvider } from '../../features/auth/context/AdminFilterContext';
+import NotificationManager from '../../features/notification/components/NotificationManager';
 
 const DashBoardRoute: React.FC = () => {
   const { role } = useAuth();
@@ -89,6 +90,9 @@ const DashBoardRoute: React.FC = () => {
 
         {/* Admin management — SupperAdmin only */}
         {isSupperAdmin && <Route path="/admin-management" element={<AdminManagement />} />}
+
+        {/* Notification management — Admin / SupperAdmin */}
+        {(isSupperAdmin || isAdmin) && <Route path="/notifications" element={<NotificationManager />} />}
 
         {/* API config — Admin only */}
         {isAdmin && <Route path="/api-config" element={<AdminApiConfigPage />} />}

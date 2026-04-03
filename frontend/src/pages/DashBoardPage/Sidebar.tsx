@@ -45,12 +45,14 @@ const SETTINGS_ITEM: NavItem = {
 const SUPPER_ADMIN_NAV_ITEMS: NavItem[] = [
   ...SHARED_MGMT_ITEMS,
   SETTINGS_ITEM,
+  { label: 'Thông báo',      icon: 'campaign',             to: '/dashboard/notifications' },
   { label: 'Quản lý Admin',  icon: 'domain',               to: '/dashboard/admin-management' },
   { label: 'Phân quyền',     icon: 'admin_panel_settings', to: '/dashboard/phan-quyen' },
 ];
 
 const ADMIN_NAV_ITEMS: NavItem[] = [
   ...SHARED_MGMT_ITEMS,
+  { label: 'Thông báo', icon: 'campaign', to: '/dashboard/notifications' },
   { label: 'Kết nối API', icon: 'cable', to: '/dashboard/api-config' },
 ];
 

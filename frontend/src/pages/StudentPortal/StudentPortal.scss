@@ -30,6 +30,12 @@
   h1, h2, h3 { font-family: 'Manrope', sans-serif; }
   * { box-sizing: border-box; }
 
+  &__notif-bar {
+    display: flex;
+    justify-content: flex-end;
+    margin-bottom: 12px;
+  }
+
   &--loading {
     display: flex;
     align-items: center;

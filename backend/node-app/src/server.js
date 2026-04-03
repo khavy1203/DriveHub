@@ -7,6 +7,7 @@ import configCors from './config/cors';
 import cookieParser from 'cookie-parser';
 import setupStudentStatusWebSocket from './websocket/wsStudentStatusServer'; // WS server for student status
 import { setupChatWebSocket } from './websocket/wsChatServer'; // WS server for chat
+import { setupNotificationWebSocket } from './websocket/wsNotificationServer'; // WS server for notifications
 import http from 'http';
 import botTelegram from './bot/botTelegram';
 import path from 'path';
@@ -47,6 +48,7 @@ const server = http.createServer(app);
 
 const chatWss = setupChatWebSocket(server, '/ws/chat');
 const statusWss = setupStudentStatusWebSocket(server, '/ws/student-status');
+const notifWss = setupNotificationWebSocket(server, '/ws/notification');
 
 // Route WebSocket upgrades manually so both WSS instances don't fight over
 // the same upgrade event and send conflicting HTTP responses on the socket.
@@ -60,6 +62,10 @@ server.on('upgrade', (req, socket, head) => {
     } else if (pathname === '/ws/student-status') {
       statusWss.handleUpgrade(req, socket, head, (ws) => {
         statusWss.emit('connection', ws, req);
+      });
+    } else if (pathname === '/ws/notification') {
+      notifWss.handleUpgrade(req, socket, head, (ws) => {
+        notifWss.emit('connection', ws, req);
       });
     } else {
       socket.destroy();

@@ -5,6 +5,7 @@ import { useAuth } from '../../features/auth/hooks/useAuth';
 import axios from '../../axios';
 import { TrainingProgressBlock } from '../../features/trainingPortal';
 import { TeacherProfileModal } from '../../shared/components/TeacherProfileModal';
+import NotificationBell from '../../features/notification/components/NotificationBell';
 import './StudentPortal.scss';
 
 // ── Types ──────────────────────────────────────────────────────────────────────
@@ -286,6 +287,11 @@ const StudentPortal: React.FC = () => {
 
   return (
     <div className="hvp">
+
+      {/* Notification bell — top right */}
+      <div className="hvp__notif-bar">
+        <NotificationBell />
+      </div>
 
       {/* Thông tin cá nhân */}
       <section ref={profileRef} className="hvp__section">
