@@ -45,7 +45,7 @@ const NotificationManager: React.FC = () => {
   useEffect(() => { load(page); }, [load, page]);
 
   const handleDelete = async (id: number) => {
-    if (!confirm('Bạn có chắc muốn xóa thông báo này?')) return;
+    if (!window.confirm('Bạn có chắc muốn xóa thông báo này?')) return;
     try {
       const res = await api.deleteNotification(id);
       if (res.EC === 0) {
