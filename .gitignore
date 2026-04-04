@@ -12,3 +12,4 @@ dist*
 .claude
 GITHUB_SECRETS.md
 /UI-TEST/*
+/everything-claude-code
