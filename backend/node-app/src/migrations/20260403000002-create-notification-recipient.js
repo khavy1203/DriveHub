@@ -30,7 +30,7 @@ module.exports = {
       },
       isRead: { type: Sequelize.BOOLEAN, allowNull: false, defaultValue: false },
       readAt: { type: Sequelize.DATE, allowNull: true, defaultValue: null },
-      createdAt: { type: Sequelize.DATE, allowNull: false, defaultValue: Sequelize.literal('CURRENT_TIMESTAMP') },
+      createdAt: { type: Sequelize.DATE, allowNull: false },
     });
 
     await queryInterface.addIndex('notification_recipient', ['recipientUserId', 'isRead'], { name: 'idx_nr_user_read' });

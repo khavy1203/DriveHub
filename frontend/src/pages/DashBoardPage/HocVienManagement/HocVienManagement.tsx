@@ -386,25 +386,29 @@ const HocVienManagement: React.FC = () => {
           </p>
         </div>
         <div className="hvm__header-actions">
-          <button
-            className="hvm__btn-sync"
-            onClick={handleSyncTraining}
-            disabled={syncing}
-            title="Đồng bộ dữ liệu tiến độ từ hệ thống CSĐT"
-          >
-            <span className={`material-icons${syncing ? ' hvm__spin' : ''}`}>
-              {syncing ? 'sync' : 'cloud_download'}
-            </span>
-            {syncing ? 'Đang đồng bộ...' : 'Đồng bộ CSĐT'}
-          </button>
-          <button
-            className="hvm__btn-sync"
-            onClick={() => { setImportOpen(true); setImportResults([]); setImportCccdText(''); }}
-            title="Import học viên từ CCCD hệ thống CSĐT"
-          >
-            <span className="material-icons">upload_file</span>
-            Import CCCD
-          </button>
+          {role === 'Admin' && (
+            <>
+              <button
+                className="hvm__btn-sync"
+                onClick={handleSyncTraining}
+                disabled={syncing}
+                title="Đồng bộ dữ liệu tiến độ từ hệ thống CSĐT"
+              >
+                <span className={`material-icons${syncing ? ' hvm__spin' : ''}`}>
+                  {syncing ? 'sync' : 'cloud_download'}
+                </span>
+                {syncing ? 'Đang đồng bộ...' : 'Đồng bộ CSĐT'}
+              </button>
+              <button
+                className="hvm__btn-sync"
+                onClick={() => { setImportOpen(true); setImportResults([]); setImportCccdText(''); }}
+                title="Import học viên từ CCCD hệ thống CSĐT"
+              >
+                <span className="material-icons">upload_file</span>
+                Import CCCD
+              </button>
+            </>
+          )}
           <button className="hvm__btn-add" onClick={() => navigate('/dashboard/dang-ky-hoc-vien')}>
             <span className="material-icons">person_add</span>
             + Thêm học viên mới

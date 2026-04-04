@@ -18,7 +18,7 @@ module.exports = {
       filePath: { type: Sequelize.STRING(512), allowNull: false },
       fileType: { type: Sequelize.STRING(100), allowNull: false },
       fileSize: { type: Sequelize.INTEGER, allowNull: false, defaultValue: 0 },
-      createdAt: { type: Sequelize.DATE, allowNull: false, defaultValue: Sequelize.literal('CURRENT_TIMESTAMP') },
+      createdAt: { type: Sequelize.DATE, allowNull: false },
     });
 
     await queryInterface.addIndex('notification_attachment', ['notificationId'], { name: 'idx_na_notification' });

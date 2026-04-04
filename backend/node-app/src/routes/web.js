@@ -118,6 +118,17 @@ const requireSupperAdmin = (req, res, next) => {
     next();
 };
 
+const requireAdminOrAbove = (req, res, next) => {
+    if (!req.user) {
+        return res.status(401).json({ EC: -1, DT: null, EM: 'Yêu cầu đăng nhập' });
+    }
+    const name = req.user.groupWithRoles?.name;
+    if (name !== 'Admin' && name !== 'SupperAdmin') {
+        return res.status(403).json({ EC: -1, DT: null, EM: 'Chỉ Admin mới có quyền này' });
+    }
+    next();
+};
+
 const initWebRoutes = (app) => {
 
     routes.get('/api/test', (req, res) => {
@@ -228,8 +239,8 @@ const initWebRoutes = (app) => {
     routes.put("/notification/read-all", notificationController.markAllRead);
 
     routes.get("/student-portal/ket-qua-sat-hanh", getMyKQSH);
-    routes.post("/admin/kqsh/sync", requireSupperAdmin, triggerSync);
-    routes.get("/admin/kqsh/test-connection", requireSupperAdmin, testMssqlConnection);
+    routes.post("/admin/kqsh/sync", requireAdminOrAbove, triggerSync);
+    routes.get("/admin/kqsh/test-connection", requireAdminOrAbove, testMssqlConnection);
 
     // ── Permissions management ────────────────────────────────────────────────
     routes.get("/admin/permissions/groups", getGroups);
@@ -284,7 +295,7 @@ const initWebRoutes = (app) => {
     routes.get("/training/student-cached", getTrainingStudentCached);
     routes.get("/training/avatar", getTrainingAvatar);
     routes.get("/training/session-detail", getTrainingSessionDetail);
-    routes.post("/training/sync-all", requireSupperAdmin, triggerSyncAll);
+    routes.post("/training/sync-all", requireAdminOrAbove, triggerSyncAll);
     routes.post("/training/import-cccd", importByCccdList);
     routes.get("/training/sync-status", getTrainingSyncStatus);
 

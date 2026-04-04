@@ -30,6 +30,7 @@ const DashboardHome: React.FC = () => {
   const { get } = useApiService();
   const { role } = useAuth();
   const isSupperAdmin = role === 'SupperAdmin';
+  const isAdmin = role === 'Admin';
 
   const [courses, setCourses] = useState<Course[]>([]);
   const [ranks, setRanks] = useState<RankItem[]>([]);
@@ -138,8 +139,8 @@ const DashboardHome: React.FC = () => {
         </div>
       </div>
 
-      {/* KQSH Sync — SupperAdmin only */}
-      {isSupperAdmin && (
+      {/* KQSH Sync — Admin only (relies on API config) */}
+      {isAdmin && (
         <div className="dbh__section">
           <h2 className="dbh__section-title">Đồng bộ dữ liệu</h2>
           <KQSHSyncPanel />

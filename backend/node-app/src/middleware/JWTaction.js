@@ -109,6 +109,10 @@ const checkUserPermission = async (req, res, next) => {
 
     if (req.user.email === ADMIN_ACCOUNT.email) return next();
 
+    // Notification endpoints — any authenticated user can mark read
+    const reqPath = (req.originalUrl || '').split('?')[0];
+    if (reqPath.startsWith('/api/notification/read')) return next();
+
     // SupperAdmin + Admin: bypass API registry — access is already controlled at controller/route level.
     if (req.user.groupWithRoles?.name === 'SupperAdmin') return next();
     if (req.user.groupWithRoles?.name === 'Admin') return next();

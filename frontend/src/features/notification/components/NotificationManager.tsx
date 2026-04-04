@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { toast } from 'react-toastify';
+import { useAuth } from '../../../features/auth/hooks/useAuth';
 import * as api from '../services/notificationApi';
 import type { AdminNotificationRow, PaginatedResponse } from '../types';
 import NotificationForm from './NotificationForm';
@@ -8,6 +9,9 @@ import './NotificationManager.scss';
 const TYPE_LABEL: Record<string, string> = {
   admin_to_st: 'SupperTeacher',
   admin_to_student: 'Học viên',
+  admin_to_all: 'Tất cả (ST + HV)',
+  superadmin_to_admin: 'Admin',
+  superadmin_to_student: 'Học viên (toàn hệ thống)',
 };
 
 const PRIORITY_LABEL: Record<string, string> = {
@@ -24,6 +28,8 @@ const formatDate = (raw: string) => {
 };
 
 const NotificationManager: React.FC = () => {
+  const { role } = useAuth();
+  const isSupperAdmin = role === 'SupperAdmin';
   const [data, setData] = useState<PaginatedResponse<AdminNotificationRow> | null>(null);
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
@@ -86,8 +92,18 @@ const NotificationManager: React.FC = () => {
           onChange={e => { setFilterType(e.target.value); setPage(1); }}
         >
           <option value="">Tất cả loại</option>
-          <option value="admin_to_st">Gửi SupperTeacher</option>
-          <option value="admin_to_student">Gửi Học viên</option>
+          {isSupperAdmin ? (
+            <>
+              <option value="superadmin_to_admin">Gửi Admin</option>
+              <option value="superadmin_to_student">Gửi Học viên (toàn hệ thống)</option>
+            </>
+          ) : (
+            <>
+              <option value="admin_to_all">Gửi tất cả (ST + HV)</option>
+              <option value="admin_to_st">Gửi SupperTeacher</option>
+              <option value="admin_to_student">Gửi Học viên</option>
+            </>
+          )}
         </select>
       </div>
 

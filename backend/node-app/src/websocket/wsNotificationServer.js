@@ -71,15 +71,8 @@ export function setupNotificationWebSocket(server, path) {
       return;
     }
 
-    let decoded;
-    try {
-      decoded = await new Promise((resolve, reject) => {
-        verifyToken(token, (err, data) => {
-          if (err) reject(err);
-          else resolve(data);
-        });
-      });
-    } catch {
+    const decoded = verifyToken(token);
+    if (!decoded) {
       ws.close(4001, 'Invalid token');
       return;
     }

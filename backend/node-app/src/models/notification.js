@@ -24,7 +24,7 @@ module.exports = (sequelize, DataTypes) => {
       id: { type: DataTypes.INTEGER, autoIncrement: true, primaryKey: true, allowNull: false },
       title: { type: DataTypes.STRING(255), allowNull: false },
       content: { type: DataTypes.TEXT, allowNull: false },
-      type: { type: DataTypes.ENUM('admin_to_st', 'admin_to_student'), allowNull: false },
+      type: { type: DataTypes.ENUM('admin_to_st', 'admin_to_student', 'admin_to_all', 'superadmin_to_admin', 'superadmin_to_student'), allowNull: false },
       targetScope: { type: DataTypes.ENUM('all', 'selected'), allowNull: false, defaultValue: 'all' },
       priority: { type: DataTypes.ENUM('normal', 'important'), allowNull: false, defaultValue: 'normal' },
       createdByUserId: { type: DataTypes.INTEGER, allowNull: false },

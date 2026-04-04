@@ -17,7 +17,7 @@ export type Notification = {
   id: number;
   title: string;
   content: string;
-  type: 'admin_to_st' | 'admin_to_student';
+  type: 'admin_to_st' | 'admin_to_student' | 'admin_to_all' | 'superadmin_to_admin' | 'superadmin_to_student';
   targetScope: 'all' | 'selected';
   priority: 'normal' | 'important';
   createdByUserId: number;
@@ -53,7 +53,7 @@ export type PaginatedResponse<T> = {
 export type CreateNotificationPayload = {
   title: string;
   content: string;
-  type: 'admin_to_st' | 'admin_to_student';
+  type: 'admin_to_st' | 'admin_to_student' | 'admin_to_all' | 'superadmin_to_admin' | 'superadmin_to_student';
   targetScope: 'all' | 'selected';
   priority: 'normal' | 'important';
   recipientIds?: number[];

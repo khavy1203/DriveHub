@@ -133,6 +133,9 @@
 
     &--admin_to_st { background: #ede9fe; color: #7c3aed; }
     &--admin_to_student { background: #dbeafe; color: #1d4ed8; }
+    &--admin_to_all { background: #f0fdf4; color: #15803d; }
+    &--superadmin_to_admin { background: #fef3c7; color: #b45309; }
+    &--superadmin_to_student { background: #d1fae5; color: #065f46; }
     &--normal { background: #f1f5f9; color: #64748b; }
     &--important { background: #fef2f2; color: #dc2626; }
   }

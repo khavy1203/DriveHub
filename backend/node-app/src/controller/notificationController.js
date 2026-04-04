@@ -1,3 +1,4 @@
+import db from '../models/index.js';
 import notificationService from '../service/notificationService.js';
 import { broadcastNotification } from '../websocket/wsNotificationServer.js';
 
@@ -66,6 +67,7 @@ const adminHistory = async (req, res, next) => {
     });
     return res.json({ EC: 0, EM: 'OK', DT: data });
   } catch (err) {
+    console.error('[Notification] adminHistory error:', err);
     next(err);
   }
 };
@@ -90,7 +92,7 @@ const my = async (req, res, next) => {
     const userId = req.user.id;
 
     // Check if user is a hoc_vien (student)
-    const hocVien = await (await import('../models/index.js')).default.hoc_vien.findOne({
+    const hocVien = await db.hoc_vien.findOne({
       where: { userId },
       attributes: ['id'],
     });
@@ -110,6 +112,7 @@ const my = async (req, res, next) => {
 
     return res.json({ EC: 0, EM: 'OK', DT: data });
   } catch (err) {
+    console.error('[Notification] my error:', err);
     next(err);
   }
 };
@@ -119,7 +122,7 @@ const unreadCount = async (req, res, next) => {
   try {
     const userId = req.user.id;
 
-    const hocVien = await (await import('../models/index.js')).default.hoc_vien.findOne({
+    const hocVien = await db.hoc_vien.findOne({
       where: { userId },
       attributes: ['id'],
     });
@@ -133,6 +136,7 @@ const unreadCount = async (req, res, next) => {
 
     return res.json({ EC: 0, EM: 'OK', DT: count });
   } catch (err) {
+    console.error('[Notification] unreadCount error:', err);
     next(err);
   }
 };
@@ -155,7 +159,7 @@ const markAllRead = async (req, res, next) => {
   try {
     const userId = req.user.id;
 
-    const hocVien = await (await import('../models/index.js')).default.hoc_vien.findOne({
+    const hocVien = await db.hoc_vien.findOne({
       where: { userId },
       attributes: ['id'],
     });

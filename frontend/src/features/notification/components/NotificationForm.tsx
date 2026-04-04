@@ -1,11 +1,15 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { toast } from 'react-toastify';
+import { useAuth } from '../../../features/auth/hooks/useAuth';
 import axios from '../../../axios';
 import { createNotification } from '../services/notificationApi';
 import type { CreateNotificationPayload } from '../types';
 
+type AdminOption = { id: number; username: string; email: string };
 type STOption = { id: number; username: string; email: string };
 type HVOption = { id: number; HoTen: string; SoCCCD?: string };
+
+type NotificationType = 'admin_to_st' | 'admin_to_student' | 'admin_to_all' | 'superadmin_to_admin' | 'superadmin_to_student';
 
 type NotificationFormProps = {
   onClose: () => void;
@@ -38,9 +42,12 @@ const formatSize = (bytes: number) => {
 };
 
 const NotificationForm: React.FC<NotificationFormProps> = ({ onClose, onCreated }) => {
+  const { role } = useAuth();
+  const isSupperAdmin = role === 'SupperAdmin';
+
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
-  const [type, setType] = useState<'admin_to_st' | 'admin_to_student'>('admin_to_student');
+  const [type, setType] = useState<NotificationType>(isSupperAdmin ? 'superadmin_to_admin' : 'admin_to_all');
   const [targetScope, setTargetScope] = useState<'all' | 'selected'>('all');
   const [priority, setPriority] = useState<'normal' | 'important'>('normal');
   const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
@@ -48,6 +55,7 @@ const NotificationForm: React.FC<NotificationFormProps> = ({ onClose, onCreated 
   const [saving, setSaving] = useState(false);
 
   // Recipients list for "selected" scope
+  const [adminList, setAdminList] = useState<AdminOption[]>([]);
   const [stList, setStList] = useState<STOption[]>([]);
   const [hvList, setHvList] = useState<HVOption[]>([]);
   const [loadingList, setLoadingList] = useState(false);
@@ -60,11 +68,16 @@ const NotificationForm: React.FC<NotificationFormProps> = ({ onClose, onCreated 
     setSelectedIds(new Set());
     setLoadingList(true);
 
-    if (type === 'admin_to_st') {
+    if (type === 'superadmin_to_admin') {
+      axios.get<{ EC: number; DT: AdminOption[] }>('/api/admins')
+        .then(res => { if (res.data.EC === 0) setAdminList(res.data.DT ?? []); })
+        .finally(() => setLoadingList(false));
+    } else if (type === 'admin_to_st') {
       axios.get<{ EC: number; DT: STOption[] }>('/api/admin/supper-teachers')
         .then(res => { if (res.data.EC === 0) setStList(res.data.DT ?? []); })
         .finally(() => setLoadingList(false));
     } else {
+      // admin_to_student or superadmin_to_student
       axios.get<{ EC: number; DT: HVOption[] }>('/api/hocvien')
         .then(res => { if (res.data.EC === 0) setHvList(res.data.DT ?? []); })
         .finally(() => setLoadingList(false));
@@ -142,8 +155,6 @@ const NotificationForm: React.FC<NotificationFormProps> = ({ onClose, onCreated 
     }
   };
 
-  const recipientList = type === 'admin_to_st' ? stList : hvList;
-
   return (
     <div className="nm__modal-overlay" onClick={onClose}>
       <div className="nm__modal" onClick={e => e.stopPropagation()}>
@@ -158,18 +169,30 @@ const NotificationForm: React.FC<NotificationFormProps> = ({ onClose, onCreated 
           <div className="nm__form-row nm__form-row--2col">
             <div className="nm__form-field">
               <label>Gửi đến</label>
-              <select value={type} onChange={e => setType(e.target.value as typeof type)}>
-                <option value="admin_to_student">Học viên</option>
-                <option value="admin_to_st">SupperTeacher</option>
+              <select value={type} onChange={e => { const v = e.target.value as NotificationType; setType(v); if (v === 'admin_to_all') setTargetScope('all'); }}>
+                {isSupperAdmin ? (
+                  <>
+                    <option value="superadmin_to_admin">Admin</option>
+                    <option value="superadmin_to_student">Học viên (toàn hệ thống)</option>
+                  </>
+                ) : (
+                  <>
+                    <option value="admin_to_all">Tất cả (ST + Học viên)</option>
+                    <option value="admin_to_student">Học viên</option>
+                    <option value="admin_to_st">SupperTeacher</option>
+                  </>
+                )}
               </select>
             </div>
-            <div className="nm__form-field">
-              <label>Phạm vi</label>
-              <select value={targetScope} onChange={e => setTargetScope(e.target.value as typeof targetScope)}>
-                <option value="all">Tất cả</option>
-                <option value="selected">Chọn cụ thể</option>
-              </select>
-            </div>
+            {type !== 'admin_to_all' && (
+              <div className="nm__form-field">
+                <label>Phạm vi</label>
+                <select value={targetScope} onChange={e => setTargetScope(e.target.value as typeof targetScope)}>
+                  <option value="all">Tất cả</option>
+                  <option value="selected">Chọn cụ thể</option>
+                </select>
+              </div>
+            )}
           </div>
 
           {targetScope === 'selected' && (
@@ -178,22 +201,32 @@ const NotificationForm: React.FC<NotificationFormProps> = ({ onClose, onCreated 
               <div className="nm__recipient-list">
                 {loadingList ? (
                   <p className="nm__recipient-loading">Đang tải...</p>
-                ) : recipientList.length === 0 ? (
-                  <p className="nm__recipient-loading">Không có dữ liệu</p>
                 ) : (
-                  type === 'admin_to_st'
-                    ? stList.map(st => (
-                        <label key={st.id} className="nm__recipient-item">
-                          <input type="checkbox" checked={selectedIds.has(st.id)} onChange={() => toggleId(st.id)} />
-                          <span>{st.username} ({st.email})</span>
-                        </label>
-                      ))
-                    : hvList.map(hv => (
-                        <label key={hv.id} className="nm__recipient-item">
-                          <input type="checkbox" checked={selectedIds.has(hv.id)} onChange={() => toggleId(hv.id)} />
-                          <span>{hv.HoTen} {hv.SoCCCD ? `— ${hv.SoCCCD}` : ''}</span>
-                        </label>
-                      ))
+                  type === 'superadmin_to_admin' ? (
+                    adminList.length === 0 ? <p className="nm__recipient-loading">Không có dữ liệu</p> :
+                    adminList.map(a => (
+                      <label key={a.id} className="nm__recipient-item">
+                        <input type="checkbox" checked={selectedIds.has(a.id)} onChange={() => toggleId(a.id)} />
+                        <span>{a.username} ({a.email})</span>
+                      </label>
+                    ))
+                  ) : type === 'admin_to_st' ? (
+                    stList.length === 0 ? <p className="nm__recipient-loading">Không có dữ liệu</p> :
+                    stList.map(st => (
+                      <label key={st.id} className="nm__recipient-item">
+                        <input type="checkbox" checked={selectedIds.has(st.id)} onChange={() => toggleId(st.id)} />
+                        <span>{st.username} ({st.email})</span>
+                      </label>
+                    ))
+                  ) : (
+                    hvList.length === 0 ? <p className="nm__recipient-loading">Không có dữ liệu</p> :
+                    hvList.map(hv => (
+                      <label key={hv.id} className="nm__recipient-item">
+                        <input type="checkbox" checked={selectedIds.has(hv.id)} onChange={() => toggleId(hv.id)} />
+                        <span>{hv.HoTen} {hv.SoCCCD ? `— ${hv.SoCCCD}` : ''}</span>
+                      </label>
+                    ))
+                  )
                 )}
               </div>
             </div>

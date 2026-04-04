@@ -16,6 +16,29 @@ const CREATOR_INCLUDE = {
   attributes: ['id', 'username', 'email'],
 };
 
+const SUPPER_TEACHER_GROUP_ID = 6;
+
+// Find all students managed by an admin (directly or via their SupperTeachers)
+const findStudentsByAdmin = async (adminUserId, transaction) => {
+  const stIds = await db.user.findAll({
+    where: { groupId: SUPPER_TEACHER_GROUP_ID, adminId: adminUserId },
+    attributes: ['id'],
+    raw: true,
+    transaction,
+  }).then(rows => rows.map(r => r.id));
+
+  const orConditions = [{ adminId: adminUserId }];
+  if (stIds.length > 0) {
+    orConditions.push({ superTeacherId: { [Op.in]: stIds } });
+  }
+
+  return db.hoc_vien.findAll({
+    where: { [Op.or]: orConditions },
+    attributes: ['id'],
+    transaction,
+  });
+};
+
 // ── Create notification ─────────────────────────────────────────────────────
 
 const createNotification = async (adminUserId, { title, content, type, targetScope, priority, recipientIds, files }) => {
@@ -43,7 +66,6 @@ const createNotification = async (adminUserId, { title, content, type, targetSco
 
     if (type === 'admin_to_st') {
       if (targetScope === 'all') {
-        // All SupperTeachers belonging to this admin
         const stGroup = await db.group.findOne({ where: { name: 'SupperTeacher' }, attributes: ['id'] });
         if (stGroup) {
           const sts = await db.user.findAll({
@@ -54,14 +76,43 @@ const createNotification = async (adminUserId, { title, content, type, targetSco
           recipients = sts.map(st => ({ notificationId: notif.id, recipientUserId: st.id, recipientHocVienId: null }));
         }
       } else {
-        // Selected SupperTeachers
         recipients = (recipientIds || []).map(id => ({ notificationId: notif.id, recipientUserId: id, recipientHocVienId: null }));
       }
     } else if (type === 'admin_to_student') {
       if (targetScope === 'all') {
-        // All students belonging to this admin
+        const hvs = await findStudentsByAdmin(adminUserId, transaction);
+        recipients = hvs.map(hv => ({ notificationId: notif.id, recipientUserId: null, recipientHocVienId: hv.id }));
+      } else {
+        recipients = (recipientIds || []).map(id => ({ notificationId: notif.id, recipientUserId: null, recipientHocVienId: id }));
+      }
+    } else if (type === 'admin_to_all') {
+      // Send to both SupperTeachers AND students of this admin
+      const stGroup = await db.group.findOne({ where: { name: 'SupperTeacher' }, attributes: ['id'] });
+      if (stGroup) {
+        const sts = await db.user.findAll({
+          where: { adminId: adminUserId, groupId: stGroup.id, active: 1 },
+          attributes: ['id'],
+          transaction,
+        });
+        recipients.push(...sts.map(st => ({ notificationId: notif.id, recipientUserId: st.id, recipientHocVienId: null })));
+      }
+      const hvs = await findStudentsByAdmin(adminUserId, transaction);
+      recipients.push(...hvs.map(hv => ({ notificationId: notif.id, recipientUserId: null, recipientHocVienId: hv.id })));
+    } else if (type === 'superadmin_to_admin') {
+      const ADMIN_GROUP_ID = 2;
+      if (targetScope === 'all') {
+        const admins = await db.user.findAll({
+          where: { groupId: ADMIN_GROUP_ID, active: 1 },
+          attributes: ['id'],
+          transaction,
+        });
+        recipients = admins.map(a => ({ notificationId: notif.id, recipientUserId: a.id, recipientHocVienId: null }));
+      } else {
+        recipients = (recipientIds || []).map(id => ({ notificationId: notif.id, recipientUserId: id, recipientHocVienId: null }));
+      }
+    } else if (type === 'superadmin_to_student') {
+      if (targetScope === 'all') {
         const hvs = await db.hoc_vien.findAll({
-          where: { adminId: adminUserId },
           attributes: ['id'],
           transaction,
         });
