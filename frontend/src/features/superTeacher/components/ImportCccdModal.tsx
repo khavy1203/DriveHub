@@ -10,6 +10,7 @@ type Props = {
 
 const ImportCccdModal: React.FC<Props> = ({ onClose, onSuccess }) => {
   const [input, setInput] = useState('');
+  const [submitting, setSubmitting] = useState(false);
 
   const parseCccdList = (): string[] => {
     return input
@@ -18,35 +19,28 @@ const ImportCccdModal: React.FC<Props> = ({ onClose, onSuccess }) => {
       .filter(s => s.length > 0);
   };
 
-  const handleImport = () => {
+  const handleImport = async () => {
     const list = parseCccdList();
     if (list.length === 0) {
       toast.error('Vui lòng nhập ít nhất 1 số CCCD');
       return;
     }
-    if (list.length > 100) {
-      toast.error('Tối đa 100 CCCD mỗi lần');
-      return;
+
+    setSubmitting(true);
+    try {
+      const res = await importCccdApi(list);
+      if (res.EC === 0) {
+        toast.info(res.EM || `Đang xử lý ${list.length} CCCD ở chế độ nền...`);
+        onClose();
+        // Background job will push WS notification when done — parent refreshes via socket
+      } else {
+        toast.error(res.EM || 'Import thất bại');
+      }
+    } catch {
+      toast.error('Lỗi kết nối server');
+    } finally {
+      setSubmitting(false);
     }
-
-    toast.info(`Đang import ${list.length} CCCD, kết quả sẽ cập nhật sau...`);
-    onClose();
-
-    importCccdApi(list)
-      .then(res => {
-        if (res.EC === 0 && res.DT) {
-          const ok = res.DT.filter(r => r.ok).length;
-          const fail = res.DT.filter(r => !r.ok).length;
-          if (ok > 0) toast.success(`Import thành công ${ok} học viên`);
-          if (fail > 0) toast.warning(`${fail} CCCD bị lỗi`);
-          onSuccess();
-        } else {
-          toast.error(res.EM || 'Import thất bại');
-        }
-      })
-      .catch(() => {
-        toast.error('Lỗi kết nối server');
-      });
   };
 
   const cccdCount = parseCccdList().length;
@@ -66,6 +60,7 @@ const ImportCccdModal: React.FC<Props> = ({ onClose, onSuccess }) => {
           onChange={e => setInput(e.target.value)}
           placeholder={"012345678901\n012345678902\n012345678903"}
           rows={6}
+          disabled={submitting}
         />
 
         {cccdCount > 0 && (
@@ -76,15 +71,15 @@ const ImportCccdModal: React.FC<Props> = ({ onClose, onSuccess }) => {
         )}
 
         <div className="import-cccd__actions">
-          <button className="import-cccd__cancel" onClick={onClose}>
+          <button className="import-cccd__cancel" onClick={onClose} disabled={submitting}>
             Hủy
           </button>
           <button
             className="import-cccd__submit"
             onClick={handleImport}
-            disabled={cccdCount === 0}
+            disabled={cccdCount === 0 || submitting}
           >
-            Import
+            {submitting ? 'Đang gửi...' : 'Import'}
           </button>
         </div>
       </div>

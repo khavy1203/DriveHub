@@ -1,9 +1,11 @@
-import React, { useEffect, useState, useMemo } from 'react';
+import React, { useEffect, useState, useMemo, useCallback } from 'react';
+import { toast } from 'react-toastify';
 import { useSuperTeacherStudents } from '../hooks/useSuperTeacherStudents';
 import { useSuperTeacher } from '../hooks/useSuperTeacher';
 import TrainingDetailModal from './TrainingDetailModal';
 import StudentEditModal from './StudentEditModal';
 import ImportCccdModal from './ImportCccdModal';
+import useNotificationSocket from '../../../features/notification/hooks/useNotificationSocket';
 import type { StudentInTeam } from '../types';
 import './MyStudentList.scss';
 
@@ -31,6 +33,19 @@ const MyStudentList: React.FC = () => {
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc');
   const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
   const [showImport, setShowImport] = useState(false);
+
+  // Listen for background import completion via WebSocket
+  const handleImportDone = useCallback((payload: unknown) => {
+    const data = payload as { content: string; failed: number };
+    if (data.failed > 0) {
+      toast.warn(data.content, { autoClose: 8000 });
+    } else {
+      toast.success(data.content, { autoClose: 5000 });
+    }
+    loadStudents();
+  }, [loadStudents]);
+
+  useNotificationSocket({ onImportCccdDone: handleImportDone });
 
   useEffect(() => { loadStudents(); loadTeachers(); }, [loadStudents, loadTeachers]);
 

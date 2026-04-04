@@ -50,7 +50,7 @@ type CccdImportResult = {
 };
 
 export const importCccdApi = (cccdList: string[]) =>
-  axios.post<ApiRes<CccdImportResult[]>>('/api/super-teacher/import-cccd', { cccdList }).then(r => r.data);
+  axios.post<ApiRes<{ background: boolean; total: number }>>('/api/super-teacher/import-cccd', { cccdList }).then(r => r.data);
 
 export const fetchRatingsOverview = () =>
   axios.get<ApiRes<RatingsOverviewData>>('/api/super-teacher/ratings-overview').then(r => r.data);
