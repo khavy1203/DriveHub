@@ -277,8 +277,59 @@
 
 .pem__spin {
   animation: pem-spin-icon 0.8s linear infinite;
-  font-size: 16px !important;
+  font-size: 16px;
   display: inline-block;
+}
+
+/* Change password section */
+.pem__pw-section {
+  margin-top: 0.75rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.625rem;
+  overflow: hidden;
+}
+
+.pem__pw-toggle {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+  padding: 0.7rem 1rem;
+  background: #f8fafc;
+  border: none;
+  cursor: pointer;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #475569;
+  font-family: inherit;
+  transition: background 0.15s;
+
+  .material-icons { font-size: 18px; }
+
+  &:hover { background: #f1f5f9; }
+}
+
+.pem__pw-chevron {
+  margin-left: auto;
+}
+
+.pem__pw-body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.625rem;
+  padding: 0.875rem 1rem 1rem;
+  border-top: 1px solid #e2e8f0;
+}
+
+.pem__pw-error {
+  color: #ef4444;
+  font-size: 0.8rem;
+  margin: 0;
+}
+
+.pem__btn-save--pw {
+  align-self: flex-start;
+  margin-top: 0.25rem;
 }
 
 /* Mobile */

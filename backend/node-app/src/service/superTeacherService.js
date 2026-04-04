@@ -390,24 +390,44 @@ export const importStudentsByCccd = async (superTeacherId, cccdList) => {
   if (result.error) return result;
 
   // Stamp superTeacherId on all successfully imported/existing hoc_vien
-  const successIds = result.results
-    .filter(r => r.ok && r.hocVienId)
-    .map(r => r.hocVienId);
+  const successItems = result.results.filter(r => r.ok && r.hocVienId);
+  const successIds = successItems.map(r => r.hocVienId);
 
   if (successIds.length > 0) {
     const { Op } = require('sequelize');
 
-    // Pull all students to this ST — clear old assignments and fully reassign
-    await db.student_assignment.destroy({ where: { hocVienId: { [Op.in]: successIds } } });
+    // Transfer ownership to this ST — keep existing teacher assignments intact
     await db.hoc_vien.update(
       { superTeacherId, adminId: adminId || null },
       { where: { id: { [Op.in]: successIds } } },
     );
 
-    // Create fresh primary assignments to this ST
-    await db.student_assignment.bulkCreate(
-      successIds.map(hocVienId => ({ hocVienId, teacherId: superTeacherId })),
-    );
+    // Only create primary assignment for students that don't already have one
+    const existingAssignments = await db.student_assignment.findAll({
+      where: { hocVienId: { [Op.in]: successIds }, role: 'primary' },
+      attributes: ['hocVienId', 'teacherId'],
+      raw: true,
+    });
+    const assignedSet = new Set(existingAssignments.map(a => a.hocVienId));
+    const needAssignment = successIds.filter(id => !assignedSet.has(id));
+
+    if (needAssignment.length > 0) {
+      await db.student_assignment.bulkCreate(
+        needAssignment.map(hocVienId => ({ hocVienId, teacherId: superTeacherId })),
+      );
+    }
+
+    // Tag transferred students in the result for frontend display
+    const transferredTeacherMap = {};
+    for (const a of existingAssignments) {
+      transferredTeacherMap[a.hocVienId] = a.teacherId;
+    }
+    for (const item of successItems) {
+      if (!item.created && transferredTeacherMap[item.hocVienId]) {
+        item.transferred = true;
+        item.currentTeacherId = transferredTeacherMap[item.hocVienId];
+      }
+    }
 
     // Sync assignment status from training snapshot
     const snapshots = await db.training_snapshot.findAll({

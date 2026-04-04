@@ -33,6 +33,11 @@ const ProfileEditModal: React.FC<Props> = ({ onClose }) => {
   });
   const fileRef = useRef<HTMLInputElement>(null);
 
+  const [pwOpen, setPwOpen] = useState(false);
+  const [pwForm, setPwForm] = useState({ currentPassword: '', newPassword: '', confirmPassword: '' });
+  const [pwSaving, setPwSaving] = useState(false);
+  const [pwError, setPwError] = useState<string | null>(null);
+
   useEffect(() => {
     axiosInstance.get('/api/teacher-profile/me/full')
       .then((res) => {
@@ -95,6 +100,37 @@ const ProfileEditModal: React.FC<Props> = ({ onClose }) => {
       // axios interceptor handles toast
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handleChangePassword = async () => {
+    setPwError(null);
+    if (!pwForm.currentPassword || !pwForm.newPassword || !pwForm.confirmPassword) {
+      setPwError('Vui lòng điền đầy đủ thông tin');
+      return;
+    }
+    if (pwForm.newPassword.length < 6) {
+      setPwError('Mật khẩu mới phải ít nhất 6 ký tự');
+      return;
+    }
+    if (pwForm.newPassword !== pwForm.confirmPassword) {
+      setPwError('Mật khẩu xác nhận không khớp');
+      return;
+    }
+    setPwSaving(true);
+    try {
+      const res = await axiosInstance.post('/api/auth/change-password', pwForm);
+      if (res.data?.EC === 0) {
+        toast.success('Đổi mật khẩu thành công');
+        setPwOpen(false);
+        setPwForm({ currentPassword: '', newPassword: '', confirmPassword: '' });
+      } else {
+        setPwError(res.data?.EM || 'Có lỗi xảy ra');
+      }
+    } catch {
+      setPwError('Lỗi kết nối máy chủ');
+    } finally {
+      setPwSaving(false);
     }
   };
 
@@ -188,6 +224,56 @@ const ProfileEditModal: React.FC<Props> = ({ onClose }) => {
                   placeholder="Nhập địa chỉ"
                 />
               </label>
+            </div>
+
+            {/* Change password */}
+            <div className="pem__pw-section">
+              <button
+                type="button"
+                className="pem__pw-toggle"
+                onClick={() => { setPwOpen(o => !o); setPwError(null); }}
+              >
+                <span className="material-icons">lock</span>
+                Đổi mật khẩu
+                <span className="material-icons pem__pw-chevron">{pwOpen ? 'expand_less' : 'expand_more'}</span>
+              </button>
+              {pwOpen && (
+                <div className="pem__pw-body">
+                  <input
+                    className="pem__input"
+                    type="password"
+                    placeholder="Mật khẩu hiện tại"
+                    value={pwForm.currentPassword}
+                    onChange={e => setPwForm(f => ({ ...f, currentPassword: e.target.value }))}
+                  />
+                  <input
+                    className="pem__input"
+                    type="password"
+                    placeholder="Mật khẩu mới (tối thiểu 6 ký tự)"
+                    value={pwForm.newPassword}
+                    onChange={e => setPwForm(f => ({ ...f, newPassword: e.target.value }))}
+                  />
+                  <input
+                    className="pem__input"
+                    type="password"
+                    placeholder="Xác nhận mật khẩu mới"
+                    value={pwForm.confirmPassword}
+                    onChange={e => setPwForm(f => ({ ...f, confirmPassword: e.target.value }))}
+                  />
+                  {pwError && <p className="pem__pw-error">{pwError}</p>}
+                  <button
+                    type="button"
+                    className="pem__btn-save pem__btn-save--pw"
+                    onClick={handleChangePassword}
+                    disabled={pwSaving}
+                  >
+                    {pwSaving
+                      ? <><span className="material-icons pem__spin">sync</span>Đang lưu...</>
+                      : 'Xác nhận đổi mật khẩu'
+                    }
+                  </button>
+                </div>
+              )}
             </div>
           </div>
         )}

@@ -114,7 +114,7 @@ const HocVienManagement: React.FC = () => {
   const [importOpen, setImportOpen] = useState(false);
   const [importCccdText, setImportCccdText] = useState('');
   const [importing, setImporting] = useState(false);
-  type ImportResult = { cccd: string; ok: boolean; hoTen?: string; created?: boolean; pct?: number; error?: string };
+  type ImportResult = { cccd: string; ok: boolean; hoTen?: string; created?: boolean; transferred?: boolean; pct?: number; error?: string };
   const [importResults, setImportResults] = useState<ImportResult[]>([]);
 
   // Assign modal
@@ -589,6 +589,9 @@ const HocVienManagement: React.FC = () => {
                               <div className="hvm__teacher-cell">
                                 <div className="hvm__teacher-avatar">{getInitials(teacherName)}</div>
                                 <span className="hvm__teacher-name">{teacherName}</span>
+                                {a?.teacherId && !teachers.some(t => t.id === a.teacherId) && (
+                                  <span className="hvm__external-badge">Ngoại đội</span>
+                                )}
                               </div>
                             ) : (
                               <span className="hvm__not-assigned">Chưa phân công</span>
@@ -780,7 +783,7 @@ const HocVienManagement: React.FC = () => {
                         <span className="material-icons">{r.ok ? 'check_circle' : 'error'}</span>
                         <span className="hvm__import-cccd">{r.cccd}</span>
                         {r.ok
-                          ? <span>{r.hoTen} — {r.created ? 'Tạo mới' : 'Cập nhật'} — {r.pct}%</span>
+                          ? <span>{r.hoTen} — {r.created ? 'Tạo mới' : r.transferred ? 'Chuyển đội' : 'Cập nhật'} — {r.pct}%</span>
                           : <span className="hvm__import-err">{r.error}</span>
                         }
                       </div>
@@ -1250,7 +1253,12 @@ const HocVienModal: React.FC<HocVienModalProps> = ({
                 <div className="hvm__drawer-teacher">
                   <div className="hvm__teacher-avatar hvm__teacher-avatar--lg">{getInitials(tName)}</div>
                   <div>
-                    <div className="hvm__drawer-teacher-name">{tName}</div>
+                    <div className="hvm__drawer-teacher-name">
+                      {tName}
+                      {a?.teacherId && !teachers.some(t => t.id === a.teacherId) && (
+                        <span className="hvm__external-badge">Ngoại đội</span>
+                      )}
+                    </div>
                     {a?.notes && <div className="hvm__drawer-teacher-notes">{a.notes}</div>}
                   </div>
                 </div>

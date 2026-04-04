@@ -107,12 +107,19 @@ export const importCccd = async (req, res, next) => {
     }
 
     const created = result.results.filter(r => r.ok && r.created).length;
-    const updated = result.results.filter(r => r.ok && !r.created).length;
+    const transferred = result.results.filter(r => r.ok && !r.created && r.transferred).length;
+    const updated = result.results.filter(r => r.ok && !r.created && !r.transferred).length;
     const failed = result.results.filter(r => !r.ok).length;
+
+    const parts = [];
+    if (created) parts.push(`${created} tạo mới`);
+    if (transferred) parts.push(`${transferred} chuyển đội`);
+    if (updated) parts.push(`${updated} cập nhật`);
+    if (failed) parts.push(`${failed} lỗi`);
 
     return res.json({
       EC: 0,
-      EM: `Import xong: ${created} tạo mới, ${updated} cập nhật, ${failed} lỗi`,
+      EM: `Import xong: ${parts.join(', ')}`,
       DT: result.results,
     });
   } catch (err) { handleError(res, err, next); }

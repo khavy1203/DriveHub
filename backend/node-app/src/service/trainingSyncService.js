@@ -335,14 +335,10 @@ export const importAndSyncByCccdList = async (cccdList, adminId) => {
         continue;
       }
 
-      // Pull student to admin's pool — always overwrite ownership (handles existing students too)
-      if (adminId) {
-        if (!importResult.created) {
-          // Existing student being claimed — clear old ST assignments
-          await db.student_assignment.destroy({ where: { hocVienId: importResult.hocVienId } });
-        }
+      // Tag adminId on newly created students (ownership transfer handled by caller)
+      if (adminId && importResult.created) {
         await db.hoc_vien.update(
-          { adminId, superTeacherId: null },
+          { adminId },
           { where: { id: importResult.hocVienId } },
         );
       }

@@ -193,5 +193,6 @@ module.exports = {
     loginUserService,
     checkEmail,
     checkPhone,
-    hashUserPassword
+    hashUserPassword,
+    compareUserPassword
 }

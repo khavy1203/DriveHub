@@ -16,7 +16,7 @@ import { AuthProvider, PrivateRoute, LoginForm, MezonCallback } from './features
 import { StudentsList } from './features/student';
 
 // Shared imports
-import { LoadingProvider, GlobalSpinner } from './shared';
+import { LoadingProvider } from './shared';
 
 // Layout imports
 import { Header, Footer } from './layouts';
@@ -77,7 +77,6 @@ const App: React.FC = () => {
         <ToastContainer />
         <AuthProvider>
           <LoadingProvider>
-            <GlobalSpinner />
             <MezonCallback />
           </LoadingProvider>
         </AuthProvider>
@@ -90,7 +89,6 @@ const App: React.FC = () => {
       <ToastContainer />
       <AuthProvider>
         <LoadingProvider>
-          <GlobalSpinner />
           <Router>
             <Routes>
               {/* Standalone route for exam */}

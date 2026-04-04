@@ -182,6 +182,9 @@ const initWebRoutes = (app) => {
     // optional auth (200 + null DT when anonymous) for home / useAuth hydrate.
 
     routes.all("*", checkUserJwt, checkUserPermission);
+
+    routes.post('/auth/change-password', setupPasswordController.changePassword);
+
     // CRUD API routes for status
     routes.get("/status", userStatusController.getAllStatus);
     routes.post("/status", userStatusController.createStatus);

@@ -1,6 +1,6 @@
 import crypto from 'crypto';
 import db from '../models/index.js';
-import { hashUserPassword } from '../service/loginRegisterService.js';
+import { hashUserPassword, compareUserPassword } from '../service/loginRegisterService.js';
 import { getGroupWithRole } from '../service/JWTService.js';
 import { createJWT } from '../middleware/JWTaction.js';
 import mailService from '../service/mailService.js';
@@ -158,4 +158,38 @@ const forgotPassword = async (req, res) => {
   }
 };
 
-export default { verifySetupToken, setupPassword, forgotPassword };
+const changePassword = async (req, res) => {
+  const userId = req.user?.id;
+  if (!userId) return res.status(401).json({ EM: 'Chưa đăng nhập', EC: -1, DT: null });
+
+  const { currentPassword, newPassword, confirmPassword } = req.body;
+  if (!currentPassword || !newPassword || !confirmPassword) {
+    return res.status(400).json({ EM: 'Vui lòng điền đầy đủ thông tin', EC: -1, DT: null });
+  }
+  if (newPassword !== confirmPassword) {
+    return res.status(400).json({ EM: 'Mật khẩu xác nhận không khớp', EC: -1, DT: null });
+  }
+  if (newPassword.length < 6) {
+    return res.status(400).json({ EM: 'Mật khẩu mới phải ít nhất 6 ký tự', EC: -1, DT: null });
+  }
+
+  try {
+    const user = await db.user.findByPk(userId);
+    if (!user) return res.status(404).json({ EM: 'Không tìm thấy tài khoản', EC: -1, DT: null });
+
+    const isMatch = compareUserPassword(currentPassword, user.password);
+    if (!isMatch) {
+      return res.status(200).json({ EM: 'Mật khẩu hiện tại không đúng', EC: 1, DT: null });
+    }
+
+    user.password = hashUserPassword(newPassword);
+    await user.save();
+
+    return res.status(200).json({ EM: 'Đổi mật khẩu thành công', EC: 0, DT: null });
+  } catch (e) {
+    console.error('[changePassword]', e);
+    return res.status(500).json({ EM: 'Lỗi server', EC: -1, DT: null });
+  }
+};
+
+export default { verifySetupToken, setupPassword, forgotPassword, changePassword };
