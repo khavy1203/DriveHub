@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { getApiBaseUrlForAdmin } from './adminConfigService.js';
+import { getApiBaseUrlForAdmin, getApiKeyForAdmin } from './adminConfigService.js';
 
 const DEFAULT_TIMEOUT_MS = 15000;
 
@@ -24,6 +24,16 @@ export const isTrainingApiConfigured = () => Boolean(getBaseUrl());
 const resolveBaseUrl = async (adminId) => {
   if (adminId) return getApiBaseUrlForAdmin(adminId);
   return getBaseUrl();
+};
+
+/**
+ * Builds auth headers with X-Api-Key if the admin has a stored key.
+ * @param {number|null|undefined} adminId
+ * @returns {Promise<Record<string, string>>}
+ */
+const buildAuthHeaders = async (adminId) => {
+  const apiKey = await getApiKeyForAdmin(adminId);
+  return apiKey ? { 'X-Api-Key': apiKey } : {};
 };
 
 /**
@@ -70,8 +80,10 @@ export const fetchPublicStudent = async (cccd, adminId) => {
     throw err;
   }
   const url = `${base}/api/public/student`;
+  const headers = await buildAuthHeaders(adminId);
   return axios.get(url, {
     params: { cccd },
+    headers,
     timeout: getTimeoutMs(),
     validateStatus: () => true,
   });
@@ -92,7 +104,8 @@ export const fetchPublicSessionDetail = async ({ maDK, cccd, ngay, thoiDiemDangN
   const params = { ngay, thoiDiemDangNhap, thoiDiemDangXuat };
   if (maDK) params.maDK = maDK;
   else if (cccd) params.cccd = cccd;
-  return axios.get(url, { params, timeout: getTimeoutMs(), validateStatus: () => true });
+  const headers = await buildAuthHeaders(adminId);
+  return axios.get(url, { params, headers, timeout: getTimeoutMs(), validateStatus: () => true });
 };
 
 /**
@@ -108,8 +121,10 @@ export const fetchPublicAvatar = async (pathParam, adminId) => {
     throw err;
   }
   const url = `${base}/api/public/avatar`;
+  const headers = await buildAuthHeaders(adminId);
   const res = await axios.get(url, {
     params: { path: pathParam },
+    headers,
     timeout: getTimeoutMs(),
     responseType: 'arraybuffer',
     validateStatus: (s) => s >= 200 && s < 400,

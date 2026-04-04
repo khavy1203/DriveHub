@@ -28,7 +28,6 @@ const SHARED_MGMT_ITEMS: NavItem[] = [
       { label: 'SupperTeacher',    icon: 'supervisor_account',to: '/dashboard/supper-teachers' },
     ],
   },
-  { label: 'Tra cứu', icon: 'manage_search', to: '/lookup' },
 ];
 
 const SETTINGS_ITEM: NavItem = {
@@ -59,7 +58,6 @@ const ADMIN_NAV_ITEMS: NavItem[] = [
 const TEACHER_NAV_ITEMS: NavItem[] = [
   { label: 'Học viên của tôi', icon: 'school', to: '/dashboard/home' },
   { label: 'Tin nhắn', icon: 'chat', to: '/dashboard/chat' },
-  { label: 'Tra cứu', icon: 'manage_search', to: '/lookup' },
 ];
 
 const SUPPER_TEACHER_NAV_ITEMS: NavItem[] = [
@@ -73,7 +71,6 @@ const SUPPER_TEACHER_NAV_ITEMS: NavItem[] = [
     ],
   },
   { label: 'Tin nhắn', icon: 'chat', to: '/dashboard/chat' },
-  { label: 'Tra cứu', icon: 'manage_search', to: '/lookup' },
 ];
 
 const Sidebar: React.FC<SidebarProps> = ({ collapsed, isMobile, onNavClick }) => {
@@ -99,7 +96,6 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed, isMobile, onNavClick }) =>
       ],
     },
     { label: 'Kết quả sát hạch', icon: 'fact_check', to: '/dashboard/ket-qua-sat-hanh' },
-    { label: 'Tra cứu', icon: 'manage_search', to: '/lookup' },
   ];
 
   const navItems =

@@ -80,3 +80,17 @@ export const getApiBaseUrlForAdmin = async (adminId) => {
   if (!env || !String(env).trim()) return null;
   return String(env).replace(/\/$/, '');
 };
+
+/**
+ * Returns the stored API key for a given adminId (null if none).
+ * @param {number|null|undefined} adminId
+ * @returns {Promise<string|null>}
+ */
+export const getApiKeyForAdmin = async (adminId) => {
+  if (!adminId) return null;
+  const cfg = await db.admin_server_config.findOne({
+    where: { adminId },
+    attributes: ['apiKey'],
+  });
+  return cfg?.apiKey || null;
+};

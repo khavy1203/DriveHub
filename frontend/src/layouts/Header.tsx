@@ -109,11 +109,6 @@ export const Header: React.FC = () => {
                     Ôn tập
                   </NavLink>
                 </li>
-                <li>
-                  <NavLink to="/lookup" className={({ isActive }) => (isActive ? 'active' : '')}>
-                    Tra cứu
-                  </NavLink>
-                </li>
                 {/* <li className="has-submenu">
                   <span className="nav-link-custom">Tools</span>
                   <ul className="submenu">

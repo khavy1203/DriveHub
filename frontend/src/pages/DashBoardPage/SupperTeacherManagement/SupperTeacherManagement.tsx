@@ -16,6 +16,7 @@ import {
   promoteTeacherApi,
   demoteSuperTeacherApi,
 } from '../../../features/superTeacher/services/superTeacherApi';
+import ImportSupperTeacherModal from '../../../features/superTeacher/components/ImportSupperTeacherModal';
 import './SupperTeacherManagement.scss';
 
 const EMPTY_ST_FORM: SupperTeacherFormData = { username: '', email: '', password: '', phone: '', address: '' };
@@ -69,6 +70,12 @@ const STFormModal: React.FC<STFormModalProps> = ({ target, onSave, onClose }) =>
       <div className="modal-box" onClick={e => e.stopPropagation()}>
         <h3 className="modal-title">{isEdit ? 'Cập nhật SupperTeacher' : 'Thêm SupperTeacher mới'}</h3>
         <form onSubmit={handleSubmit} className="modal-form">
+          {isEdit && target?.cccd && (
+            <>
+              <label>Số CCCD</label>
+              <input value={target.cccd} readOnly className="input-readonly" />
+            </>
+          )}
           <label>Họ và tên *</label>
           <input value={form.username} onChange={set('username')} placeholder="Nguyễn Văn A" required />
           <label>Email *</label>
@@ -394,6 +401,9 @@ const SupperTeacherManagement: React.FC = () => {
   const [demoteTarget, setDemoteTarget] = useState<SupperTeacher | null>(null);
   const [promoteTarget, setPromoteTarget] = useState<TeacherInTeam | null>(null);
 
+  // Import modal
+  const [showImport, setShowImport] = useState(false);
+
   // Mobile popup
   const [popupST, setPopupST] = useState<SupperTeacher | null>(null);
 
@@ -545,7 +555,10 @@ const SupperTeacherManagement: React.FC = () => {
       {/* ── SupperTeacher table ──────────────────────────────────────────────── */}
       <div className="st-header">
         <h2>Quản lý SupperTeacher</h2>
-        <div style={{ display: 'flex', gap: 8 }}>
+        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+          <button className="btn-ghost" onClick={() => setShowImport(true)}>
+            <span className="material-icons" style={{ fontSize: 16, verticalAlign: 'middle' }}>upload_file</span> Import GV
+          </button>
           <button className="btn-secondary" onClick={() => setShowTeacherForm(true)}>+ Tạo giáo viên</button>
           <button className="btn-primary" onClick={openAdd}>+ Thêm SupperTeacher</button>
         </div>
@@ -560,8 +573,10 @@ const SupperTeacherManagement: React.FC = () => {
             <tr>
               <th>STT</th>
               <th>Họ tên</th>
+              <th>CCCD</th>
               <th>Email</th>
               <th>SĐT</th>
+              <th>Loại</th>
               <th>Trạng thái</th>
               <th>Số GV</th>
               <th>Hành động</th>
@@ -569,7 +584,7 @@ const SupperTeacherManagement: React.FC = () => {
           </thead>
           <tbody>
             {supperTeachers.length === 0 && (
-              <tr><td colSpan={7} className="st-empty">Chưa có SupperTeacher nào</td></tr>
+              <tr><td colSpan={9} className="st-empty">Chưa có SupperTeacher nào</td></tr>
             )}
             {supperTeachers.map((st, i) => (
               <React.Fragment key={st.id}>
@@ -579,8 +594,14 @@ const SupperTeacherManagement: React.FC = () => {
                 >
                   <td>{i + 1}</td>
                   <td>{st.username}</td>
+                  <td>{st.cccd || '—'}</td>
                   <td>{st.email}</td>
                   <td>{st.phone || '—'}</td>
+                  <td>
+                    <span className={`badge ${st.staffType === 'official' ? 'badge-official' : 'badge-auxiliary'}`}>
+                      {st.staffType === 'official' ? 'Chính thức' : 'Phụ'}
+                    </span>
+                  </td>
                   <td>
                     <span className={`badge ${st.active ? 'badge-active' : 'badge-inactive'}`}>
                       {st.active ? 'Hoạt động' : 'Ngừng'}
@@ -611,7 +632,7 @@ const SupperTeacherManagement: React.FC = () => {
                 {/* Expanded team view */}
                 {expandedStId === st.id && (
                   <tr className="st-team-row">
-                    <td colSpan={7}>
+                    <td colSpan={9}>
                       <div className="st-team-panel">
                         <div className="st-team-panel-header">
                           <h4>Giáo viên trong đội — {st.username}</h4>
@@ -755,6 +776,13 @@ const SupperTeacherManagement: React.FC = () => {
           supperTeachers={supperTeachers}
           onConfirm={handleDemote}
           onClose={() => setDemoteTarget(null)}
+        />
+      )}
+
+      {showImport && (
+        <ImportSupperTeacherModal
+          onClose={() => setShowImport(false)}
+          onSuccess={load}
         />
       )}
 

@@ -50,6 +50,11 @@ module.exports = (sequelize, DataTypes) => {
         foreignKey: 'adminId',
         as: 'serverConfig',
       });
+      // Instructor profile (imported from Excel)
+      user.hasOne(models.instructor_profile, {
+        foreignKey: 'userId',
+        as: 'instructorProfile',
+      });
     }
   }
 
@@ -139,6 +144,11 @@ module.exports = (sequelize, DataTypes) => {
       },
       adminId: {
         type: DataTypes.INTEGER,
+        allowNull: true,
+        defaultValue: null,
+      },
+      staffType: {
+        type: DataTypes.ENUM('official', 'auxiliary'),
         allowNull: true,
         defaultValue: null,
       },

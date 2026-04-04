@@ -49,6 +49,9 @@ import {
   assignSupperTeacherHandler, detachSupperTeacherHandler,
 } from "../controller/adminController";
 import {
+  uploadZip, importSupperTeachers, downloadTemplate, getInstructorProfile,
+} from "../controller/supperTeacherImportController";
+import {
   listMyTeachers, addTeacher, editTeacher, removeTeacher,
   listMyStudents, assignStudent, dropStudentHandler, updateStudentHandler, importCccd, ratingsOverview,
   listSupperTeachers, addSupperTeacher, editSupperTeacher, removeSupperTeacher,
@@ -280,6 +283,9 @@ const initWebRoutes = (app) => {
     // ── SupperAdmin: manage SupperTeachers ───────────────────────────────────
     routes.get('/admin/supper-teachers', listSupperTeachers);
     routes.post('/admin/supper-teachers', addSupperTeacher);
+    // Static paths before :id param
+    routes.post('/admin/supper-teachers/import', uploadZip, importSupperTeachers);
+    routes.get('/admin/supper-teachers/template', downloadTemplate);
     routes.put('/admin/supper-teachers/:id', editSupperTeacher);
     routes.delete('/admin/supper-teachers/:id', removeSupperTeacher);
     routes.get('/admin/supper-teachers/:id/preview-delete', previewDeleteSupperTeacher);
@@ -289,6 +295,7 @@ const initWebRoutes = (app) => {
     routes.get('/admin/teachers-without-super', listTeachersWithoutSupper);
     routes.put('/admin/teachers/:teacherId/promote', promoteTeacher);
     routes.put('/admin/supper-teachers/:id/demote', demoteSuperTeacher);
+    routes.get('/admin/supper-teachers/:id/profile', getInstructorProfile);
     routes.post('/admin/assign-student-to-st', assignStudentToSTHandler);
 
     routes.get("/training/student", getTrainingStudent);

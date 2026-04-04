@@ -271,14 +271,22 @@ export const getAllSupperTeachers = async (adminId = null) => {
 
   const list = await db.user.findAll({
     where,
-    attributes: ['id', 'email', 'username', 'phone', 'address', 'active', 'adminId'],
+    attributes: ['id', 'email', 'username', 'phone', 'address', 'active', 'adminId', 'staffType'],
+    include: [{
+      model: db.instructor_profile,
+      as: 'instructorProfile',
+      attributes: ['cccd'],
+      required: false,
+    }],
     order: [['id', 'ASC']],
   });
 
   return Promise.all(list.map(async (st) => {
     const plain = st.get({ plain: true });
     const teacherCount = await db.user.count({ where: { groupId: TEACHER_GROUP_ID, superTeacherId: plain.id } });
-    return { ...plain, teacherCount };
+    const cccd = plain.instructorProfile?.cccd || null;
+    delete plain.instructorProfile;
+    return { ...plain, teacherCount, cccd };
   }));
 };
 
@@ -307,6 +315,7 @@ export const createSupperTeacher = async (data, adminId = null) => {
     setupToken,
     setupTokenExpiry,
     active: 1,
+    staffType: 'auxiliary',
   });
 
   mailService.sendSetupEmail({

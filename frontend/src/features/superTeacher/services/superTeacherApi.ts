@@ -1,5 +1,5 @@
 import axios from '../../../axios';
-import type { TeacherInTeam, StudentInTeam, SupperTeacher, TeacherFormData, SupperTeacherFormData, RatingsOverviewData } from '../types';
+import type { TeacherInTeam, StudentInTeam, SupperTeacher, TeacherFormData, SupperTeacherFormData, RatingsOverviewData, ImportResult, InstructorProfile } from '../types';
 
 type ApiRes<T> = { EC: number; EM: string; DT: T };
 
@@ -39,7 +39,7 @@ export type StudentEditData = {
 export const updateStudentApi = (hocVienId: number, data: StudentEditData) =>
   axios.put<ApiRes<unknown>>(`/api/super-teacher/students/${hocVienId}`, data).then(r => r.data);
 
-type ImportResult = {
+type CccdImportResult = {
   cccd: string;
   ok: boolean;
   error?: string;
@@ -50,7 +50,7 @@ type ImportResult = {
 };
 
 export const importCccdApi = (cccdList: string[]) =>
-  axios.post<ApiRes<ImportResult[]>>('/api/super-teacher/import-cccd', { cccdList }).then(r => r.data);
+  axios.post<ApiRes<CccdImportResult[]>>('/api/super-teacher/import-cccd', { cccdList }).then(r => r.data);
 
 export const fetchRatingsOverview = () =>
   axios.get<ApiRes<RatingsOverviewData>>('/api/super-teacher/ratings-overview').then(r => r.data);
@@ -94,3 +94,19 @@ export const demoteSuperTeacherApi = (id: number, newManagerId: number) =>
 
 export const assignStudentToSTApi = (hocVienId: number, stId: number) =>
   axios.post<ApiRes<{ hocVienId: number; stId: number }>>('/api/admin/assign-student-to-st', { hocVienId, stId }).then(r => r.data);
+
+// ── Import SupperTeachers from Excel ────────────────────────────────────────
+
+export const importSupperTeachersApi = (file: File) => {
+  const fd = new FormData();
+  fd.append('file', file);
+  return axios.post<ApiRes<ImportResult>>('/api/admin/supper-teachers/import', fd, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+    timeout: 120000,
+  }).then(r => r.data);
+};
+
+export const downloadTemplateUrl = '/api/admin/supper-teachers/template';
+
+export const fetchInstructorProfile = (userId: number) =>
+  axios.get<ApiRes<InstructorProfile | null>>(`/api/admin/supper-teachers/${userId}/profile`).then(r => r.data);

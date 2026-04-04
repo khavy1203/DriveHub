@@ -111,8 +111,58 @@ export const updateAdmin = async (adminId, { username, password, phone, address 
 export const toggleAdminActive = async (adminId) => {
   const admin = await db.user.findOne({ where: { id: adminId, groupId: ADMIN_GROUP_ID } });
   if (!admin) throw Object.assign(new Error('Không tìm thấy Admin'), { code: 'NOT_FOUND' });
-  await admin.update({ active: admin.active ? 0 : 1 });
-  return { id: admin.id, active: admin.active };
+
+  const newActive = admin.active ? 0 : 1;
+  const { Op } = db.Sequelize;
+  const transaction = await db.sequelize.transaction();
+
+  try {
+    // 1. Toggle the Admin
+    await admin.update({ active: newActive }, { transaction });
+
+    // 2. Find all SupperTeachers under this Admin
+    const stIds = await db.user.findAll({
+      where: { adminId, groupId: SUPPER_TEACHER_GROUP_ID },
+      attributes: ['id'],
+      raw: true,
+      transaction,
+    }).then(rows => rows.map(r => r.id));
+
+    if (stIds.length > 0) {
+      // 3. Toggle SupperTeachers
+      await db.user.update({ active: newActive }, {
+        where: { id: { [Op.in]: stIds } },
+        transaction,
+      });
+
+      // 4. Toggle Teachers (GiaoVien) under those STs
+      await db.user.update({ active: newActive }, {
+        where: { superTeacherId: { [Op.in]: stIds }, groupId: 3 },
+        transaction,
+      });
+
+      // 5. Toggle student accounts (HocVien) linked via hoc_vien.superTeacherId
+      const hvRows = await db.hoc_vien.findAll({
+        where: { superTeacherId: { [Op.in]: stIds }, userId: { [Op.ne]: null } },
+        attributes: ['userId'],
+        raw: true,
+        transaction,
+      });
+      const studentUserIds = hvRows.map(r => r.userId).filter(Boolean);
+      if (studentUserIds.length > 0) {
+        await db.user.update({ active: newActive }, {
+          where: { id: { [Op.in]: studentUserIds } },
+          transaction,
+        });
+      }
+    }
+
+    await transaction.commit();
+    return { id: admin.id, active: newActive };
+  } catch (err) {
+    await transaction.rollback();
+    throw err;
+  }
 };
 
 export const deleteAdmin = async (adminId) => {

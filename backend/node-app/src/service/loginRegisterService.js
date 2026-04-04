@@ -90,13 +90,23 @@ const registerNewUser = async (rawUserData) => {
 const looksLikeNationalId = (s) => /^\d{8,20}$/.test(s);
 
 const findUserRowByCccd = async (cccd) => {
+    // Check hoc_vien (students)
     const hv = await db.hoc_vien.findOne({
         where: { SoCCCD: cccd },
         attributes: ['userId'],
         raw: true,
     });
-    if (!hv?.userId) return null;
-    return db.user.findByPk(hv.userId, { raw: true });
+    if (hv?.userId) return db.user.findByPk(hv.userId, { raw: true });
+
+    // Check instructor_profile (teachers / supper teachers)
+    const ip = await db.instructor_profile.findOne({
+        where: { cccd },
+        attributes: ['userId'],
+        raw: true,
+    });
+    if (ip?.userId) return db.user.findByPk(ip.userId, { raw: true });
+
+    return null;
 };
 
 const loginUserService = async (rawUserAccount) => {
@@ -135,6 +145,14 @@ const loginUserService = async (rawUserAccount) => {
         if (!isCorrectPassword) {
             return {
                 EM: 'Your email/CCCD or password is incorrect',
+                EC: 1,
+                DT: '',
+            };
+        }
+
+        if (user.active === 0 || user.active === false) {
+            return {
+                EM: 'Tài khoản đã bị vô hiệu hóa. Vui lòng liên hệ quản trị viên.',
                 EC: 1,
                 DT: '',
             };

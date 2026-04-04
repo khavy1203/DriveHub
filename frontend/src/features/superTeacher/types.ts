@@ -40,6 +40,8 @@ export type StudentInTeam = {
   } | null;
 };
 
+export type StaffType = 'official' | 'auxiliary' | null;
+
 export type SupperTeacher = {
   id: number;
   email: string;
@@ -48,6 +50,37 @@ export type SupperTeacher = {
   address?: string;
   active: number;
   teacherCount: number;
+  staffType?: StaffType;
+  cccd?: string | null;
+};
+
+export type InstructorProfile = {
+  id: number;
+  userId: number;
+  cccd: string;
+  fullName: string;
+  gender?: string | null;
+  dateOfBirth?: string | null;
+  residence?: string | null;
+  gcnGvNumber?: string | null;
+  gcnCsNumber?: string | null;
+  gcnIssueDate?: string | null;
+  gcnGvExpiry?: string | null;
+  gcnCsExpiry?: string | null;
+  teachingLicenseClass?: string | null;
+  licenseNumber?: string | null;
+  licenseClass?: string | null;
+  qualification?: string | null;
+  educationLevel?: string | null;
+  seniority?: string | null;
+  importedAt?: string | null;
+};
+
+export type ImportResult = {
+  created: number;
+  updated: number;
+  demoted: number;
+  errors: Array<{ row: number; message: string }>;
 };
 
 export type TeacherFormData = {

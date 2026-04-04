@@ -20,6 +20,7 @@ export const getAdminConfig = async (req, res, next) => {
         ? {
             adminId: cfg.adminId,
             apiBaseUrl: cfg.apiBaseUrl,
+            apiKey: cfg.apiKey || null,
             hasApiKey: Boolean(cfg.apiKey),
             lastTestedAt: cfg.lastTestedAt,
             lastTestStatus: cfg.lastTestStatus,
