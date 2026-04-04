@@ -70,11 +70,11 @@ const SupperTeacherDashboard: React.FC = () => {
           </p>
         </div>
         <div className="st-dashboard__header-actions">
-          {/* <button className="st-dashboard__btn-report" onClick={() => navigate('/my-students')}>
+          {/* <button className="st-dashboard__btn-report" onClick={() => navigate('/dashboard/my-students')}>
             <span className="material-symbols-outlined">group</span>
             Danh sách học viên
           </button> */}
-          {/* <button className="st-dashboard__btn-schedule" onClick={() => navigate('/my-teachers')}>
+          {/* <button className="st-dashboard__btn-schedule" onClick={() => navigate('/dashboard/my-teachers')}>
             <span className="material-symbols-outlined">manage_accounts</span>
             Quản lý đội
           </button> */}
@@ -83,7 +83,7 @@ const SupperTeacherDashboard: React.FC = () => {
 
       {/* Stat Cards */}
       <section className="st-dashboard__stats">
-        <div className="st-dashboard__stat-card" onClick={() => navigate('/my-teachers')} style={{ cursor: 'pointer' }}>
+        <div className="st-dashboard__stat-card" onClick={() => navigate('/dashboard/my-teachers')} style={{ cursor: 'pointer' }}>
           <div className="st-dashboard__stat-top">
             <div className="st-dashboard__stat-icon st-dashboard__stat-icon--teachers">
               <span className="material-symbols-outlined">person_pin</span>
@@ -96,7 +96,7 @@ const SupperTeacherDashboard: React.FC = () => {
           <h2 className="st-dashboard__stat-value">{loading ? '—' : totalTeachers}</h2>
         </div>
 
-        <div className="st-dashboard__stat-card" onClick={() => navigate('/my-students')} style={{ cursor: 'pointer' }}>
+        <div className="st-dashboard__stat-card" onClick={() => navigate('/dashboard/my-students')} style={{ cursor: 'pointer' }}>
           <div className="st-dashboard__stat-top">
             <div className="st-dashboard__stat-icon st-dashboard__stat-icon--students">
               <span className="material-symbols-outlined">group</span>
@@ -109,7 +109,7 @@ const SupperTeacherDashboard: React.FC = () => {
           <h2 className="st-dashboard__stat-value">{loading ? '—' : totalStudents}</h2>
         </div>
 
-        <div className="st-dashboard__stat-card st-dashboard__stat-card--attention" onClick={() => navigate('/assign-students')} style={{ cursor: 'pointer' }}>
+        <div className="st-dashboard__stat-card st-dashboard__stat-card--attention" onClick={() => navigate('/dashboard/assign-students')} style={{ cursor: 'pointer' }}>
           <div className="st-dashboard__stat-top">
             <div className="st-dashboard__stat-icon st-dashboard__stat-icon--waiting">
               <span className="material-symbols-outlined">pending_actions</span>
@@ -241,7 +241,7 @@ const SupperTeacherDashboard: React.FC = () => {
               )}
             </p>
             {unassignedCount > 0 && (
-              <button className="st-dashboard__insight-link" onClick={() => navigate('/assign-students')}>
+              <button className="st-dashboard__insight-link" onClick={() => navigate('/dashboard/assign-students')}>
                 Điều phối ngay
                 <span className="material-symbols-outlined">arrow_forward</span>
               </button>
