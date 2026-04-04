@@ -59,6 +59,11 @@ export function broadcastNotification(recipientId, recipientType, payload) {
   }
 }
 
+// Send a custom-typed message directly to a user (e.g. background job results)
+export function sendToUser(userId, message) {
+  sendToClients(userClients, userId, message);
+}
+
 // ── Setup ───────────────────────────────────────────────────────────────────
 
 export function setupNotificationWebSocket(server, path) {

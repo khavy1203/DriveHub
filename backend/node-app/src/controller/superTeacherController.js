@@ -96,31 +96,63 @@ export const importCccd = async (req, res, next) => {
     if (!Array.isArray(cccdList) || cccdList.length === 0) {
       return res.status(400).json({ EC: -1, EM: 'Danh sách CCCD không hợp lệ', DT: null });
     }
-    if (cccdList.length > 100) {
-      return res.status(400).json({ EC: -1, EM: 'Tối đa 100 CCCD mỗi lần', DT: null });
-    }
 
-    const result = await importStudentsByCccd(superTeacherId, cccdList);
+    const totalCount = cccdList.length;
 
-    if (result.error) {
-      return res.status(503).json({ EC: -1, EM: result.error, DT: null });
-    }
-
-    const created = result.results.filter(r => r.ok && r.created).length;
-    const transferred = result.results.filter(r => r.ok && !r.created && r.transferred).length;
-    const updated = result.results.filter(r => r.ok && !r.created && !r.transferred).length;
-    const failed = result.results.filter(r => !r.ok).length;
-
-    const parts = [];
-    if (created) parts.push(`${created} tạo mới`);
-    if (transferred) parts.push(`${transferred} chuyển đội`);
-    if (updated) parts.push(`${updated} cập nhật`);
-    if (failed) parts.push(`${failed} lỗi`);
-
-    return res.json({
+    // Respond immediately — processing continues in background
+    res.json({
       EC: 0,
-      EM: `Import xong: ${parts.join(', ')}`,
-      DT: result.results,
+      EM: `Đang xử lý ${totalCount} CCCD ở chế độ nền. Bạn sẽ nhận thông báo khi hoàn tất.`,
+      DT: { background: true, total: totalCount },
+    });
+
+    // Background processing
+    setImmediate(async () => {
+      try {
+        const result = await importStudentsByCccd(superTeacherId, cccdList);
+
+        const created = result.results?.filter(r => r.ok && r.created).length ?? 0;
+        const transferred = result.results?.filter(r => r.ok && !r.created && r.transferred).length ?? 0;
+        const updated = result.results?.filter(r => r.ok && !r.created && !r.transferred).length ?? 0;
+        const failed = result.results?.filter(r => !r.ok).length ?? 0;
+
+        const parts = [];
+        if (created) parts.push(`${created} tạo mới`);
+        if (transferred) parts.push(`${transferred} chuyển đội`);
+        if (updated) parts.push(`${updated} cập nhật`);
+        if (failed) parts.push(`${failed} lỗi`);
+        const summary = parts.join(', ') || 'không có kết quả';
+
+        const { sendToUser } = await import('../websocket/wsNotificationServer.js');
+        sendToUser(superTeacherId, {
+          type: 'IMPORT_CCCD_DONE',
+          payload: {
+            title: 'Import CCCD hoàn tất',
+            content: `Import ${totalCount} CCCD: ${summary}`,
+            results: result.results ?? [],
+            created,
+            transferred,
+            updated,
+            failed,
+          },
+        });
+
+        console.log(`[super-teacher/import-cccd] Background done for stId=${superTeacherId}: ${summary}`);
+      } catch (err) {
+        console.error('[super-teacher/import-cccd] Background error:', err.message);
+        try {
+          const { sendToUser } = await import('../websocket/wsNotificationServer.js');
+          sendToUser(superTeacherId, {
+            type: 'IMPORT_CCCD_DONE',
+            payload: {
+              title: 'Import CCCD thất bại',
+              content: `Lỗi khi xử lý ${totalCount} CCCD: ${err.message}`,
+              results: [],
+              created: 0, transferred: 0, updated: 0, failed: totalCount,
+            },
+          });
+        } catch {}
+      }
     });
   } catch (err) { handleError(res, err, next); }
 };

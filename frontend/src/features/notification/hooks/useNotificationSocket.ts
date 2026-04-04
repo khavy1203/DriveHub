@@ -2,16 +2,17 @@ import { useEffect, useRef, useCallback } from 'react';
 import { getConfig } from '../../../core/config/environment';
 
 type WsMessage = {
-  type: 'NEW_NOTIFICATION' | 'UNREAD_COUNT';
+  type: 'NEW_NOTIFICATION' | 'UNREAD_COUNT' | 'IMPORT_CCCD_DONE';
   payload: unknown;
 };
 
 type UseNotificationSocketOptions = {
   onNewNotification?: (payload: unknown) => void;
   onUnreadCount?: (count: number) => void;
+  onImportCccdDone?: (payload: unknown) => void;
 };
 
-const useNotificationSocket = ({ onNewNotification, onUnreadCount }: UseNotificationSocketOptions) => {
+const useNotificationSocket = ({ onNewNotification, onUnreadCount, onImportCccdDone }: UseNotificationSocketOptions) => {
   const wsRef = useRef<WebSocket | null>(null);
   const reconnectTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -34,6 +35,9 @@ const useNotificationSocket = ({ onNewNotification, onUnreadCount }: UseNotifica
         if (msg.type === 'UNREAD_COUNT' && onUnreadCount) {
           onUnreadCount(msg.payload as number);
         }
+        if (msg.type === 'IMPORT_CCCD_DONE' && onImportCccdDone) {
+          onImportCccdDone(msg.payload);
+        }
       } catch {
         // ignore malformed messages
       }
@@ -48,7 +52,7 @@ const useNotificationSocket = ({ onNewNotification, onUnreadCount }: UseNotifica
     ws.onerror = () => {
       ws.close();
     };
-  }, [onNewNotification, onUnreadCount]);
+  }, [onNewNotification, onUnreadCount, onImportCccdDone]);
 
   useEffect(() => {
     connect();

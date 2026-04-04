@@ -150,6 +150,7 @@ export const triggerSyncAll = async (req, res) => {
 /**
  * POST /api/training/import-cccd
  * Admin only — import & sync a list of CCCDs from the external training system.
+ * Runs in background, sends WS notification when done.
  * Body: { cccdList: string[] }
  */
 export const importByCccdList = async (req, res) => {
@@ -167,25 +168,66 @@ export const importByCccdList = async (req, res) => {
     if (!Array.isArray(cccdList) || cccdList.length === 0) {
       return res.status(400).json({ EC: -1, EM: 'Danh sách CCCD không hợp lệ', DT: null });
     }
-    if (cccdList.length > 100) {
-      return res.status(400).json({ EC: -1, EM: 'Tối đa 100 CCCD mỗi lần', DT: null });
-    }
 
     const adminId = groupName === 'Admin' ? decoded.id : null;
-    const result = await importAndSyncByCccdList(cccdList, adminId);
+    const userId = decoded.id;
+    const totalCount = cccdList.length;
 
-    if (result.error) {
-      return res.status(503).json({ EC: -1, EM: result.error, DT: null });
-    }
-
-    const created = result.results.filter(r => r.ok && r.created).length;
-    const updated = result.results.filter(r => r.ok && !r.created).length;
-    const failed = result.results.filter(r => !r.ok).length;
-
-    return res.json({
+    // Respond immediately — processing continues in background
+    res.json({
       EC: 0,
-      EM: `Import xong: ${created} tạo mới, ${updated} cập nhật, ${failed} lỗi`,
-      DT: result.results,
+      EM: `Đang xử lý ${totalCount} CCCD ở chế độ nền. Bạn sẽ nhận thông báo khi hoàn tất.`,
+      DT: { background: true, total: totalCount },
+    });
+
+    // Background processing
+    setImmediate(async () => {
+      try {
+        const result = await importAndSyncByCccdList(cccdList, adminId);
+
+        const created = result.results?.filter(r => r.ok && r.created).length ?? 0;
+        const transferred = result.results?.filter(r => r.ok && !r.created && r.transferred).length ?? 0;
+        const updated = result.results?.filter(r => r.ok && !r.created && !r.transferred).length ?? 0;
+        const failed = result.results?.filter(r => !r.ok).length ?? 0;
+
+        const parts = [];
+        if (created) parts.push(`${created} tạo mới`);
+        if (transferred) parts.push(`${transferred} chuyển đội`);
+        if (updated) parts.push(`${updated} cập nhật`);
+        if (failed) parts.push(`${failed} lỗi`);
+        const summary = parts.join(', ') || 'không có kết quả';
+
+        // Push result to the requesting user via WebSocket
+        const { sendToUser } = await import('../websocket/wsNotificationServer.js');
+        sendToUser(userId, {
+          type: 'IMPORT_CCCD_DONE',
+          payload: {
+            title: 'Import CCCD hoàn t��t',
+            content: `Import ${totalCount} CCCD: ${summary}`,
+            results: result.results ?? [],
+            created,
+            transferred,
+            updated,
+            failed,
+          },
+        });
+
+        console.log(`[training/import-cccd] Background done for userId=${userId}: ${summary}`);
+      } catch (err) {
+        console.error('[training/import-cccd] Background error:', err.message);
+        try {
+          const { sendToUser } = await import('../websocket/wsNotificationServer.js');
+          sendToUser(userId, {
+            type: 'IMPORT_CCCD_DONE',
+            payload: {
+              title: 'Import CCCD thất bại',
+              content: `Lỗi khi xử lý ${totalCount} CCCD: ${err.message}`,
+              results: [],
+              created: 0, transferred: 0, updated: 0, failed: totalCount,
+            },
+          });
+        } catch {}
+      }
     });
   } catch (err) {
     console.error('[training/import-cccd] Error:', err.message);

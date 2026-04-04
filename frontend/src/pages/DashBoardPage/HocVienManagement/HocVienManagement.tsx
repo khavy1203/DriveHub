@@ -7,6 +7,7 @@ import { useAuth } from '../../../features/auth/hooks/useAuth';
 import { useAdminFilter } from '../../../features/auth/context/AdminFilterContext';
 import { KQSHDrawerSection, KetQuaBadge } from '../../../features/kqsh';
 import { TrainingProgressBlock } from '../../../features/trainingPortal';
+import useNotificationSocket from '../../../features/notification/hooks/useNotificationSocket';
 import { buildClassGroups, extractDistrictLine, shortCourseName, sortStudentsInGroup, type KhoaHocBrief } from '../../../shared/studentClassGrouping';
 import './HocVienManagement.scss';
 
@@ -337,11 +338,11 @@ const HocVienManagement: React.FC = () => {
     setImporting(true);
     setImportResults([]);
     try {
-      const res = await post<{ EC: number; EM: string; DT: ImportResult[] }>('/api/training/import-cccd', { cccdList });
+      const res = await post<{ EC: number; EM: string; DT: { background?: boolean; total?: number } | ImportResult[] }>('/api/training/import-cccd', { cccdList });
       if (res.EC === 0) {
-        setImportResults(res.DT ?? []);
-        toast.success(res.EM);
-        await fetchData();
+        toast.info(res.EM);
+        setImportCccdText('');
+        setImportOpen(false);
       } else {
         toast.error(res.EM || 'Lỗi import');
       }
@@ -351,6 +352,21 @@ const HocVienManagement: React.FC = () => {
       setImporting(false);
     }
   };
+
+  // Listen for background import completion via WebSocket
+  const handleImportDone = useCallback((payload: unknown) => {
+    const data = payload as { title: string; content: string; results: ImportResult[]; created: number; transferred: number; updated: number; failed: number };
+    if (data.failed > 0) {
+      toast.warn(data.content, { autoClose: 8000 });
+    } else {
+      toast.success(data.content, { autoClose: 5000 });
+    }
+    setImportResults(data.results ?? []);
+    setImportOpen(true);
+    fetchData();
+  }, [fetchData]);
+
+  useNotificationSocket({ onImportCccdDone: handleImportDone });
 
   const handleAssignToST = async () => {
     if (!assignSTTarget || !assignSTId) return;
