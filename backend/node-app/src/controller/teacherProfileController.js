@@ -8,9 +8,24 @@ const TEACHER_GROUP_ID = 3;
 
 const getPublicTeachers = async (req, res) => {
   try {
+    // Only show SupperTeachers belonging to admins featured on homepage
+    const featuredAdminIds = await db.user.findAll({
+      where: { groupId: 2, featuredOnHomepage: true },
+      attributes: ['id'],
+      raw: true,
+    }).then(rows => rows.map(r => r.id));
+
+    const stWhere = { groupId: SUPPER_TEACHER_GROUP_ID };
+    if (featuredAdminIds.length > 0) {
+      stWhere.adminId = { [Op.in]: featuredAdminIds };
+    } else {
+      // No admin featured → show nothing
+      return res.status(200).json({ EM: 'ok', EC: 0, DT: [] });
+    }
+
     // Fetch SupperTeachers with their managed assistant teachers
     const supperTeachers = await db.user.findAll({
-      where: { groupId: SUPPER_TEACHER_GROUP_ID },
+      where: stWhere,
       attributes: ['id', 'username'],
       include: [
         { model: db.teacher_profile, as: 'teacherProfile', required: false },

@@ -7,7 +7,7 @@ import mailService from '../service/mailService.js';
 import { Op } from 'sequelize';
 
 const SETUP_TOKEN_TTL_MS = 7 * 24 * 60 * 60 * 1000;
-const ALLOWED_GROUP_IDS = [3, 4]; // GiaoVien, HocVien
+const ALLOWED_GROUP_IDS = [1, 2, 3, 4, 6]; // All roles
 
 const buildSetupLink = (token) => {
   const base = process.env.FRONTEND_URL ?? 'https://localhost:3000';
@@ -93,16 +93,29 @@ const findUserByIdentifier = async (identifier) => {
     });
   }
 
-  // Treat as CCCD — look up hoc_vien first, then get user
+  // Treat as CCCD — check hoc_vien first
   const hocVien = await db.hoc_vien.findOne({
     where: { SoCCCD: identifier },
-    attributes: ['id', 'userId'],
+    attributes: ['userId'],
   });
-  if (!hocVien || !hocVien.userId) return null;
+  if (hocVien?.userId) {
+    return db.user.findOne({
+      where: { id: hocVien.userId, groupId: { [Op.in]: ALLOWED_GROUP_IDS } },
+    });
+  }
 
-  return db.user.findOne({
-    where: { id: hocVien.userId, groupId: { [Op.in]: ALLOWED_GROUP_IDS } },
+  // Check instructor_profile (SupperTeacher / Teacher)
+  const profile = await db.instructor_profile.findOne({
+    where: { cccd: identifier },
+    attributes: ['userId'],
   });
+  if (profile?.userId) {
+    return db.user.findOne({
+      where: { id: profile.userId, groupId: { [Op.in]: ALLOWED_GROUP_IDS } },
+    });
+  }
+
+  return null;
 };
 
 const forgotPassword = async (req, res) => {

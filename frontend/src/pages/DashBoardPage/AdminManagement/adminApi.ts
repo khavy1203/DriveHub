@@ -9,6 +9,7 @@ export type AdminRecord = {
   phone: string | null;
   address: string | null;
   active: number;
+  featuredOnHomepage: boolean;
   supperTeacherCount: number;
   serverConfig: {
     apiBaseUrl: string | null;
@@ -52,3 +53,6 @@ export const assignSupperTeacherApi = (adminId: number, supperTeacherId: number)
 
 export const detachSupperTeacherApi = (supperTeacherId: number) =>
   axios.delete<ApiRes<null>>(`/api/admins/supper-teachers/${supperTeacherId}`).then(r => r.data);
+
+export const toggleFeaturedApi = (adminId: number) =>
+  axios.patch<ApiRes<{ id: number; featuredOnHomepage: boolean }>>(`/api/admins/${adminId}/toggle-featured`).then(r => r.data);

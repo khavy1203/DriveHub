@@ -7,6 +7,7 @@ import {
   deleteAdmin,
   assignSupperTeacher,
   detachSupperTeacher,
+  toggleFeaturedOnHomepage,
 } from '../service/adminService.js';
 
 const handleError = (res, err, next) => {
@@ -86,5 +87,13 @@ export const detachSupperTeacherHandler = async (req, res, next) => {
   try {
     await detachSupperTeacher(Number(req.params.supperTeacherId));
     return res.json({ EC: 0, EM: 'Đã gỡ SupperTeacher khỏi Admin', DT: null });
+  } catch (err) { handleError(res, err, next); }
+};
+
+export const toggleFeaturedHandler = async (req, res, next) => {
+  if (!requireSupperAdmin(req, res)) return;
+  try {
+    const data = await toggleFeaturedOnHomepage(Number(req.params.adminId));
+    return res.json({ EC: 0, EM: 'Cập nhật thành công', DT: data });
   } catch (err) { handleError(res, err, next); }
 };

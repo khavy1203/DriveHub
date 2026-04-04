@@ -15,7 +15,7 @@ const buildSetupLink = (token) => {
 export const getAllAdmins = async () => {
   const admins = await db.user.findAll({
     where: { groupId: ADMIN_GROUP_ID },
-    attributes: ['id', 'email', 'username', 'phone', 'address', 'active'],
+    attributes: ['id', 'email', 'username', 'phone', 'address', 'active', 'featuredOnHomepage'],
     include: [
       {
         model: db.admin_server_config,
@@ -195,4 +195,16 @@ export const detachSupperTeacher = async (supperTeacherId) => {
   const st = await db.user.findOne({ where: { id: supperTeacherId, groupId: SUPPER_TEACHER_GROUP_ID } });
   if (!st) throw Object.assign(new Error('Không tìm thấy SupperTeacher'), { code: 'NOT_FOUND' });
   await st.update({ adminId: null });
+};
+
+/**
+ * Toggle whether an Admin's data is featured on the public homepage.
+ */
+export const toggleFeaturedOnHomepage = async (adminId) => {
+  const admin = await db.user.findOne({ where: { id: adminId, groupId: ADMIN_GROUP_ID } });
+  if (!admin) throw Object.assign(new Error('Không tìm thấy Admin'), { code: 'NOT_FOUND' });
+
+  const newVal = !admin.featuredOnHomepage;
+  await admin.update({ featuredOnHomepage: newVal });
+  return { id: admin.id, featuredOnHomepage: newVal };
 };

@@ -7,6 +7,7 @@ import {
   createAdminApi, updateAdminApi,
   toggleAdminActiveApi, deleteAdminApi,
   assignSupperTeacherApi, detachSupperTeacherApi,
+  toggleFeaturedApi,
 } from './adminApi';
 import { fetchSupperTeachers } from '../../../features/superTeacher/services/superTeacherApi';
 import type { SupperTeacher } from '../../../features/superTeacher/types';
@@ -300,6 +301,13 @@ const AdminManagement: React.FC = () => {
     await load();
   };
 
+  const handleToggleFeatured = async (admin: AdminRecord) => {
+    const res = await toggleFeaturedApi(admin.id);
+    if (res.EC !== 0) { toast.error(res.EM); return; }
+    toast.success(res.DT?.featuredOnHomepage ? 'Đã bật hiển thị trang chủ' : 'Đã tắt hiển thị trang chủ');
+    await load();
+  };
+
   const handleAssign = async (stId: number) => {
     if (!assignTarget) return;
     const res = await assignSupperTeacherApi(assignTarget.id, stId);
@@ -349,6 +357,7 @@ const AdminManagement: React.FC = () => {
                 <th>SĐT</th>
                 <th>Địa chỉ / Trường</th>
                 <th>Trạng thái</th>
+                <th>Trang chủ</th>
                 <th>SupperTeachers</th>
                 <th>API</th>
                 <th>Hành động</th>
@@ -356,7 +365,7 @@ const AdminManagement: React.FC = () => {
             </thead>
             <tbody>
               {admins.length === 0 && (
-                <tr><td colSpan={9} className="adm__empty">Chưa có Admin nào. Nhấn "Thêm Admin mới" để bắt đầu.</td></tr>
+                <tr><td colSpan={10} className="adm__empty">Chưa có Admin nào. Nhấn "Thêm Admin mới" để bắt đầu.</td></tr>
               )}
               {admins.map((admin, i) => (
                 <tr key={admin.id}>
@@ -371,6 +380,17 @@ const AdminManagement: React.FC = () => {
                     <span className={`adm__badge ${admin.active ? 'adm__badge--active' : 'adm__badge--inactive'}`}>
                       {admin.active ? 'Hoạt động' : 'Ngừng'}
                     </span>
+                  </td>
+                  <td>
+                    <button
+                      className={`adm__featured-toggle ${admin.featuredOnHomepage ? 'adm__featured-toggle--on' : ''}`}
+                      onClick={() => handleToggleFeatured(admin)}
+                      title={admin.featuredOnHomepage ? 'Đang hiển thị trên trang chủ — nhấn để tắt' : 'Nhấn để hiển thị trên trang chủ'}
+                    >
+                      <span className="material-icons" style={{ fontSize: 18 }}>
+                        {admin.featuredOnHomepage ? 'visibility' : 'visibility_off'}
+                      </span>
+                    </button>
                   </td>
                   <td>
                     <button

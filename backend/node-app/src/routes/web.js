@@ -47,6 +47,7 @@ import {
   listAdmins, getAdmin, createAdminHandler, updateAdminHandler,
   toggleAdminHandler, deleteAdminHandler,
   assignSupperTeacherHandler, detachSupperTeacherHandler,
+  toggleFeaturedHandler,
 } from "../controller/adminController";
 import {
   uploadZip, importSupperTeachers, downloadTemplate, getInstructorProfile,
@@ -314,6 +315,7 @@ const initWebRoutes = (app) => {
     routes.get("/admins/:adminId", getAdmin);
     routes.put("/admins/:adminId", updateAdminHandler);
     routes.patch("/admins/:adminId/toggle-active", toggleAdminHandler);
+    routes.patch("/admins/:adminId/toggle-featured", toggleFeaturedHandler);
     routes.delete("/admins/:adminId", deleteAdminHandler);
     routes.post("/admins/:adminId/supper-teachers", assignSupperTeacherHandler);
 

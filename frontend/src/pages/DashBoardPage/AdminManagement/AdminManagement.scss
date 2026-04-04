@@ -172,6 +172,34 @@
   color: var(--adm-danger);
 }
 
+.adm__featured-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: none;
+  cursor: pointer;
+  background: #f1f5f9;
+  color: #94a3b8;
+  transition: background 0.15s, color 0.15s;
+
+  &:hover {
+    background: #e2e8f0;
+    color: #64748b;
+  }
+
+  &--on {
+    background: #dbeafe;
+    color: var(--adm-primary);
+
+    &:hover {
+      background: #bfdbfe;
+    }
+  }
+}
+
 .adm__conn-dot {
   display: inline-block;
   width: 8px;
