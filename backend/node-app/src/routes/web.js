@@ -177,13 +177,12 @@ const initWebRoutes = (app) => {
     routes.get('/auth/setup/:token', setupPasswordController.verifySetupToken);
     routes.post('/auth/setup-password', setupPasswordController.setupPassword);
     routes.post('/auth/forgot-password', setupPasswordController.forgotPassword);
+    routes.post('/auth/change-password', checkUserJwt, setupPasswordController.changePassword);
 
     // GET /account is registered below after JWT layer; checkUserJwt treats GET /account as
     // optional auth (200 + null DT when anonymous) for home / useAuth hydrate.
 
     routes.all("*", checkUserJwt, checkUserPermission);
-
-    routes.post('/auth/change-password', setupPasswordController.changePassword);
 
     // CRUD API routes for status
     routes.get("/status", userStatusController.getAllStatus);
