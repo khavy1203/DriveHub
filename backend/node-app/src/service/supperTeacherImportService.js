@@ -243,11 +243,10 @@ export const importSupperTeachersFromZip = async (archiveBuffer, adminId) => {
           updated++;
         } else {
           // Create new user — password defaults to CCCD, login via instructor_profile.cccd
-          const email = `${row.cccd}@placeholder.local`;
           const hashedPw = hashUserPassword(row.cccd);
 
           const newUser = await db.user.create({
-            email,
+            email: null,
             username: row.fullName,
             password: hashedPw,
             phone: row.phone || null,

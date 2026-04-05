@@ -168,7 +168,7 @@ export const LoginForm: React.FC = () => {
     event.preventDefault();
 
     if (!userEmail || !password) {
-      toast.error('Vui lòng nhập email và mật khẩu');
+      toast.error('Vui lòng nhập CCCD/email và mật khẩu');
       return;
     }
 
@@ -228,18 +228,18 @@ export const LoginForm: React.FC = () => {
             <form className="lf-form" onSubmit={handleSubmit} noValidate>
 
               <div className="lf-input-group">
-                <label className="lf-label" htmlFor="lf-email">Email</label>
+                <label className="lf-label" htmlFor="lf-email">CCCD hoặc Email</label>
                 <div className="lf-input-wrap">
-                  <i className="fa fa-envelope lf-input-icon"></i>
+                  <i className="fa fa-id-card lf-input-icon"></i>
                   <input
                     id="lf-email"
                     className="lf-input"
-                    type="email"
+                    type="text"
                     name="userEmail"
-                    placeholder="Nhập email của bạn"
+                    placeholder="Nhập số CCCD hoặc email"
                     value={userEmail}
                     onChange={(e) => setUserEmail(e.target.value)}
-                    autoComplete="email"
+                    autoComplete="username"
                   />
                 </div>
               </div>

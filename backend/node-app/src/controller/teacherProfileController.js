@@ -333,7 +333,7 @@ const updateMyProfile = async (req, res) => {
     if (email !== undefined && email !== null && email !== '') {
       const taken = await db.user.findOne({ where: { email, id: { [Op.ne]: userId } } });
       if (taken) {
-        return res.status(400).json({ EM: 'Email đã tồn tại trong hệ thống', EC: 1, DT: 'email' });
+        return res.status(200).json({ EM: 'Email đã tồn tại trong hệ thống', EC: 1, DT: 'email' });
       }
     }
 

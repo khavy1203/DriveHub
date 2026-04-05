@@ -43,7 +43,7 @@ const TeacherFormModal: React.FC<Props> = ({ teacher, onSave, onClose }) => {
   };
 
   return (
-    <div className="modal-backdrop" onClick={onClose}>
+    <div className="modal-backdrop">
       <div className="modal-box" onClick={e => e.stopPropagation()}>
         <h3 className="modal-title">{isEdit ? 'Cập nhật giáo viên' : 'Thêm giáo viên mới'}</h3>
         <form onSubmit={handleSubmit} className="modal-form">

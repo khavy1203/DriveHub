@@ -231,7 +231,7 @@ const FilePreviewModal: React.FC<FilePreviewModalProps> = ({ fileUrl, fileName, 
   };
 
   return createPortal(
-    <div className="fpm__overlay" ref={overlayRef} onClick={handleOverlayClick}>
+    <div className="fpm__overlay" ref={overlayRef}>
       <div className="fpm__container">
         <header className="fpm__header">
           <button type="button" className="fpm__close" onClick={onClose}>

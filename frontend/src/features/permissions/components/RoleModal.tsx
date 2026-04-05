@@ -46,7 +46,7 @@ const RoleModal: React.FC<Props> = ({ role, onSave, onClose }) => {
   };
 
   return (
-    <div className="perm__modal-overlay" onClick={onClose}>
+    <div className="perm__modal-overlay">
       <div className="perm__modal" onClick={e => e.stopPropagation()}>
         <h3 className="perm__modal-title">{isEdit ? 'Chỉnh sửa quyền' : 'Thêm quyền mới'}</h3>
 

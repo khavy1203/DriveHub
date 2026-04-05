@@ -44,7 +44,7 @@ const GroupModal: React.FC<Props> = ({ group, roles, onSave, onClose }) => {
   };
 
   return (
-    <div className="perm__modal-overlay" onClick={onClose}>
+    <div className="perm__modal-overlay">
       <div className="perm__modal" onClick={e => e.stopPropagation()}>
         <h3 className="perm__modal-title">{isEdit ? 'Chỉnh sửa nhóm' : 'Thêm nhóm mới'}</h3>
 

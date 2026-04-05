@@ -388,7 +388,7 @@ const DangKyHocVien: React.FC = () => {
 
       {/* Success Modal */}
       {success && createPortal(
-        <div className="dkhv__overlay" onClick={handleReset}>
+        <div className="dkhv__overlay">
           <div className="dkhv__modal" onClick={e => e.stopPropagation()}>
             <div className="dkhv__modal-hero">
               <div className="dkhv__modal-check">

@@ -684,7 +684,7 @@ const ManualAssign: React.FC = () => {
       </div>
 
       {confirmOpen && createPortal(
-        <div className="assign-page__modal-backdrop" role="presentation" onClick={() => setConfirmOpen(false)}>
+        <div className="assign-page__modal-backdrop" role="presentation">
           <div
             className="assign-page__modal"
             role="dialog"

@@ -114,12 +114,14 @@ export const importCccd = async (req, res, next) => {
         const created = result.results?.filter(r => r.ok && r.created).length ?? 0;
         const transferred = result.results?.filter(r => r.ok && !r.created && r.transferred).length ?? 0;
         const updated = result.results?.filter(r => r.ok && !r.created && !r.transferred).length ?? 0;
-        const failed = result.results?.filter(r => !r.ok).length ?? 0;
+        const notFound = result.results?.filter(r => !r.ok && r.notFound).length ?? 0;
+        const failed = result.results?.filter(r => !r.ok && !r.notFound).length ?? 0;
 
         const parts = [];
         if (created) parts.push(`${created} tạo mới`);
         if (transferred) parts.push(`${transferred} chuyển đội`);
         if (updated) parts.push(`${updated} cập nhật`);
+        if (notFound) parts.push(`${notFound} không có dữ liệu`);
         if (failed) parts.push(`${failed} lỗi`);
         const summary = parts.join(', ') || 'không có kết quả';
 
@@ -133,6 +135,7 @@ export const importCccd = async (req, res, next) => {
             created,
             transferred,
             updated,
+            notFound,
             failed,
           },
         });

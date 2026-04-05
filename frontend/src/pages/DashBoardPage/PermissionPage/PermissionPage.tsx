@@ -188,7 +188,7 @@ const PermissionPage: React.FC = () => {
       )}
 
       {deletingGroup && (
-        <div className="perm__modal-overlay" onClick={() => setDeletingGroup(null)}>
+        <div className="perm__modal-overlay">
           <div className="perm__modal" onClick={e => e.stopPropagation()}>
             <h3 className="perm__modal-title">Xóa nhóm</h3>
             <p>Xóa nhóm <strong>{deletingGroup.name}</strong>? Thao tác này không thể hoàn tác.</p>

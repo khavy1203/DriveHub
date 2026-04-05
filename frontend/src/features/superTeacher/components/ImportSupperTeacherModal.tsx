@@ -61,7 +61,7 @@ const ImportSupperTeacherModal: React.FC<Props> = ({ onClose, onSuccess }) => {
   };
 
   return (
-    <div className="modal-backdrop" onClick={onClose}>
+    <div className="modal-backdrop">
       <div className="modal-box import-st-modal" onClick={e => e.stopPropagation()}>
         <h3 className="modal-title">Import danh sách giáo viên</h3>
 

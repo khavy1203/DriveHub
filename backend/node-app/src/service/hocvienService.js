@@ -317,11 +317,9 @@ const importFromCccd = async (cccd, upstreamDT) => {
 
       // If hoc_vien has no userId yet, create an auto account
       if (!existingHv.userId) {
-        const email = `${cccd}@drivehub.local`;
         const hashed = hashUserPassword(cccd);
-        const existingUser = await db.user.findOne({ where: { email }, transaction: t });
-        const user = existingUser || await db.user.create({
-          email, password: hashed, username: hoTen,
+        const user = await db.user.create({
+          email: null, password: hashed, username: hoTen,
           phone: null, address: diaChi,
           groupId: HOC_VIEN_GROUP_ID, active: 1, thisinhId: null,
         }, { transaction: t });
@@ -329,11 +327,9 @@ const importFromCccd = async (cccd, upstreamDT) => {
       }
     } else {
       // New student — create auto account + hoc_vien record
-      const email = `${cccd}@drivehub.local`;
       const hashed = hashUserPassword(cccd);
-      const existingUser = await db.user.findOne({ where: { email }, transaction: t });
-      const user = existingUser || await db.user.create({
-        email, password: hashed, username: hoTen,
+      const user = await db.user.create({
+        email: null, password: hashed, username: hoTen,
         phone: null, address: diaChi,
         groupId: HOC_VIEN_GROUP_ID, active: 1, thisinhId: null,
       }, { transaction: t });

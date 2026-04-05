@@ -81,7 +81,7 @@ const RoleList: React.FC<Props> = ({ roles, onAdd, onEdit, onDelete }) => {
       </table>
 
       {confirmDelete && (
-        <div className="perm__modal-overlay" onClick={() => setConfirmDelete(null)}>
+        <div className="perm__modal-overlay">
           <div className="perm__modal" onClick={e => e.stopPropagation()}>
             <h3 className="perm__modal-title">Xác nhận xóa quyền</h3>
             <p>

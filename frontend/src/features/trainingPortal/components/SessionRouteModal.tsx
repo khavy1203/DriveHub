@@ -177,7 +177,7 @@ const SessionRouteModal: React.FC<Props> = ({ session, maDK, studentName, onClos
   }, [points]);
 
   return createPortal(
-    <div className="srm__overlay" onClick={onClose} role="dialog" aria-modal="true">
+    <div className="srm__overlay" role="dialog" aria-modal="true">
       <div className="srm__panel" onClick={(e) => e.stopPropagation()}>
         {/* Header */}
         <div className="srm__header">

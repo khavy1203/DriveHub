@@ -78,7 +78,7 @@ const StudentEditModal: React.FC<Props> = ({
   const currentTeacher = teachers.find(t => t.id === student.teacherId);
 
   return createPortal(
-    <div className="sem__overlay" onClick={onClose}>
+    <div className="sem__overlay">
       <div className="sem__panel" onClick={e => e.stopPropagation()}>
         {/* Header */}
         <div className="sem__header">

@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback, useRef } from 'react';
+import React, { useEffect, useState, useCallback, useRef, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import { useAdminFilter } from '../../../features/auth/context/AdminFilterContext';
 import { toast } from 'react-toastify';
@@ -66,7 +66,7 @@ const STFormModal: React.FC<STFormModalProps> = ({ target, onSave, onClose }) =>
   };
 
   return (
-    <div className="modal-backdrop" onClick={onClose}>
+    <div className="modal-backdrop">
       <div className="modal-box" onClick={e => e.stopPropagation()}>
         <h3 className="modal-title">{isEdit ? 'Cập nhật SupperTeacher' : 'Thêm SupperTeacher mới'}</h3>
         <form onSubmit={handleSubmit} className="modal-form">
@@ -134,7 +134,7 @@ const TeacherCreateModal: React.FC<TeacherFormModalProps> = ({ supperTeachers, o
   };
 
   return (
-    <div className="modal-backdrop" onClick={onClose}>
+    <div className="modal-backdrop">
       <div className="modal-box" onClick={e => e.stopPropagation()}>
         <h3 className="modal-title">Tạo giáo viên mới</h3>
         <form onSubmit={handleSubmit} className="modal-form">
@@ -199,7 +199,7 @@ const ReassignModal: React.FC<ReassignModalProps> = ({ teacher, supperTeachers, 
   };
 
   return (
-    <div className="modal-backdrop" onClick={onClose}>
+    <div className="modal-backdrop">
       <div className="modal-box modal-confirm" onClick={e => e.stopPropagation()}>
         <h3 className="modal-title">Gán SupperTeacher</h3>
         <p>Chọn SupperTeacher cho giáo viên <strong>{teacher.username}</strong>:</p>
@@ -242,7 +242,7 @@ const DeleteModal: React.FC<DeleteModalProps> = ({ target, preview, loadingPrevi
   };
 
   return (
-    <div className="modal-backdrop" onClick={onClose}>
+    <div className="modal-backdrop">
       <div className="modal-box modal-confirm" onClick={e => e.stopPropagation()}>
         <h3 className="modal-title">Xác nhận xóa</h3>
         <p>Bạn có chắc muốn xóa SupperTeacher <strong>{target.username}</strong>?</p>
@@ -301,7 +301,7 @@ const DemoteModal: React.FC<DemoteModalProps> = ({ target, supperTeachers, onCon
   };
 
   return (
-    <div className="modal-backdrop" onClick={onClose}>
+    <div className="modal-backdrop">
       <div className="modal-box modal-confirm" onClick={e => e.stopPropagation()}>
         <h3 className="modal-title">Hạ cấp SupperTeacher</h3>
         <p>
@@ -352,7 +352,7 @@ const PromoteModal: React.FC<PromoteModalProps> = ({ teacher, onConfirm, onClose
   };
 
   return (
-    <div className="modal-backdrop" onClick={onClose}>
+    <div className="modal-backdrop">
       <div className="modal-box modal-confirm" onClick={e => e.stopPropagation()}>
         <h3 className="modal-title">Nâng cấp thành SupperTeacher</h3>
         <p>
@@ -406,6 +406,28 @@ const SupperTeacherManagement: React.FC = () => {
 
   // Mobile popup
   const [popupST, setPopupST] = useState<SupperTeacher | null>(null);
+
+  // Pagination
+  const ITEMS_PER_PAGE = 10;
+  const [page, setPage] = useState(1);
+  const [searchQuery, setSearchQuery] = useState('');
+
+  const filtered = useMemo(() => {
+    if (!searchQuery.trim()) return supperTeachers;
+    const q = searchQuery.toLowerCase();
+    return supperTeachers.filter(st =>
+      st.username.toLowerCase().includes(q) ||
+      (st.email ?? '').toLowerCase().includes(q) ||
+      (st.cccd ?? '').includes(q) ||
+      (st.phone ?? '').includes(q),
+    );
+  }, [supperTeachers, searchQuery]);
+
+  const totalPages = Math.max(1, Math.ceil(filtered.length / ITEMS_PER_PAGE));
+  const currentPage = Math.min(page, totalPages);
+  const paged = filtered.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE);
+
+  useEffect(() => { setPage(1); }, [searchQuery, selectedAdminId]);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -564,6 +586,22 @@ const SupperTeacherManagement: React.FC = () => {
         </div>
       </div>
 
+      {/* Search bar */}
+      <div className="st-search-bar">
+        <span className="material-icons">search</span>
+        <input
+          type="text"
+          placeholder="Tìm kiếm theo tên, email, CCCD, SĐT..."
+          value={searchQuery}
+          onChange={e => setSearchQuery(e.target.value)}
+        />
+        {searchQuery && (
+          <button className="st-search-clear" onClick={() => setSearchQuery('')}>
+            <span className="material-icons">close</span>
+          </button>
+        )}
+      </div>
+
       {loading ? (
         <p className="st-loading">Đang tải...</p>
       ) : (
@@ -583,16 +621,16 @@ const SupperTeacherManagement: React.FC = () => {
             </tr>
           </thead>
           <tbody>
-            {supperTeachers.length === 0 && (
-              <tr><td colSpan={9} className="st-empty">Chưa có SupperTeacher nào</td></tr>
+            {filtered.length === 0 && (
+              <tr><td colSpan={9} className="st-empty">{searchQuery ? 'Không tìm thấy kết quả' : 'Chưa có SupperTeacher nào'}</td></tr>
             )}
-            {supperTeachers.map((st, i) => (
+            {paged.map((st, i) => (
               <React.Fragment key={st.id}>
                 <tr
                   className={expandedStId === st.id ? 'st-row--expanded' : ''}
                   onClick={() => { if (window.innerWidth <= 768) setPopupST(st); }}
                 >
-                  <td>{i + 1}</td>
+                  <td>{(currentPage - 1) * ITEMS_PER_PAGE + i + 1}</td>
                   <td>{st.username}</td>
                   <td>{st.cccd || '—'}</td>
                   <td>{st.email}</td>
@@ -692,6 +730,51 @@ const SupperTeacherManagement: React.FC = () => {
             ))}
           </tbody>
         </table>
+
+        {/* Pagination */}
+        {filtered.length > ITEMS_PER_PAGE && (
+          <div className="st-pagination">
+            <span className="st-pagination__info">
+              Hiển thị {(currentPage - 1) * ITEMS_PER_PAGE + 1}–{Math.min(currentPage * ITEMS_PER_PAGE, filtered.length)} / {filtered.length}
+            </span>
+            <div className="st-pagination__btns">
+              <button
+                className="st-pagination__btn"
+                disabled={currentPage <= 1}
+                onClick={() => setPage(p => p - 1)}
+              >
+                <span className="material-icons">chevron_left</span>
+              </button>
+              {Array.from({ length: totalPages }, (_, i) => i + 1)
+                .filter(n => n === 1 || n === totalPages || Math.abs(n - currentPage) <= 1)
+                .reduce<(number | string)[]>((acc, n, idx, arr) => {
+                  if (idx > 0 && n - (arr[idx - 1] as number) > 1) acc.push('...');
+                  acc.push(n);
+                  return acc;
+                }, [])
+                .map((n, idx) =>
+                  typeof n === 'string' ? (
+                    <span key={`dot-${idx}`} className="st-pagination__dots">...</span>
+                  ) : (
+                    <button
+                      key={n}
+                      className={`st-pagination__btn ${n === currentPage ? 'st-pagination__btn--active' : ''}`}
+                      onClick={() => setPage(n)}
+                    >
+                      {n}
+                    </button>
+                  ),
+                )}
+              <button
+                className="st-pagination__btn"
+                disabled={currentPage >= totalPages}
+                onClick={() => setPage(p => p + 1)}
+              >
+                <span className="material-icons">chevron_right</span>
+              </button>
+            </div>
+          </div>
+        )}
         </div>
       )}
 
@@ -796,7 +879,7 @@ const SupperTeacherManagement: React.FC = () => {
 
       {/* ── Mobile popup (bottom-sheet) ─────────────────────────────────────── */}
       {popupST && createPortal(
-        <div className="st-popup-overlay" onClick={() => setPopupST(null)}>
+        <div className="st-popup-overlay">
           <div className="st-popup" onClick={e => e.stopPropagation()}>
             <div className="st-popup__handle" />
             <p className="st-popup__name">{popupST.username}</p>

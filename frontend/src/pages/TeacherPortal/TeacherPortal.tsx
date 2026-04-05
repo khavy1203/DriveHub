@@ -413,7 +413,7 @@ const StudentDetailModal: React.FC<DetailModalProps> = ({ assignment: a, onClose
   };
 
   return (
-    <div className="tp__overlay" onClick={onClose} role="dialog" aria-modal="true">
+    <div className="tp__overlay" role="dialog" aria-modal="true">
       <div className="tp__detail-modal" onClick={e => e.stopPropagation()}>
         {/* Modal header */}
         <div className="tp__dm-header">
@@ -584,7 +584,7 @@ type KQSHModalProps = { hocVienId: number; hoTen: string; onClose: () => void };
 const KQSHModal: React.FC<KQSHModalProps> = ({ hocVienId, hoTen, onClose }) => {
   const { data, loading, error } = useKQSHByStudent(hocVienId, 'teacher');
   return (
-    <div className="tp__overlay tp__overlay--above" onClick={onClose}>
+    <div className="tp__overlay tp__overlay--above">
       <div className="tp__kqsh-modal" onClick={e => e.stopPropagation()}>
         <div className="tp__kqsh-modal-header">
           <div>

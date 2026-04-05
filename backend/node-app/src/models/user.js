@@ -68,11 +68,8 @@ module.exports = (sequelize, DataTypes) => {
       },
       email: {
         type: DataTypes.STRING,
-        allowNull: false,
-        unique: true, // Email phải là duy nhất
-        validate: {
-          isEmail: true, // Xác thực định dạng email
-        },
+        allowNull: true,
+        unique: true,
       },
       password: {
         type: DataTypes.STRING,

@@ -188,12 +188,14 @@ export const importByCccdList = async (req, res) => {
         const created = result.results?.filter(r => r.ok && r.created).length ?? 0;
         const transferred = result.results?.filter(r => r.ok && !r.created && r.transferred).length ?? 0;
         const updated = result.results?.filter(r => r.ok && !r.created && !r.transferred).length ?? 0;
-        const failed = result.results?.filter(r => !r.ok).length ?? 0;
+        const notFound = result.results?.filter(r => !r.ok && r.notFound).length ?? 0;
+        const failed = result.results?.filter(r => !r.ok && !r.notFound).length ?? 0;
 
         const parts = [];
         if (created) parts.push(`${created} tạo mới`);
         if (transferred) parts.push(`${transferred} chuyển đội`);
         if (updated) parts.push(`${updated} cập nhật`);
+        if (notFound) parts.push(`${notFound} không có dữ liệu`);
         if (failed) parts.push(`${failed} lỗi`);
         const summary = parts.join(', ') || 'không có kết quả';
 
@@ -208,6 +210,7 @@ export const importByCccdList = async (req, res) => {
             created,
             transferred,
             updated,
+            notFound,
             failed,
           },
         });
@@ -223,7 +226,7 @@ export const importByCccdList = async (req, res) => {
               title: 'Import CCCD thất bại',
               content: `Lỗi khi xử lý ${totalCount} CCCD: ${err.message}`,
               results: [],
-              created: 0, transferred: 0, updated: 0, failed: totalCount,
+              created: 0, transferred: 0, updated: 0, notFound: 0, failed: totalCount,
             },
           });
         } catch {}

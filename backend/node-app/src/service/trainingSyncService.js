@@ -1,7 +1,7 @@
 import db from '../models/index';
 import { Op } from 'sequelize';
 import { isAxiosError } from 'axios';
-import { fetchPublicStudent, isTrainingApiConfigured } from './trainingPortalService';
+import { fetchPublicStudent, fetchPublicStudentBatch, isTrainingApiConfigured } from './trainingPortalService';
 import hocvienService from './hocvienService';
 
 const SYNC_DELAY_MS = 500;
@@ -301,8 +301,64 @@ export const syncAllIncomplete = async () => {
   return { success, error, skipped, elapsed };
 };
 
+const BATCH_SIZE = 50;
+
 /**
- * Import + sync danh sách CCCD: tra cứu API → tạo hoc_vien/user nếu chưa có → sync training data.
+ * Process a single student record from the batch API response.
+ * Imports/syncs training data and returns a result entry.
+ */
+const processOneStudentRecord = async (dt, cccd, adminId) => {
+  const hoTen = (dt.hocVien?.hoTen || '').trim();
+  if (!hoTen) {
+    return { cccd, ok: false, notFound: true, error: 'Không có dữ liệu đào tạo cho CCCD này' };
+  }
+
+  const importResult = await hocvienService.importFromCccd(cccd, dt);
+  if (!importResult.ok) {
+    return { cccd, ok: false, error: importResult.error };
+  }
+
+  if (adminId && importResult.created) {
+    await db.hoc_vien.update({ adminId }, { where: { id: importResult.hocVienId } });
+  }
+
+  const pct = computeProgressFromDT(dt);
+  await db.training_snapshot.upsert({
+    hocVienId: importResult.hocVienId,
+    cccd,
+    rawJson: JSON.stringify(dt),
+    courseProgressPct: pct,
+    syncStatus: 'success',
+    syncError: null,
+    lastSyncAt: new Date(),
+  });
+
+  const assignment = await db.student_assignment.findOne({
+    where: { hocVienId: importResult.hocVienId, role: 'primary' },
+  });
+  if (assignment) {
+    const updates = { progressPercent: pct };
+    if (pct >= 100 && assignment.status !== 'completed') {
+      updates.status = 'completed';
+      await db.hoc_vien.update({ status: 'dat_completed' }, { where: { id: importResult.hocVienId } });
+    } else if (pct > 0 && assignment.status === 'waiting') {
+      updates.status = 'learning';
+    }
+    await assignment.update(updates);
+  }
+
+  return {
+    cccd,
+    ok: true,
+    hoTen: importResult.hoTen,
+    hocVienId: importResult.hocVienId,
+    created: importResult.created,
+    pct,
+  };
+};
+
+/**
+ * Import + sync danh sách CCCD: tra cứu API (batch, max 50/lần) → tạo hoc_vien/user nếu chưa có → sync training data.
  * @param {string[]} cccdList
  * @param {number|null|undefined} [adminId]
  */
@@ -311,74 +367,60 @@ export const importAndSyncByCccdList = async (cccdList, adminId) => {
     return { results: [], error: 'TRAINING_API_BASE_URL not configured' };
   }
 
+  const cleanList = cccdList.map(c => String(c).trim()).filter(Boolean);
+  if (cleanList.length === 0) return { results: [] };
+
   const results = [];
 
-  for (const rawCccd of cccdList) {
-    const cccd = String(rawCccd).trim();
-    if (!cccd) continue;
+  // Split into chunks of BATCH_SIZE
+  const chunks = [];
+  for (let i = 0; i < cleanList.length; i += BATCH_SIZE) {
+    chunks.push(cleanList.slice(i, i + BATCH_SIZE));
+  }
 
+  for (const chunk of chunks) {
     try {
-      const upstream = await fetchPublicStudent(cccd, adminId);
+      const upstream = await fetchPublicStudentBatch(chunk, adminId);
       const data = upstream.data;
 
-      if (!isRecord(data) || data.EC !== 0 || !isRecord(data.DT)) {
-        results.push({ cccd, ok: false, error: (isRecord(data) && data.EM) || 'Không tìm thấy trên CSĐT' });
-        await sleep(SYNC_DELAY_MS);
-        continue;
-      }
-
-      const dt = data.DT;
-      const importResult = await hocvienService.importFromCccd(cccd, dt);
-      if (!importResult.ok) {
-        results.push({ cccd, ok: false, error: importResult.error });
-        await sleep(SYNC_DELAY_MS);
-        continue;
-      }
-
-      // Tag adminId on newly created students (ownership transfer handled by caller)
-      if (adminId && importResult.created) {
-        await db.hoc_vien.update(
-          { adminId },
-          { where: { id: importResult.hocVienId } },
-        );
-      }
-
-      const pct = computeProgressFromDT(dt);
-      await db.training_snapshot.upsert({
-        hocVienId: importResult.hocVienId,
-        cccd,
-        rawJson: JSON.stringify(dt),
-        courseProgressPct: pct,
-        syncStatus: 'success',
-        syncError: null,
-        lastSyncAt: new Date(),
-      });
-
-      const assignment = await db.student_assignment.findOne({ where: { hocVienId: importResult.hocVienId, role: 'primary' } });
-      if (assignment) {
-        const updates = { progressPercent: pct };
-        if (pct >= 100 && assignment.status !== 'completed') {
-          updates.status = 'completed';
-          await db.hoc_vien.update({ status: 'dat_completed' }, { where: { id: importResult.hocVienId } });
-        } else if (pct > 0 && assignment.status === 'waiting') {
-          updates.status = 'learning';
+      if (!isRecord(data) || data.EC !== 0 || !Array.isArray(data.DT)) {
+        // Entire batch failed — mark all CCCDs in this chunk as errors
+        const errMsg = (isRecord(data) && data.EM) || 'Không tìm thấy trên CSĐT';
+        for (const cccd of chunk) {
+          results.push({ cccd, ok: false, error: errMsg });
         }
-        await assignment.update(updates);
+        continue;
       }
 
-      results.push({
-        cccd,
-        ok: true,
-        hoTen: importResult.hoTen,
-        hocVienId: importResult.hocVienId,
-        created: importResult.created,
-        pct,
-      });
-    } catch (err) {
-      results.push({ cccd, ok: false, error: err.message || 'Unknown error' });
-    }
+      // Build a map from CCCD → student data for fast lookup
+      const dtMap = new Map();
+      for (const item of data.DT) {
+        if (isRecord(item) && isRecord(item.hocVien)) {
+          const itemCccd = String(item.hocVien.cccd || '').trim();
+          if (itemCccd) dtMap.set(itemCccd, item);
+        }
+      }
 
-    await sleep(SYNC_DELAY_MS);
+      // Process each CCCD in the chunk
+      for (const cccd of chunk) {
+        const dt = dtMap.get(cccd);
+        if (!dt) {
+          results.push({ cccd, ok: false, notFound: true, error: 'Không có dữ liệu đào tạo cho CCCD này' });
+          continue;
+        }
+        try {
+          const result = await processOneStudentRecord(dt, cccd, adminId);
+          results.push(result);
+        } catch (err) {
+          results.push({ cccd, ok: false, error: err.message || 'Unknown error' });
+        }
+      }
+    } catch (err) {
+      // Network / timeout error for entire batch — mark all as error
+      for (const cccd of chunk) {
+        results.push({ cccd, ok: false, error: err.message || 'Unknown error' });
+      }
+    }
   }
 
   return { results };

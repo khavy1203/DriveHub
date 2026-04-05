@@ -90,6 +90,31 @@ export const fetchPublicStudent = async (cccd, adminId) => {
 };
 
 /**
+ * Batch query: fetch multiple students in one request (max 50 CCCDs).
+ * API returns { EC: 0, DT: [...], EM: "..." } where DT is an array.
+ * @param {string[]} cccdList - Array of CCCD strings (max 50)
+ * @param {number|null|undefined} [adminId]
+ * @returns {Promise<import('axios').AxiosResponse<unknown>>}
+ */
+export const fetchPublicStudentBatch = async (cccdList, adminId) => {
+  const base = await resolveBaseUrl(adminId);
+  if (!base) {
+    const err = new Error('TRAINING_API_BASE_URL is not set');
+    err.code = 'TRAINING_CONFIG';
+    throw err;
+  }
+  const url = `${base}/api/public/student`;
+  const headers = await buildAuthHeaders(adminId);
+  const cccdParam = cccdList.join(',');
+  return axios.get(url, {
+    params: { cccd: cccdParam },
+    headers,
+    timeout: getTimeoutMs() * 2,
+    validateStatus: () => true,
+  });
+};
+
+/**
  * @param {{ maDK?: string, cccd?: string, ngay: string, thoiDiemDangNhap: string, thoiDiemDangXuat: string, adminId?: number }} params
  * @returns {Promise<import('axios').AxiosResponse<unknown>>}
  */

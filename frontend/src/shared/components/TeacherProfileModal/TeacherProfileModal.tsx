@@ -117,7 +117,7 @@ const TeacherProfileModal: React.FC<Props> = ({ teacherId, onClose, actionLabel,
   const passRatePct = totalCompleted > 0 ? Math.round((totalCompleted / (totalCompleted + data!.activeStudents)) * 100) : 0;
 
   return createPortal(
-    <div className="tpm__overlay" onClick={onClose} role="dialog" aria-modal="true">
+    <div className="tpm__overlay" role="dialog" aria-modal="true">
       <div className="tpm__panel" onClick={e => e.stopPropagation()}>
         {loading && (
           <div className="tpm__loading">

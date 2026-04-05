@@ -36,12 +36,34 @@ const MyStudentList: React.FC = () => {
 
   // Listen for background import completion via WebSocket
   const handleImportDone = useCallback((payload: unknown) => {
-    const data = payload as { content: string; failed: number };
-    if (data.failed > 0) {
+    const data = payload as {
+      content: string;
+      results: { cccd: string; ok: boolean; notFound?: boolean; hoTen?: string; error?: string }[];
+      notFound: number;
+      failed: number;
+    };
+
+    // Show summary toast
+    if (data.notFound > 0 || data.failed > 0) {
       toast.warn(data.content, { autoClose: 8000 });
     } else {
       toast.success(data.content, { autoClose: 5000 });
     }
+
+    // Show details for not-found CCCDs
+    const notFoundItems = data.results?.filter(r => !r.ok && r.notFound) ?? [];
+    if (notFoundItems.length > 0) {
+      const cccdList = notFoundItems.map(r => r.cccd).join(', ');
+      toast.info(`CCCD không có dữ liệu đào tạo: ${cccdList}`, { autoClose: 12000 });
+    }
+
+    // Show details for error CCCDs
+    const errorItems = data.results?.filter(r => !r.ok && !r.notFound) ?? [];
+    if (errorItems.length > 0) {
+      const errList = errorItems.map(r => `${r.cccd}: ${r.error}`).join('; ');
+      toast.error(`Lỗi: ${errList}`, { autoClose: 12000 });
+    }
+
     loadStudents();
   }, [loadStudents]);
 
@@ -492,7 +514,7 @@ const MyStudentList: React.FC = () => {
 
       {/* Bulk assign confirmation modal */}
       {confirmBulk && (
-        <div className="student-list__modal-backdrop" onClick={() => setConfirmBulk(false)}>
+        <div className="student-list__modal-backdrop">
           <div className="student-list__confirm-box" onClick={e => e.stopPropagation()}>
             <div className="student-list__confirm-icon">
               <span className="material-symbols-outlined">warning</span>

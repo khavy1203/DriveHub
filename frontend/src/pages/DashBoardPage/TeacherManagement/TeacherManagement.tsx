@@ -333,7 +333,7 @@ const TeacherManagement: React.FC = () => {
 
       {/* ── Account modal ────────────────────────────────────────────────────── */}
       {showModal && createPortal(
-        <div className="tm__overlay" onClick={() => setShowModal(false)}>
+        <div className="tm__overlay">
           <div className="tm__modal" onClick={e => e.stopPropagation()}>
             <div className="tm__modal-header">
               <h3>{form.id ? 'Chỉnh sửa tài khoản' : 'Thêm tài khoản mới'}</h3>
@@ -399,7 +399,7 @@ const TeacherManagement: React.FC = () => {
 
       {/* ── Profile modal ────────────────────────────────────────────────────── */}
       {showProfile && profileTeacher && createPortal(
-        <div className="tm__overlay" onClick={() => setShowProfile(false)}>
+        <div className="tm__overlay">
           <div className="tm__modal tm__modal--profile" onClick={e => e.stopPropagation()}>
             <div className="tm__modal-header">
               <h3>Hồ sơ giảng viên — {profileTeacher.username}</h3>
@@ -533,7 +533,7 @@ const TeacherManagement: React.FC = () => {
 
       {/* ── Mobile detail popup ──────────────────────────────────────────────── */}
       {popupTeacher && createPortal(
-        <div className="tm__popup-overlay" onClick={() => setPopupTeacher(null)}>
+        <div className="tm__popup-overlay">
           <div className="tm__popup" onClick={e => e.stopPropagation()}>
             <div className="tm__popup-handle" />
             <div className="tm__popup-header">

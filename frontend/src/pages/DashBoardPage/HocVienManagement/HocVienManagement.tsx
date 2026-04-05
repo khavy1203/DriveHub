@@ -115,7 +115,7 @@ const HocVienManagement: React.FC = () => {
   const [importOpen, setImportOpen] = useState(false);
   const [importCccdText, setImportCccdText] = useState('');
   const [importing, setImporting] = useState(false);
-  type ImportResult = { cccd: string; ok: boolean; hoTen?: string; created?: boolean; transferred?: boolean; pct?: number; error?: string };
+  type ImportResult = { cccd: string; ok: boolean; hoTen?: string; created?: boolean; transferred?: boolean; notFound?: boolean; pct?: number; error?: string };
   const [importResults, setImportResults] = useState<ImportResult[]>([]);
 
   // Assign modal
@@ -355,12 +355,28 @@ const HocVienManagement: React.FC = () => {
 
   // Listen for background import completion via WebSocket
   const handleImportDone = useCallback((payload: unknown) => {
-    const data = payload as { title: string; content: string; results: ImportResult[]; created: number; transferred: number; updated: number; failed: number };
-    if (data.failed > 0) {
+    const data = payload as { title: string; content: string; results: ImportResult[]; created: number; transferred: number; updated: number; notFound: number; failed: number };
+
+    if (data.notFound > 0 || data.failed > 0) {
       toast.warn(data.content, { autoClose: 8000 });
     } else {
       toast.success(data.content, { autoClose: 5000 });
     }
+
+    // Show details for not-found CCCDs
+    const notFoundItems = data.results?.filter(r => !r.ok && r.notFound) ?? [];
+    if (notFoundItems.length > 0) {
+      const cccdList = notFoundItems.map(r => r.cccd).join(', ');
+      toast.info(`CCCD không có dữ liệu đào tạo: ${cccdList}`, { autoClose: 12000 });
+    }
+
+    // Show details for error CCCDs
+    const errorItems = data.results?.filter(r => !r.ok && !r.notFound) ?? [];
+    if (errorItems.length > 0) {
+      const errList = errorItems.map(r => `${r.cccd}: ${r.error}`).join('; ');
+      toast.error(`Lỗi: ${errList}`, { autoClose: 12000 });
+    }
+
     setImportResults(data.results ?? []);
     setImportOpen(true);
     fetchData();
@@ -681,7 +697,7 @@ const HocVienManagement: React.FC = () => {
 
       {/* Assign Modal */}
       {assignTarget && createPortal(
-        <div className="hvm__overlay hvm__overlay--above" onClick={() => setAssignTarget(null)}>
+        <div className="hvm__overlay hvm__overlay--above">
           <div className="hvm__modal" onClick={e => e.stopPropagation()}>
             <div className="hvm__modal-header">
               <div>
@@ -727,7 +743,7 @@ const HocVienManagement: React.FC = () => {
 
       {/* Assign to ST Modal (Admin only) */}
       {assignSTTarget && createPortal(
-        <div className="hvm__overlay hvm__overlay--above" onClick={() => setAssignSTTarget(null)}>
+        <div className="hvm__overlay hvm__overlay--above">
           <div className="hvm__modal" onClick={e => e.stopPropagation()}>
             <div className="hvm__modal-header">
               <div>
@@ -767,7 +783,7 @@ const HocVienManagement: React.FC = () => {
 
       {/* Import CCCD Modal */}
       {importOpen && createPortal(
-        <div className="hvm__overlay hvm__overlay--above" onClick={() => setImportOpen(false)}>
+        <div className="hvm__overlay hvm__overlay--above">
           <div className="hvm__modal hvm__modal--wide" onClick={e => e.stopPropagation()}>
             <div className="hvm__modal-header">
               <div>
@@ -795,12 +811,14 @@ const HocVienManagement: React.FC = () => {
                   <div className="hvm__import-results-title">Kết quả import</div>
                   <div className="hvm__import-results-list">
                     {importResults.map((r, i) => (
-                      <div key={i} className={`hvm__import-row hvm__import-row--${r.ok ? 'ok' : 'fail'}`}>
-                        <span className="material-icons">{r.ok ? 'check_circle' : 'error'}</span>
+                      <div key={i} className={`hvm__import-row hvm__import-row--${r.ok ? 'ok' : r.notFound ? 'warn' : 'fail'}`}>
+                        <span className="material-icons">{r.ok ? 'check_circle' : r.notFound ? 'help_outline' : 'error'}</span>
                         <span className="hvm__import-cccd">{r.cccd}</span>
                         {r.ok
                           ? <span>{r.hoTen} — {r.created ? 'Tạo mới' : r.transferred ? 'Chuyển đội' : 'Cập nhật'} — {r.pct}%</span>
-                          : <span className="hvm__import-err">{r.error}</span>
+                          : r.notFound
+                            ? <span className="hvm__import-warn">Không có dữ liệu đào tạo</span>
+                            : <span className="hvm__import-err">{r.error}</span>
                         }
                       </div>
                     ))}
@@ -883,7 +901,7 @@ const HocVienManagement: React.FC = () => {
 
       {/* Bulk Assign Confirm Modal */}
       {bulkConfirmOpen && createPortal(
-        <div className="hvm__overlay hvm__overlay--above" onClick={() => setBulkConfirmOpen(false)}>
+        <div className="hvm__overlay hvm__overlay--above">
           <div className="hvm__modal" onClick={e => e.stopPropagation()}>
             <div className="hvm__modal-header">
               <div>
@@ -1060,7 +1078,7 @@ const HocVienModal: React.FC<HocVienModalProps> = ({
   const khoaSummary = shortCourseName(item.khoahoc?.TenKhoaHoc?.trim() || item.IDKhoaHoc);
 
   return createPortal(
-    <div className="hvm__overlay hvm__overlay--detail" onClick={onClose} role="dialog" aria-modal="true" aria-labelledby="hvm-dm-title">
+    <div className="hvm__overlay hvm__overlay--detail" role="dialog" aria-modal="true" aria-labelledby="hvm-dm-title">
       <div className="hvm__detail-modal" onClick={e => e.stopPropagation()}>
 
         <header className="hvm__dm-header">

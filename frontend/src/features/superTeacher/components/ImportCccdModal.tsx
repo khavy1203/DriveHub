@@ -46,7 +46,7 @@ const ImportCccdModal: React.FC<Props> = ({ onClose, onSuccess }) => {
   const cccdCount = parseCccdList().length;
 
   return (
-    <div className="import-cccd__backdrop" onClick={onClose}>
+    <div className="import-cccd__backdrop">
       <div className="import-cccd__box" onClick={e => e.stopPropagation()}>
         <h3 className="import-cccd__title">Import học viên từ CSĐT</h3>
         <p className="import-cccd__desc">

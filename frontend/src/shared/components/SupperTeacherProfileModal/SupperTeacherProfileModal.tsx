@@ -123,7 +123,7 @@ const SupperTeacherProfileModal: React.FC<Props> = ({ teacherId, onClose }) => {
   const avgNum = data ? parseFloat(data.avgStars) : 0;
 
   return createPortal(
-    <div className="stpm__overlay" onClick={onClose} role="dialog" aria-modal="true">
+    <div className="stpm__overlay" role="dialog" aria-modal="true">
       <div className="stpm__panel" onClick={e => e.stopPropagation()}>
         {loading && (
           <div className="stpm__loading">

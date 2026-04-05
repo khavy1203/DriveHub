@@ -152,7 +152,7 @@ const UserGroupTable: React.FC<Props> = ({
       )}
 
       {confirm && (
-        <div className="perm__modal-overlay" onClick={() => setConfirm(null)}>
+        <div className="perm__modal-overlay">
           <div className="perm__modal" onClick={e => e.stopPropagation()}>
             <h3 className="perm__modal-title">Xác nhận đổi nhóm</h3>
             <p>

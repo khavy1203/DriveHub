@@ -156,7 +156,7 @@ const NotificationForm: React.FC<NotificationFormProps> = ({ onClose, onCreated 
   };
 
   return (
-    <div className="nm__modal-overlay" onClick={onClose}>
+    <div className="nm__modal-overlay">
       <div className="nm__modal" onClick={e => e.stopPropagation()}>
         <div className="nm__modal-header">
           <h3>Tạo thông báo mới</h3>

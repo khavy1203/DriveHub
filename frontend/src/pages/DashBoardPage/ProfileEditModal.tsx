@@ -84,10 +84,16 @@ const ProfileEditModal: React.FC<Props> = ({ onClose }) => {
       toast.error('Tên hiển thị không được để trống');
       return;
     }
+    const emailVal = form.email.trim();
+    if (emailVal && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailVal)) {
+      toast.error('Email không đúng định dạng');
+      return;
+    }
     setSaving(true);
     try {
       const res = await axiosInstance.put('/api/teacher-profile/me', {
         username: form.username.trim(),
+        email: emailVal || null,
         phone: form.phone.trim() || null,
         address: form.address.trim() || null,
       });
@@ -95,6 +101,10 @@ const ProfileEditModal: React.FC<Props> = ({ onClose }) => {
         await refreshAuth();
         toast.success('Cập nhật thông tin thành công');
         onClose();
+      } else if (res.data?.EC === 1 && res.data?.DT === 'email') {
+        toast.error('Email đã được sử dụng bởi tài khoản khác');
+      } else {
+        toast.error(res.data?.EM || 'Cập nhật thất bại');
       }
     } catch {
       // axios interceptor handles toast
@@ -137,7 +147,7 @@ const ProfileEditModal: React.FC<Props> = ({ onClose }) => {
   const resolvedAvatar = form.avatarUrl || DEFAULT_AVATAR;
 
   return createPortal(
-    <div className="pem__overlay" onClick={onClose} role="dialog" aria-modal="true">
+    <div className="pem__overlay" role="dialog" aria-modal="true">
       <div className="pem__panel" onClick={(e) => e.stopPropagation()}>
         <div className="pem__header">
           <h2 className="pem__title">Chỉnh sửa hồ sơ</h2>
@@ -200,9 +210,11 @@ const ProfileEditModal: React.FC<Props> = ({ onClose }) => {
               <label className="pem__label">
                 Email
                 <input
-                  className="pem__input pem__input--readonly"
+                  className="pem__input"
+                  type="email"
                   value={form.email}
-                  readOnly
+                  onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))}
+                  placeholder="Nhập email"
                 />
               </label>
               <label className="pem__label">

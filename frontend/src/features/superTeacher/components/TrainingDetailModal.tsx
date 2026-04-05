@@ -53,7 +53,7 @@ const TrainingDetailModal: React.FC<Props> = ({
   const currentTeacher = teachers?.find(t => t.id === currentTeacherId);
 
   return createPortal(
-    <div className="training-detail__backdrop" onClick={onClose}>
+    <div className="training-detail__backdrop">
       <div className="training-detail__box" onClick={e => e.stopPropagation()}>
         <div className="training-detail__header">
           <div>

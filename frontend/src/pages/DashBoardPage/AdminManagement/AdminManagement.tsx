@@ -56,7 +56,7 @@ const AdminFormModal: React.FC<FormModalProps> = ({ target, onSave, onClose }) =
   };
 
   return createPortal(
-    <div className="adm__overlay" onClick={onClose}>
+    <div className="adm__overlay">
       <div className="adm__modal" onClick={e => e.stopPropagation()}>
         <h3 className="adm__modal-title">{isEdit ? 'Cập nhật Admin' : 'Thêm Admin mới'}</h3>
         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
@@ -111,7 +111,7 @@ const DeleteModal: React.FC<DeleteModalProps> = ({ target, onConfirm, onClose })
   };
 
   return createPortal(
-    <div className="adm__overlay" onClick={onClose}>
+    <div className="adm__overlay">
       <div className="adm__modal" onClick={e => e.stopPropagation()}>
         <h3 className="adm__modal-title">Xóa Admin</h3>
         <p style={{ fontSize: 14, margin: 0 }}>
@@ -153,7 +153,7 @@ const AssignSTModal: React.FC<AssignSTModalProps> = ({ admin, allST, assignedIds
   };
 
   return createPortal(
-    <div className="adm__overlay" onClick={onClose}>
+    <div className="adm__overlay">
       <div className="adm__modal" onClick={e => e.stopPropagation()}>
         <h3 className="adm__modal-title">Quản lý SupperTeacher — {admin.username}</h3>
 

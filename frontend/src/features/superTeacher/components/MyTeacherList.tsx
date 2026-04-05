@@ -62,7 +62,7 @@ type ReviewModalProps = {
 const ReviewModal: React.FC<ReviewModalProps> = ({ teacher, rating, onClose }) => {
   const avatarUrl = teacher.teacherProfile?.avatarUrl || null;
   return createPortal(
-    <div className="teacher-list__rv-overlay" onClick={onClose}>
+    <div className="teacher-list__rv-overlay">
       <div className="teacher-list__rv-panel" onClick={e => e.stopPropagation()}>
         {/* Header */}
         <div className="teacher-list__rv-header">
@@ -138,7 +138,7 @@ const TeacherDetailDrawer: React.FC<TeacherDetailDrawerProps> = ({
 }) => {
   const url = teacher.teacherProfile?.avatarUrl || null;
   return createPortal(
-    <div className="teacher-list__detail-overlay" onClick={onClose}>
+    <div className="teacher-list__detail-overlay">
       <div className="teacher-list__detail-drawer" onClick={e => e.stopPropagation()}>
         {/* Top bar */}
         <div className="teacher-list__detail-head">
@@ -641,7 +641,7 @@ const MyTeacherList: React.FC = () => {
 
       {/* Delete Confirm Modal */}
       {confirmDelete && createPortal(
-        <div className="teacher-list__modal-backdrop" onClick={() => setConfirmDelete(null)}>
+        <div className="teacher-list__modal-backdrop">
           <div className="teacher-list__modal-box" onClick={e => e.stopPropagation()}>
             <h3 className="teacher-list__modal-title">Xác nhận xóa</h3>
             <p className="teacher-list__modal-text">
