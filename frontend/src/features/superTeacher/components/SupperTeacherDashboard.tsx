@@ -1,17 +1,31 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useSuperTeacher } from '../hooks/useSuperTeacher';
 import { useSuperTeacherStudents } from '../hooks/useSuperTeacherStudents';
+import { fetchMyProfile } from '../services/superTeacherApi';
+import type { InstructorProfile } from '../types';
 import './SupperTeacherDashboard.scss';
 
 const MAX_STUDENTS = 40;
 
+const formatDate = (val?: string | null): string => {
+  if (!val) return '—';
+  const d = new Date(val);
+  if (isNaN(d.getTime())) return val;
+  return d.toLocaleDateString('vi-VN');
+};
+
 const SupperTeacherDashboard: React.FC = () => {
   const { teachers, loading: loadingT, loadTeachers } = useSuperTeacher();
   const { students, loading: loadingS, loadStudents } = useSuperTeacherStudents();
+  const [profile, setProfile] = useState<InstructorProfile | null>(null);
   const navigate = useNavigate();
 
-  useEffect(() => { loadTeachers(); loadStudents(); }, [loadTeachers, loadStudents]);
+  useEffect(() => {
+    loadTeachers();
+    loadStudents();
+    fetchMyProfile().then(res => { if (res.EC === 0) setProfile(res.DT); }).catch(() => {});
+  }, [loadTeachers, loadStudents]);
 
   const loading = loadingT || loadingS;
 
@@ -137,6 +151,85 @@ const SupperTeacherDashboard: React.FC = () => {
           </h2>
         </div>
       </section>
+
+      {/* My Profile Card */}
+      {profile && (
+        <section className="st-dashboard__profile">
+          <div className="st-dashboard__profile-header">
+            <div className="st-dashboard__profile-avatar">
+              <span className="material-symbols-outlined">person</span>
+            </div>
+            <div className="st-dashboard__profile-intro">
+              <h3 className="st-dashboard__profile-name">{profile.fullName}</h3>
+              <div className="st-dashboard__profile-meta">
+                {profile.cccd && <span className="st-dashboard__profile-tag"><span className="material-symbols-outlined">fingerprint</span>{profile.cccd}</span>}
+                {profile.gender && <span className="st-dashboard__profile-tag"><span className="material-symbols-outlined">wc</span>{profile.gender}</span>}
+                {profile.dateOfBirth && <span className="st-dashboard__profile-tag"><span className="material-symbols-outlined">cake</span>{formatDate(profile.dateOfBirth)}</span>}
+              </div>
+            </div>
+          </div>
+          <div className="st-dashboard__profile-grid">
+            <div className="st-dashboard__profile-section">
+              <h4><span className="material-symbols-outlined">workspace_premium</span> Giấy chứng nhận</h4>
+              <div className="st-dashboard__profile-fields">
+                <div className="st-dashboard__profile-field">
+                  <span className="st-dashboard__profile-field-label">Số GCN GV</span>
+                  <span className="st-dashboard__profile-field-value">{profile.gcnGvNumber || '—'}</span>
+                </div>
+                <div className="st-dashboard__profile-field">
+                  <span className="st-dashboard__profile-field-label">Số GCN CS</span>
+                  <span className="st-dashboard__profile-field-value">{profile.gcnCsNumber || '—'}</span>
+                </div>
+                <div className="st-dashboard__profile-field">
+                  <span className="st-dashboard__profile-field-label">Ngày cấp GCN</span>
+                  <span className="st-dashboard__profile-field-value">{formatDate(profile.gcnIssueDate)}</span>
+                </div>
+                <div className="st-dashboard__profile-field">
+                  <span className="st-dashboard__profile-field-label">HSD GCN GV</span>
+                  <span className="st-dashboard__profile-field-value">{formatDate(profile.gcnGvExpiry)}</span>
+                </div>
+                <div className="st-dashboard__profile-field">
+                  <span className="st-dashboard__profile-field-label">HSD GCN CS</span>
+                  <span className="st-dashboard__profile-field-value">{formatDate(profile.gcnCsExpiry)}</span>
+                </div>
+              </div>
+            </div>
+            <div className="st-dashboard__profile-section">
+              <h4><span className="material-symbols-outlined">directions_car</span> Giấy phép & Trình độ</h4>
+              <div className="st-dashboard__profile-fields">
+                <div className="st-dashboard__profile-field">
+                  <span className="st-dashboard__profile-field-label">Hạng giảng dạy</span>
+                  <span className="st-dashboard__profile-field-value">{profile.teachingLicenseClass || '—'}</span>
+                </div>
+                <div className="st-dashboard__profile-field">
+                  <span className="st-dashboard__profile-field-label">Số GPLX</span>
+                  <span className="st-dashboard__profile-field-value">{profile.licenseNumber || '—'}</span>
+                </div>
+                <div className="st-dashboard__profile-field">
+                  <span className="st-dashboard__profile-field-label">Hạng GPLX</span>
+                  <span className="st-dashboard__profile-field-value">{profile.licenseClass || '—'}</span>
+                </div>
+                <div className="st-dashboard__profile-field">
+                  <span className="st-dashboard__profile-field-label">Trình độ chuyên môn</span>
+                  <span className="st-dashboard__profile-field-value">{profile.qualification || '—'}</span>
+                </div>
+                <div className="st-dashboard__profile-field">
+                  <span className="st-dashboard__profile-field-label">Trình độ văn hoá</span>
+                  <span className="st-dashboard__profile-field-value">{profile.educationLevel || '—'}</span>
+                </div>
+                <div className="st-dashboard__profile-field">
+                  <span className="st-dashboard__profile-field-label">Thâm niên</span>
+                  <span className="st-dashboard__profile-field-value">{profile.seniority || '—'}</span>
+                </div>
+                <div className="st-dashboard__profile-field">
+                  <span className="st-dashboard__profile-field-label">Xe giảng dạy</span>
+                  <span className="st-dashboard__profile-field-value">{profile.teachingVehicle || '—'}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* Main Grid */}
       <div className="st-dashboard__grid">

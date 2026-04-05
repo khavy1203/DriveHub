@@ -2,7 +2,7 @@ import React, { useEffect, useState, useCallback, useRef, useMemo } from 'react'
 import { createPortal } from 'react-dom';
 import { useAdminFilter } from '../../../features/auth/context/AdminFilterContext';
 import { toast } from 'react-toastify';
-import type { SupperTeacher, SupperTeacherFormData, TeacherInTeam, TeacherFormData } from '../../../features/superTeacher/types';
+import type { SupperTeacher, SupperTeacherFormData, TeacherInTeam, TeacherFormData, InstructorProfile } from '../../../features/superTeacher/types';
 import {
   fetchSupperTeachers,
   createSupperTeacherApi,
@@ -370,6 +370,110 @@ const PromoteModal: React.FC<PromoteModalProps> = ({ teacher, onConfirm, onClose
   );
 };
 
+// ── Profile detail modal ────────────────────────────────────────────────────
+
+type ProfileDetailModalProps = {
+  teacher: SupperTeacher;
+  onClose: () => void;
+};
+
+const formatDate = (val?: string | null): string => {
+  if (!val) return '—';
+  const d = new Date(val);
+  if (isNaN(d.getTime())) return val;
+  return d.toLocaleDateString('vi-VN');
+};
+
+const ProfileField: React.FC<{ icon: string; label: string; value?: string | null }> = ({ icon, label, value }) => (
+  <div className="st-profile__field">
+    <span className="material-icons st-profile__field-icon">{icon}</span>
+    <div>
+      <div className="st-profile__field-label">{label}</div>
+      <div className="st-profile__field-value">{value || '—'}</div>
+    </div>
+  </div>
+);
+
+const ProfileDetailModal: React.FC<ProfileDetailModalProps> = ({ teacher, onClose }) => {
+  const p: InstructorProfile | null = teacher.profile ?? null;
+
+  return (
+    <div className="modal-backdrop" onClick={onClose}>
+      <div className="st-profile-modal" onClick={e => e.stopPropagation()}>
+        <button className="st-profile__close" onClick={onClose}>
+          <span className="material-icons">close</span>
+        </button>
+
+        <div className="st-profile__header">
+          <div className="st-profile__avatar">
+            <span className="material-icons">person</span>
+          </div>
+          <h3 className="st-profile__name">{p?.fullName || teacher.username}</h3>
+          <div className="st-profile__badges">
+            <span className={`badge ${teacher.staffType === 'official' ? 'badge-official' : 'badge-auxiliary'}`}>
+              {teacher.staffType === 'official' ? 'Chính thức' : 'Phụ'}
+            </span>
+            <span className={`badge ${teacher.active ? 'badge-active' : 'badge-inactive'}`}>
+              {teacher.active ? 'Hoạt động' : 'Ngừng'}
+            </span>
+          </div>
+        </div>
+
+        {!p ? (
+          <div className="st-profile__empty">
+            <span className="material-icons">info</span>
+            Chưa có hồ sơ giảng viên. Hãy import dữ liệu từ file Excel.
+          </div>
+        ) : (
+          <div className="st-profile__body">
+            <div className="st-profile__section">
+              <h4 className="st-profile__section-title">
+                <span className="material-icons">badge</span> Thông tin cá nhân
+              </h4>
+              <div className="st-profile__grid">
+                <ProfileField icon="fingerprint" label="Số CCCD" value={p.cccd} />
+                <ProfileField icon="person" label="Họ và tên" value={p.fullName} />
+                <ProfileField icon="wc" label="Giới tính" value={p.gender} />
+                <ProfileField icon="cake" label="Ngày sinh" value={formatDate(p.dateOfBirth)} />
+                <ProfileField icon="home" label="Nơi cư trú" value={p.residence} />
+              </div>
+            </div>
+
+            <div className="st-profile__section">
+              <h4 className="st-profile__section-title">
+                <span className="material-icons">workspace_premium</span> Giấy chứng nhận
+              </h4>
+              <div className="st-profile__grid">
+                <ProfileField icon="description" label="Số GCN giáo viên" value={p.gcnGvNumber} />
+                <ProfileField icon="description" label="Số GCN cơ sở" value={p.gcnCsNumber} />
+                <ProfileField icon="event" label="Ngày cấp GCN" value={formatDate(p.gcnIssueDate)} />
+                <ProfileField icon="event_busy" label="HSD GCN giáo viên" value={formatDate(p.gcnGvExpiry)} />
+                <ProfileField icon="event_busy" label="HSD GCN cơ sở" value={formatDate(p.gcnCsExpiry)} />
+              </div>
+            </div>
+
+            <div className="st-profile__section">
+              <h4 className="st-profile__section-title">
+                <span className="material-icons">directions_car</span> Giấy phép & Trình độ
+              </h4>
+              <div className="st-profile__grid">
+                <ProfileField icon="class" label="Hạng giảng dạy" value={p.teachingLicenseClass} />
+                <ProfileField icon="credit_card" label="Số GPLX" value={p.licenseNumber} />
+                <ProfileField icon="category" label="Hạng GPLX" value={p.licenseClass} />
+                <ProfileField icon="school" label="Trình độ chuyên môn" value={p.qualification} />
+                <ProfileField icon="menu_book" label="Trình độ văn hoá" value={p.educationLevel} />
+                <ProfileField icon="timeline" label="Thâm niên" value={p.seniority} />
+                <ProfileField icon="directions_car" label="Xe giảng dạy" value={p.teachingVehicle} />
+                <ProfileField icon="credit_card" label="Số GPLX" value={p.licenseNumber} />
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
 // ── Main page ────────────────────────────────────────────────────────────────
 
 const SupperTeacherManagement: React.FC = () => {
@@ -403,6 +507,9 @@ const SupperTeacherManagement: React.FC = () => {
 
   // Import modal
   const [showImport, setShowImport] = useState(false);
+
+  // Profile detail modal
+  const [profileTarget, setProfileTarget] = useState<SupperTeacher | null>(null);
 
   // Mobile popup
   const [popupST, setPopupST] = useState<SupperTeacher | null>(null);
@@ -659,6 +766,9 @@ const SupperTeacherManagement: React.FC = () => {
                     </button>
                   </td>
                   <td className="st-actions">
+                    <button className="btn-icon" onClick={() => setProfileTarget(st)} title="Xem hồ sơ">
+                      <span className="material-icons" style={{ fontSize: 18, color: '#0ea5e9' }}>visibility</span>
+                    </button>
                     <button className="btn-icon" onClick={() => openEdit(st)} title="Sửa">✏️</button>
                     <button className="btn-icon" onClick={() => setDemoteTarget(st)} title="Hạ cấp thành giáo viên">
                       <span className="material-icons" style={{ fontSize: 18, color: '#f59e0b' }}>arrow_downward</span>
@@ -866,6 +976,7 @@ const SupperTeacherManagement: React.FC = () => {
         <ImportSupperTeacherModal
           onClose={() => setShowImport(false)}
           onSuccess={load}
+          adminId={selectedAdminId}
         />
       )}
 
@@ -874,6 +985,13 @@ const SupperTeacherManagement: React.FC = () => {
           teacher={promoteTarget}
           onConfirm={handlePromote}
           onClose={() => setPromoteTarget(null)}
+        />
+      )}
+
+      {profileTarget && (
+        <ProfileDetailModal
+          teacher={profileTarget}
+          onClose={() => setProfileTarget(null)}
         />
       )}
 
@@ -919,6 +1037,12 @@ const SupperTeacherManagement: React.FC = () => {
               </div>
             </div>
             <div className="st-popup__actions">
+              <button
+                className="st-popup__btn st-popup__btn--primary"
+                onClick={() => { setPopupST(null); setProfileTarget(popupST); }}
+              >
+                <span className="material-icons" style={{ fontSize: 16 }}>visibility</span> Hồ sơ
+              </button>
               <button
                 className="st-popup__btn st-popup__btn--primary"
                 onClick={() => { setPopupST(null); openEdit(popupST); }}

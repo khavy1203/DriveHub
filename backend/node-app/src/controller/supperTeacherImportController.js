@@ -18,7 +18,7 @@ const resolveAdminId = (req) => {
 export const importSupperTeachers = async (req, res, next) => {
   try {
     const adminId = resolveAdminId(req);
-    if (!adminId) return res.status(400).json({ EC: -1, EM: 'Thiếu adminId', DT: null });
+    if (!adminId) return res.status(400).json({ EC: -1, EM: 'Vui lòng chọn Admin quản lý trước khi import', DT: null });
     if (!req.file) return res.status(400).json({ EC: -1, EM: 'Vui lòng upload file ZIP hoặc RAR', DT: null });
 
     const result = await importSupperTeachersFromZip(req.file.buffer, adminId);

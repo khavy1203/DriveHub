@@ -6,9 +6,10 @@ import type { ImportResult } from '../types';
 type Props = {
   onClose: () => void;
   onSuccess: () => void;
+  adminId?: number | null;
 };
 
-const ImportSupperTeacherModal: React.FC<Props> = ({ onClose, onSuccess }) => {
+const ImportSupperTeacherModal: React.FC<Props> = ({ onClose, onSuccess, adminId }) => {
   const [file, setFile] = useState<File | null>(null);
   const [importing, setImporting] = useState(false);
   const [result, setResult] = useState<ImportResult | null>(null);
@@ -27,7 +28,7 @@ const ImportSupperTeacherModal: React.FC<Props> = ({ onClose, onSuccess }) => {
     setImporting(true);
     setError(null);
     try {
-      const res = await importSupperTeachersApi(file);
+      const res = await importSupperTeachersApi(file, adminId);
       if (res.EC === 0 && res.DT) {
         setResult(res.DT);
         onSuccess();

@@ -52,6 +52,7 @@ export type SupperTeacher = {
   teacherCount: number;
   staffType?: StaffType;
   cccd?: string | null;
+  profile?: InstructorProfile | null;
 };
 
 export type InstructorProfile = {
@@ -73,6 +74,7 @@ export type InstructorProfile = {
   qualification?: string | null;
   educationLevel?: string | null;
   seniority?: string | null;
+  teachingVehicle?: string | null;
   importedAt?: string | null;
 };
 

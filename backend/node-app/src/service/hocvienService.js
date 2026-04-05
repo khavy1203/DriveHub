@@ -361,6 +361,7 @@ const importFromCccd = async (cccd, upstreamDT) => {
           email: null, password: hashed, username: hoTen,
           phone: null, address: diaChi,
           groupId: HOC_VIEN_GROUP_ID, active: 1, thisinhId: null,
+          mustChangePassword: true,
         }, { transaction: t });
         await existingHv.update({ userId: user.id }, { transaction: t });
       }
@@ -371,6 +372,7 @@ const importFromCccd = async (cccd, upstreamDT) => {
         email: null, password: hashed, username: hoTen,
         phone: null, address: diaChi,
         groupId: HOC_VIEN_GROUP_ID, active: 1, thisinhId: null,
+        mustChangePassword: true,
       }, { transaction: t });
 
       hocVien = await db.hoc_vien.create({

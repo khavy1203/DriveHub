@@ -52,6 +52,9 @@ type CccdImportResult = {
 export const importCccdApi = (cccdList: string[]) =>
   axios.post<ApiRes<{ background: boolean; total: number }>>('/api/super-teacher/import-cccd', { cccdList }).then(r => r.data);
 
+export const fetchMyProfile = () =>
+  axios.get<ApiRes<InstructorProfile | null>>('/api/super-teacher/my-profile').then(r => r.data);
+
 export const fetchRatingsOverview = () =>
   axios.get<ApiRes<RatingsOverviewData>>('/api/super-teacher/ratings-overview').then(r => r.data);
 
@@ -97,9 +100,10 @@ export const assignStudentToSTApi = (hocVienId: number, stId: number) =>
 
 // ── Import SupperTeachers from Excel ────────────────────────────────────────
 
-export const importSupperTeachersApi = (file: File) => {
+export const importSupperTeachersApi = (file: File, adminId?: number | null) => {
   const fd = new FormData();
   fd.append('file', file);
+  if (adminId) fd.append('adminId', String(adminId));
   return axios.post<ApiRes<ImportResult>>('/api/admin/supper-teachers/import', fd, {
     headers: { 'Content-Type': 'multipart/form-data' },
     timeout: 120000,

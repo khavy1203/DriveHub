@@ -31,6 +31,7 @@ module.exports = (sequelize, DataTypes) => {
       qualification:        { type: DataTypes.STRING(255), allowNull: true },
       educationLevel:       { type: DataTypes.STRING(255), allowNull: true },
       seniority:            { type: DataTypes.STRING(100), allowNull: true },
+      teachingVehicle:      { type: DataTypes.STRING(100), allowNull: true },
       importedAt:           { type: DataTypes.DATE,        allowNull: true },
     },
     {

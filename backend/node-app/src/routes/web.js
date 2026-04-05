@@ -53,6 +53,7 @@ import {
   uploadZip, importSupperTeachers, downloadTemplate, getInstructorProfile,
 } from "../controller/supperTeacherImportController";
 import {
+  getMyProfile,
   listMyTeachers, addTeacher, editTeacher, removeTeacher,
   listMyStudents, assignStudent, dropStudentHandler, updateStudentHandler, importCccd, ratingsOverview,
   listSupperTeachers, addSupperTeacher, editSupperTeacher, removeSupperTeacher,
@@ -178,6 +179,7 @@ const initWebRoutes = (app) => {
     routes.post('/auth/setup-password', setupPasswordController.setupPassword);
     routes.post('/auth/forgot-password', setupPasswordController.forgotPassword);
     routes.post('/auth/change-password', checkUserJwt, setupPasswordController.changePassword);
+    routes.post('/auth/first-login-setup', checkUserJwt, setupPasswordController.firstLoginSetup);
 
     // GET /account is registered below after JWT layer; checkUserJwt treats GET /account as
     // optional auth (200 + null DT when anonymous) for home / useAuth hydrate.
@@ -273,6 +275,7 @@ const initWebRoutes = (app) => {
     routes.put("/admin/permissions/group-api", setGroupApiPermissions);
 
     // ── SupperTeacher: manage own team ───────────────────────────────────────
+    routes.get('/super-teacher/my-profile', getMyProfile);
     routes.get('/super-teacher/teachers', listMyTeachers);
     routes.post('/super-teacher/teachers', addTeacher);
     routes.put('/super-teacher/teachers/:teacherId', editTeacher);

@@ -275,7 +275,6 @@ export const getAllSupperTeachers = async (adminId = null) => {
     include: [{
       model: db.instructor_profile,
       as: 'instructorProfile',
-      attributes: ['cccd'],
       required: false,
     }],
     order: [['id', 'ASC']],
@@ -284,9 +283,10 @@ export const getAllSupperTeachers = async (adminId = null) => {
   return Promise.all(list.map(async (st) => {
     const plain = st.get({ plain: true });
     const teacherCount = await db.user.count({ where: { groupId: TEACHER_GROUP_ID, superTeacherId: plain.id } });
-    const cccd = plain.instructorProfile?.cccd || null;
+    const profile = plain.instructorProfile || null;
+    const cccd = profile?.cccd || null;
     delete plain.instructorProfile;
-    return { ...plain, teacherCount, cccd };
+    return { ...plain, teacherCount, cccd, profile };
   }));
 };
 

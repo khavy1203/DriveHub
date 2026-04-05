@@ -192,4 +192,70 @@ const changePassword = async (req, res) => {
   }
 };
 
-export default { verifySetupToken, setupPassword, forgotPassword, changePassword };
+/**
+ * POST /api/auth/first-login-setup
+ * For users with mustChangePassword=true. Sets email + new password.
+ */
+const firstLoginSetup = async (req, res) => {
+  const userId = req.user?.id;
+  if (!userId) return res.status(401).json({ EM: 'Chưa đăng nhập', EC: -1, DT: null });
+
+  const { email, newPassword, confirmPassword } = req.body;
+
+  if (!email || !newPassword || !confirmPassword) {
+    return res.status(200).json({ EM: 'Vui lòng điền đầy đủ thông tin', EC: 1, DT: null });
+  }
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    return res.status(200).json({ EM: 'Email không hợp lệ', EC: 1, DT: 'email' });
+  }
+  if (newPassword !== confirmPassword) {
+    return res.status(200).json({ EM: 'Mật khẩu xác nhận không khớp', EC: 1, DT: null });
+  }
+  if (newPassword.length < 6) {
+    return res.status(200).json({ EM: 'Mật khẩu phải ít nhất 6 ký tự', EC: 1, DT: null });
+  }
+
+  try {
+    const user = await db.user.findByPk(userId);
+    if (!user) return res.status(404).json({ EM: 'Không tìm thấy tài khoản', EC: -1, DT: null });
+
+    // Check email uniqueness
+    const emailTaken = await db.user.findOne({
+      where: { email, id: { [Op.ne]: userId } },
+    });
+    if (emailTaken) {
+      return res.status(200).json({ EM: 'Email đã tồn tại trong hệ thống', EC: 1, DT: 'email' });
+    }
+
+    user.email = email;
+    user.password = hashUserPassword(newPassword);
+    user.mustChangePassword = false;
+    await user.save();
+
+    // Re-issue token with new email
+    const groupWithRoles = await getGroupWithRole(user.get({ plain: true }));
+    const token = createJWT({
+      id: user.id,
+      email: user.email,
+      username: user.username,
+      avatarUrl: null,
+      groupWithRoles,
+    });
+
+    return res.status(200).json({
+      EM: 'Thiết lập tài khoản thành công',
+      EC: 0,
+      DT: {
+        access_token: token,
+        groupWithRoles,
+        email: user.email,
+        username: user.username,
+      },
+    });
+  } catch (e) {
+    console.error('[firstLoginSetup]', e);
+    return res.status(500).json({ EM: 'Lỗi server', EC: -1, DT: null });
+  }
+};
+
+export default { verifySetupToken, setupPassword, forgotPassword, changePassword, firstLoginSetup };

@@ -33,6 +33,15 @@ const handleError = (res, err, next) => {
 
 // ── SupperTeacher self-management endpoints ──────────────────────────────────
 
+export const getMyProfile = async (req, res, next) => {
+  try {
+    const userId = req.user?.id;
+    if (!userId) return res.status(401).json({ EC: -1, EM: 'Không xác thực', DT: null });
+    const profile = await db.instructor_profile.findOne({ where: { userId } });
+    return res.json({ EC: 0, EM: 'OK', DT: profile ? profile.get({ plain: true }) : null });
+  } catch (err) { next(err); }
+};
+
 export const listMyTeachers = async (req, res, next) => {
   try {
     const superTeacherId = req.user?.id;

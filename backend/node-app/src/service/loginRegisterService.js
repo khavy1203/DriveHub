@@ -177,6 +177,7 @@ const loginUserService = async (rawUserAccount) => {
                 email: user.email,
                 username: user.username,
                 avatarUrl: resolveAvatarUrl(user),
+                mustChangePassword: !!user.mustChangePassword,
             },
         };
     } catch (e) {

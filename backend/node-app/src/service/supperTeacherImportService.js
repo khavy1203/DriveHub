@@ -70,40 +70,87 @@ const extractHyperlink = (cell) => {
 };
 
 /**
- * Parse one row into a profile data object.
- * Columns: A=STT, B=name, C=gender, D=dob, E=cccd, F=phone, G=address,
- * H=gcnGv, I=gcnCs, J=issueDate, K=gcnGvExp, L=gcnCsExp, M=skip,
- * N=teachingLC, O=licenseNumber, P=licenseClass, Q=skip, R=qualification,
- * S=educationLevel, T=seniority, U=avatar
+ * Match a header cell text to a known profile field.
+ * More specific patterns are tested first to avoid false matches.
  */
-const parseRow = (row, sheet, rowIdx) => {
-  const cccd = cellStr(row['E']);
-  const fullName = cellStr(row['B']);
+const matchHeader = (text) => {
+  if (!text) return null;
+  const h = text.toLowerCase().replace(/\s+/g, ' ').trim();
+
+  if (/số\s*cccd|cccd|cmt|hộ\s*chiếu/.test(h)) return 'cccd';
+  if (/họ\s*(và\s*)?tên/.test(h)) return 'fullName';
+  if (/giới\s*tính/.test(h)) return 'gender';
+  if (/ngày\s*sinh/.test(h)) return 'dateOfBirth';
+  if (/điện\s*thoại|sđt|phone/.test(h)) return 'phone';
+  if (/nơi\s*cư\s*trú|địa\s*chỉ/.test(h)) return 'address';
+  if (/số\s*gcn\s*gv/.test(h)) return 'gcnGvNumber';
+  if (/số\s*gcn\s*cs/.test(h)) return 'gcnCsNumber';
+  if (/ngày\s*cấp.*gcn/.test(h)) return 'gcnIssueDate';
+  if (/hết\s*hạn.*gcn\s*gv|hạn.*gcn\s*gv/.test(h)) return 'gcnGvExpiry';
+  if (/hết\s*hạn.*gcn\s*cs|hạn.*gcn\s*cs/.test(h)) return 'gcnCsExpiry';
+  if (/hạng\s*gplx\s*được\s*phép|hạng.*đào\s*tạo/.test(h)) return 'teachingLicenseClass';
+  if (/số\s*gplx/.test(h)) return 'licenseNumber';
+  if (/hạng\s*gplx(?!\s*được)/.test(h)) return 'licenseClass';
+  if (/trình\s*độ\s*chuyên/.test(h)) return 'qualification';
+  if (/trình\s*độ\s*văn/.test(h)) return 'educationLevel';
+  if (/^thâm\s*niên$/.test(h)) return 'seniority';
+  if (/xe\s*giảng\s*dạy/.test(h)) return 'teachingVehicle';
+  if (/ảnh/.test(h)) return 'avatarLink';
+
+  return null;
+};
+
+/**
+ * Scan the header row and build a map: { fieldName: columnLetter }.
+ */
+const buildColumnMap = (sheet, headerRowIdx) => {
+  const range = XLSX.utils.decode_range(sheet['!ref'] || 'A1');
+  const map = {};
+  for (let c = range.s.c; c <= range.e.c; c++) {
+    const cellRef = XLSX.utils.encode_cell({ r: headerRowIdx, c });
+    const val = cellStr(sheet[cellRef]?.v);
+    const field = matchHeader(val);
+    if (field && !map[field]) {
+      map[field] = XLSX.utils.encode_col(c);
+    }
+  }
+  return map;
+};
+
+/**
+ * Parse one row using the dynamic column map.
+ */
+const parseRow = (row, sheet, rowIdx, colMap) => {
+  const cccd = colMap.cccd ? cellStr(row[colMap.cccd]) : null;
+  const fullName = colMap.fullName ? cellStr(row[colMap.fullName]) : null;
   if (!cccd || !fullName) return null;
 
-  // Avatar: try to get hyperlink from sheet
-  const avatarCellRef = `U${rowIdx}`;
-  const avatarCell = sheet[avatarCellRef];
-  const avatarLink = extractHyperlink(avatarCell);
+  const avatarCol = colMap.avatarLink;
+  let avatarLink = null;
+  if (avatarCol) {
+    const avatarCellRef = `${avatarCol}${rowIdx}`;
+    avatarLink = extractHyperlink(sheet[avatarCellRef]);
+  }
 
   return {
     cccd,
     fullName,
-    gender: cellStr(row['C']),
-    dateOfBirth: parseExcelDate(row['D']),
-    phone: cellStr(row['F']),
-    address: cellStr(row['G']),
-    gcnGvNumber: cellStr(row['H']),
-    gcnCsNumber: cellStr(row['I']),
-    gcnIssueDate: parseExcelDate(row['J']),
-    gcnGvExpiry: parseExcelDate(row['K']),
-    gcnCsExpiry: parseExcelDate(row['L']),
-    teachingLicenseClass: cellStr(row['N']),
-    licenseNumber: cellStr(row['O']),
-    licenseClass: cellStr(row['P']),
-    qualification: cellStr(row['R']),
-    educationLevel: cellStr(row['S']),
-    seniority: cellStr(row['T']),
+    gender: colMap.gender ? cellStr(row[colMap.gender]) : null,
+    dateOfBirth: colMap.dateOfBirth ? parseExcelDate(row[colMap.dateOfBirth]) : null,
+    phone: colMap.phone ? cellStr(row[colMap.phone]) : null,
+    address: colMap.address ? cellStr(row[colMap.address]) : null,
+    gcnGvNumber: colMap.gcnGvNumber ? cellStr(row[colMap.gcnGvNumber]) : null,
+    gcnCsNumber: colMap.gcnCsNumber ? cellStr(row[colMap.gcnCsNumber]) : null,
+    gcnIssueDate: colMap.gcnIssueDate ? parseExcelDate(row[colMap.gcnIssueDate]) : null,
+    gcnGvExpiry: colMap.gcnGvExpiry ? parseExcelDate(row[colMap.gcnGvExpiry]) : null,
+    gcnCsExpiry: colMap.gcnCsExpiry ? parseExcelDate(row[colMap.gcnCsExpiry]) : null,
+    teachingLicenseClass: colMap.teachingLicenseClass ? cellStr(row[colMap.teachingLicenseClass]) : null,
+    licenseNumber: colMap.licenseNumber ? cellStr(row[colMap.licenseNumber]) : null,
+    licenseClass: colMap.licenseClass ? cellStr(row[colMap.licenseClass]) : null,
+    qualification: colMap.qualification ? cellStr(row[colMap.qualification]) : null,
+    educationLevel: colMap.educationLevel ? cellStr(row[colMap.educationLevel]) : null,
+    seniority: colMap.seniority ? cellStr(row[colMap.seniority]) : null,
+    teachingVehicle: colMap.teachingVehicle ? cellStr(row[colMap.teachingVehicle]) : null,
     avatarLink,
   };
 };
@@ -155,29 +202,36 @@ export const importSupperTeachersFromZip = async (archiveBuffer, adminId) => {
   const range = XLSX.utils.decode_range(sheet['!ref'] || 'A1');
 
   // Find header row (first row with "CCCD" or "Họ và tên")
-  let headerRowIdx = 1;
+  let headerRow = -1;
   for (let r = range.s.r; r <= Math.min(range.s.r + 5, range.e.r); r++) {
     for (let c = range.s.c; c <= range.e.c; c++) {
       const cellRef = XLSX.utils.encode_cell({ r, c });
       const v = cellStr(sheet[cellRef]?.v);
       if (v && /cccd|cmt|hộ chiếu/i.test(v)) {
-        headerRowIdx = r + 2; // data starts after header (1-indexed in sheet = r+1, data = r+2)
+        headerRow = r;
         break;
       }
     }
-    if (headerRowIdx > 1) break;
+    if (headerRow >= 0) break;
+  }
+  if (headerRow < 0) headerRow = 0;
+
+  // Build dynamic column map from actual header text
+  const colMap = buildColumnMap(sheet, headerRow);
+  if (!colMap.cccd || !colMap.fullName) {
+    throw Object.assign(new Error('File Excel thiếu cột CCCD hoặc Họ tên'), { code: 'EMPTY_DATA' });
   }
 
-  // Parse rows using column letters
+  // Parse data rows (starting after header)
   const rows = [];
-  for (let r = headerRowIdx - 1; r <= range.e.r; r++) {
+  for (let r = headerRow + 1; r <= range.e.r; r++) {
     const rowObj = {};
     for (let c = range.s.c; c <= range.e.c; c++) {
       const cellRef = XLSX.utils.encode_cell({ r, c });
       const col = XLSX.utils.encode_col(c);
       rowObj[col] = sheet[cellRef]?.v;
     }
-    const parsed = parseRow(rowObj, sheet, r + 1);
+    const parsed = parseRow(rowObj, sheet, r + 1, colMap);
     if (parsed) {
       rows.push({ ...parsed, excelRow: r + 1 });
     }
@@ -255,6 +309,7 @@ export const importSupperTeachersFromZip = async (archiveBuffer, adminId) => {
             adminId,
             active: 1,
             staffType: 'official',
+            mustChangePassword: true,
             image: resolveAvatarBuffer(row.avatarLink, avatarMap) || null,
           }, { transaction });
 
@@ -352,6 +407,7 @@ const buildProfileData = (row) => {
   if (row.qualification != null) data.qualification = row.qualification;
   if (row.educationLevel != null) data.educationLevel = row.educationLevel;
   if (row.seniority != null) data.seniority = row.seniority;
+  if (row.teachingVehicle != null) data.teachingVehicle = row.teachingVehicle;
   return data;
 };
 
@@ -362,17 +418,17 @@ export const generateTemplate = () => {
   const headers = [
     'STT', 'Họ và tên', 'Giới tính', 'Ngày sinh', 'Số CCCD/CMT/Hộ chiếu',
     'Điện thoại', 'Nơi cư trú', 'Số GCN GV', 'Số GCN CS',
-    'Ngày cấp', 'Ngày hết hạn GCN GV', 'Ngày hết hạn GCN CS',
-    '(Bỏ qua)', 'Hạng GPLX được phép dạy', 'Số GPLX', 'Hạng GPLX',
-    '(Bỏ qua)', 'Trình độ chuyên môn', 'Trình độ văn hóa', 'Thâm niên',
+    'Ngày cấp GCN', 'Ngày hết hạn GCN GV', 'Ngày hết hạn GCN CS',
+    'Hạng GPLX được phép đào tạo', 'Số GPLX', 'Hạng GPLX',
+    'Trình độ chuyên môn', 'Trình độ văn hóa', 'Thâm niên',
     'Ảnh giáo viên',
   ];
   const sampleRow = [
     1, 'Nguyễn Văn A', 'Nam', '15/06/1985', '079012345678',
     '0901234567', 'TP.HCM', 'GV-001', 'CS-001',
     '01/01/2020', '01/01/2025', '01/01/2025',
-    '', 'B1, B2', 'GP-123456', 'B2',
-    '', 'Đại học', '12/12', '10 năm',
+    'B1, B2', 'GP-123456', 'B2',
+    'Đại học', '12/12', '10 năm',
     'avatar/nguyen_van_a.jpg',
   ];
 

@@ -10,6 +10,7 @@ import { useApi } from '../../../shared/hooks/useApi';
 import { useAuth } from '../hooks/useAuth';
 import { ApiResponseLogin } from '../../../core/types/api.types';
 import { AUTH_ENDPOINTS } from '../services/authApi';
+import FirstLoginSetup from './FirstLoginSetup';
 import '../../../assets/css_login/main.css';
 
 export const LoginForm: React.FC = () => {
@@ -20,6 +21,7 @@ export const LoginForm: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(false);
   const [isMezonLoading, setIsMezonLoading] = useState<boolean>(false);
   const [showPassword, setShowPassword] = useState<boolean>(false);
+  const [firstLoginData, setFirstLoginData] = useState<{ token: string; username: string } | null>(null);
   const { setAuth, isAuthenticated, isAuthLoading } = useAuth();
   const popupRef = useRef<Window | null>(null);
 
@@ -180,10 +182,15 @@ export const LoginForm: React.FC = () => {
       });
 
       if (response.EC === 0) {
+        const dt = response.DT as typeof response.DT & { mustChangePassword?: boolean };
+        if (dt.mustChangePassword) {
+          setFirstLoginData({ token: dt.access_token, username: dt.username });
+          return;
+        }
         toast.success('Đăng nhập thành công!');
-        const token = response.DT.access_token;
-        const role = response.DT.groupWithRoles.name || 'User';
-        setAuth(token, role, response.DT.username, response.DT.avatarUrl || null, response.DT.userId ?? null);
+        const token = dt.access_token;
+        const role = dt.groupWithRoles.name || 'User';
+        setAuth(token, role, dt.username, dt.avatarUrl || null, dt.userId ?? null);
         navigate('/dashboard');
       } else {
         toast.error(response.EM || 'Đăng nhập thất bại!');
@@ -195,6 +202,23 @@ export const LoginForm: React.FC = () => {
       setLoading(false);
     }
   };
+
+  const handleFirstLoginComplete = (data: { access_token: string; email: string; username: string; groupWithRoles: { name: string } }) => {
+    const role = data.groupWithRoles.name || 'User';
+    setAuth(data.access_token, role, data.username);
+    setFirstLoginData(null);
+    navigate('/dashboard');
+  };
+
+  if (firstLoginData) {
+    return (
+      <FirstLoginSetup
+        username={firstLoginData.username}
+        token={firstLoginData.token}
+        onComplete={handleFirstLoginComplete}
+      />
+    );
+  }
 
   return (
     <div className="lf-page">
