@@ -2,7 +2,7 @@ import cron from 'node-cron';
 import { syncAllIncomplete } from '../service/trainingSyncService.js';
 import { isTrainingApiConfigured } from '../service/trainingPortalService.js';
 
-cron.schedule('0 */3 * * *', async () => {
+cron.schedule('0 */5 * * *', async () => {
   if (!isTrainingApiConfigured()) {
     console.log('[TrainingSync] TRAINING_API_BASE_URL not set, skipping cron');
     return;
@@ -18,4 +18,4 @@ cron.schedule('0 */3 * * *', async () => {
   }
 });
 
-console.log('[TrainingSync] Scheduler registered (every 3 hours)');
+console.log('[TrainingSync] Scheduler registered (every 5 hours)');

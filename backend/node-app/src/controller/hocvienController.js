@@ -56,6 +56,15 @@ const deleteHocVien = async (req, res) => {
   return res.status(result.EC === -1 ? 500 : 200).json(result);
 };
 
+const bulkDeleteHocVien = async (req, res) => {
+  const { ids } = req.body;
+  if (!Array.isArray(ids) || ids.length === 0) {
+    return res.status(400).json({ EM: 'Danh sách ID không hợp lệ', EC: -1, DT: null });
+  }
+  const result = await hocvienService.bulkDeleteHocVien(ids.map(Number));
+  return res.status(result.EC === -1 ? 500 : 200).json(result);
+};
+
 const sendCredentials = async (req, res) => {
   const { hocVienId, toEmail, hoTen, username, password } = req.body;
   if (!hocVienId || !toEmail || !username || !password) {
@@ -105,4 +114,4 @@ const updateOwnProfile = async (req, res) => {
   return res.status(result.EC === 0 ? 200 : 500).json(result);
 };
 
-export default { registerStudent, listHocVien, deleteHocVien, getPortalData, sendCredentials, uploadAvatar, updateHocVienInfo, resetPassword, updateOwnProfile };
+export default { registerStudent, listHocVien, deleteHocVien, bulkDeleteHocVien, getPortalData, sendCredentials, uploadAvatar, updateHocVienInfo, resetPassword, updateOwnProfile };

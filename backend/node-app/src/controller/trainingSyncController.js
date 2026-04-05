@@ -3,6 +3,8 @@ import { verifyToken } from '../middleware/JWTaction.js';
 import {
   syncOneStudent,
   syncAllIncomplete,
+  syncBySupperTeacher,
+  syncByAdmin,
   importAndSyncByCccdList,
   getSnapshotByCccd,
   isSnapshotStale,
@@ -12,6 +14,7 @@ import { getTrainingApiDebugMeta, isTrainingApiConfigured, isTrainingApiConfigur
 
 const ALLOWED_GROUPS = new Set(['HocVien', 'GiaoVien', 'SupperTeacher', 'Admin', 'SupperAdmin']);
 const ADMIN_GROUPS = new Set(['Admin', 'SupperAdmin']);
+const SYNC_ALLOWED_GROUPS = new Set(['SupperTeacher', 'Admin', 'SupperAdmin']);
 
 const resolveTokenContext = (req) => {
   const token =
@@ -122,7 +125,9 @@ export const getTrainingStudentCached = async (req, res) => {
 
 /**
  * POST /api/training/sync-all
- * Admin only — triggers full sync for all incomplete students.
+ * SupperTeacher: syncs their own learning students.
+ * Admin: syncs learning students under their STs.
+ * SupperAdmin: syncs all learning students with a ST.
  */
 export const triggerSyncAll = async (req, res) => {
   try {
@@ -132,13 +137,24 @@ export const triggerSyncAll = async (req, res) => {
     }
 
     const groupName = decoded.groupWithRoles?.name;
-    if (!groupName || !ADMIN_GROUPS.has(groupName)) {
-      return res.status(403).json({ EC: -1, EM: 'Chỉ Admin có quyền thực hiện', DT: null });
+    if (!groupName || !SYNC_ALLOWED_GROUPS.has(groupName)) {
+      return res.status(403).json({ EC: -1, EM: 'Không có quyền thực hiện', DT: null });
     }
 
-    syncAllIncomplete().catch((err) => {
-      console.error('[training/sync-all] Background error:', err.message);
-    });
+    if (groupName === 'SupperTeacher') {
+      syncBySupperTeacher(decoded.id).catch((err) => {
+        console.error('[training/sync-all] ST background error:', err.message);
+      });
+    } else if (groupName === 'Admin') {
+      syncByAdmin(decoded.id).catch((err) => {
+        console.error('[training/sync-all] Admin background error:', err.message);
+      });
+    } else {
+      // SupperAdmin — sync all
+      syncAllIncomplete().catch((err) => {
+        console.error('[training/sync-all] Background error:', err.message);
+      });
+    }
 
     return res.json({ EC: 0, EM: 'Đồng bộ đã bắt đầu', DT: null });
   } catch (err) {

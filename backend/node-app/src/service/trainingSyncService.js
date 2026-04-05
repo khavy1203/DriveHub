@@ -254,6 +254,9 @@ export const syncOneStudent = async (hocVienId) => {
   }
 };
 
+/**
+ * Auto-sync: only students who are actively learning AND belong to a SupperTeacher.
+ */
 export const syncAllIncomplete = async () => {
   if (!isTrainingApiConfigured()) {
     console.log('[TrainingSync] TRAINING_API_BASE_URL not configured, skipping');
@@ -266,6 +269,8 @@ export const syncAllIncomplete = async () => {
   const students = await db.hoc_vien.findAll({
     where: {
       SoCCCD: { [Op.and]: [{ [Op.ne]: null }, { [Op.ne]: '' }] },
+      superTeacherId: { [Op.ne]: null },
+      status: { [Op.in]: ['registered', 'assigned', 'learning'] },
     },
     include: [
       {
@@ -298,6 +303,113 @@ export const syncAllIncomplete = async () => {
 
   const elapsed = Date.now() - start;
   console.log(`[TrainingSync] Complete: ${success} ok, ${error} fail, ${skipped} skip, ${elapsed}ms`);
+  return { success, error, skipped, elapsed };
+};
+
+/**
+ * Manual sync scoped to a specific SupperTeacher's learning students.
+ * @param {number} superTeacherId
+ */
+export const syncBySupperTeacher = async (superTeacherId) => {
+  const start = Date.now();
+  logSyncDebug('syncBySupperTeacher started', { superTeacherId });
+
+  const students = await db.hoc_vien.findAll({
+    where: {
+      SoCCCD: { [Op.and]: [{ [Op.ne]: null }, { [Op.ne]: '' }] },
+      superTeacherId,
+      status: { [Op.in]: ['registered', 'assigned', 'learning'] },
+    },
+    include: [
+      {
+        model: db.student_assignment,
+        as: 'assignment',
+        required: false,
+        where: { role: 'primary' },
+      },
+    ],
+  });
+
+  const eligible = students.filter(
+    (s) => !s.assignment || s.assignment.status !== 'completed',
+  );
+
+  let success = 0;
+  let error = 0;
+  let skipped = 0;
+
+  for (const s of eligible) {
+    const cccd = (s.SoCCCD || '').trim();
+    if (!cccd) { skipped++; continue; }
+
+    const result = await syncOneStudent(s.id);
+    if (result.ok) success++;
+    else error++;
+
+    await sleep(SYNC_DELAY_MS);
+  }
+
+  const elapsed = Date.now() - start;
+  console.log(`[TrainingSync] ST=${superTeacherId}: ${success} ok, ${error} fail, ${skipped} skip, ${elapsed}ms`);
+  return { success, error, skipped, elapsed };
+};
+
+/**
+ * Manual sync scoped to all learning students under an Admin's SupperTeachers.
+ * @param {number} adminId
+ */
+export const syncByAdmin = async (adminId) => {
+  const start = Date.now();
+  logSyncDebug('syncByAdmin started', { adminId });
+
+  // Find all STs under this admin
+  const stIds = await db.user.findAll({
+    where: { groupId: 6, adminId },
+    attributes: ['id'],
+    raw: true,
+  }).then(rows => rows.map(r => r.id));
+
+  if (stIds.length === 0) {
+    return { success: 0, error: 0, skipped: 0, elapsed: Date.now() - start };
+  }
+
+  const students = await db.hoc_vien.findAll({
+    where: {
+      SoCCCD: { [Op.and]: [{ [Op.ne]: null }, { [Op.ne]: '' }] },
+      superTeacherId: { [Op.in]: stIds },
+      status: { [Op.in]: ['registered', 'assigned', 'learning'] },
+    },
+    include: [
+      {
+        model: db.student_assignment,
+        as: 'assignment',
+        required: false,
+        where: { role: 'primary' },
+      },
+    ],
+  });
+
+  const eligible = students.filter(
+    (s) => !s.assignment || s.assignment.status !== 'completed',
+  );
+
+  let success = 0;
+  let error = 0;
+  let skipped = 0;
+
+  for (const s of eligible) {
+    const cccd = (s.SoCCCD || '').trim();
+    if (!cccd) { skipped++; continue; }
+
+    const result = await syncOneStudent(s.id);
+    if (result.ok) success++;
+    else error++;
+
+    await sleep(SYNC_DELAY_MS);
+  }
+
+  const elapsed = Date.now() - start;
+  console.log(`[TrainingSync] Admin=${adminId}: ${success} ok, ${error} fail, ${skipped} skip, ${elapsed}ms`);
   return { success, error, skipped, elapsed };
 };
 

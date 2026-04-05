@@ -187,6 +187,45 @@ const deleteHocVien = async (id) => {
   }
 };
 
+// ── Bulk delete học viên (kèm tất cả dữ liệu liên quan) ─────────────────────
+const bulkDeleteHocVien = async (ids) => {
+  if (!Array.isArray(ids) || ids.length === 0) {
+    return { EM: 'Danh sách rỗng', EC: -1, DT: null };
+  }
+  const t = await db.sequelize.transaction();
+  try {
+    const hocViens = await db.hoc_vien.findAll({ where: { id: ids }, transaction: t });
+    if (hocViens.length === 0) {
+      await t.rollback();
+      return { EM: 'Không tìm thấy học viên nào', EC: 1, DT: null };
+    }
+
+    const hocVienIds = hocViens.map(h => h.id);
+    const userIds = hocViens.map(h => h.userId).filter(Boolean);
+
+    // Delete all related data
+    await db.student_assignment.destroy({ where: { hocVienId: hocVienIds }, transaction: t });
+    await db.training_snapshot.destroy({ where: { hocVienId: hocVienIds }, transaction: t });
+    await db.teacher_rating.destroy({ where: { hocVienId: hocVienIds }, transaction: t });
+    await db.kqsh_thisinh.destroy({ where: { hocVienId: hocVienIds }, transaction: t });
+
+    // Delete hoc_vien records
+    await db.hoc_vien.destroy({ where: { id: hocVienIds }, transaction: t });
+
+    // Delete linked user accounts
+    if (userIds.length > 0) {
+      await db.user.destroy({ where: { id: userIds }, transaction: t });
+    }
+
+    await t.commit();
+    return { EM: `Đã xoá ${hocViens.length} học viên`, EC: 0, DT: { deleted: hocViens.length } };
+  } catch (e) {
+    await t.rollback();
+    console.error('[hocvienService.bulkDeleteHocVien]', e);
+    return { EM: 'Lỗi server', EC: -1, DT: null };
+  }
+};
+
 // ── Student portal — data for the logged-in student ───────────────────────────
 const getPortalData = async (userId) => {
   try {
@@ -401,4 +440,4 @@ const updateAvatar = async (userId, avatarUrl) => {
   }
 };
 
-export default { registerStudent, listByKhoaHoc, deleteHocVien, getPortalData, updateAvatar, updateHocVienInfo, adminResetPassword, importFromCccd, updateOwnProfile };
+export default { registerStudent, listByKhoaHoc, deleteHocVien, bulkDeleteHocVien, getPortalData, updateAvatar, updateHocVienInfo, adminResetPassword, importFromCccd, updateOwnProfile };

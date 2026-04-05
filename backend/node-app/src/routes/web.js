@@ -224,6 +224,7 @@ const initWebRoutes = (app) => {
     routes.put("/hocvien/:id", hocvienController.updateHocVienInfo);
     routes.put("/hocvien/:id/reset-password", hocvienController.resetPassword);
     routes.delete("/hocvien/:id", hocvienController.deleteHocVien);
+    routes.post("/hocvien/bulk-delete", hocvienController.bulkDeleteHocVien);
     routes.get("/hocvien/portal/me", hocvienController.getPortalData);
     routes.put("/hocvien/portal/profile", hocvienController.updateOwnProfile);
     routes.post("/hocvien/portal/avatar", uploadStudentAvatar.single('avatar'), hocvienController.uploadAvatar);
@@ -305,7 +306,7 @@ const initWebRoutes = (app) => {
     routes.get("/training/student-cached", getTrainingStudentCached);
     routes.get("/training/avatar", getTrainingAvatar);
     routes.get("/training/session-detail", getTrainingSessionDetail);
-    routes.post("/training/sync-all", requireAdminOrAbove, triggerSyncAll);
+    routes.post("/training/sync-all", triggerSyncAll);
     routes.post("/training/import-cccd", importByCccdList);
     routes.get("/training/sync-status", getTrainingSyncStatus);
 

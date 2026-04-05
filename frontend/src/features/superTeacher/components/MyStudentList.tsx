@@ -2,6 +2,7 @@ import React, { useEffect, useState, useMemo, useCallback } from 'react';
 import { toast } from 'react-toastify';
 import { useSuperTeacherStudents } from '../hooks/useSuperTeacherStudents';
 import { useSuperTeacher } from '../hooks/useSuperTeacher';
+import useApiService from '../../../services/useApiService';
 import TrainingDetailModal from './TrainingDetailModal';
 import StudentEditModal from './StudentEditModal';
 import ImportCccdModal from './ImportCccdModal';
@@ -20,11 +21,14 @@ const getInitials = (name: string): string => {
 const MyStudentList: React.FC = () => {
   const { students, loading, loadStudents, assignStudent, removeStudent, updateStudent } = useSuperTeacherStudents();
   const { teachers, loadTeachers } = useSuperTeacher();
+  const { post } = useApiService();
 
   const [search, setSearch] = useState('');
   const [filterTeacherId, setFilterTeacherId] = useState<number | ''>('');
   const [filterStatus, setFilterStatus] = useState('');
   const [page, setPage] = useState(1);
+
+  const [syncing, setSyncing] = useState(false);
 
   const [selectedTeacherId, setSelectedTeacherId] = useState<number | ''>('');
   const [assigning, setAssigning] = useState(false);
@@ -199,6 +203,23 @@ const MyStudentList: React.FC = () => {
     }
   };
 
+  const handleSyncTraining = async () => {
+    setSyncing(true);
+    try {
+      const res = await post<{ EC: number; EM: string }>('/api/training/sync-all', {});
+      if (res.EC === 0) {
+        toast.success('Đồng bộ đã bắt đầu. Dữ liệu sẽ được cập nhật trong vài phút...');
+        setTimeout(() => loadStudents(), 10000);
+      } else {
+        toast.error(res.EM || 'Lỗi khi bắt đầu đồng bộ');
+      }
+    } catch {
+      toast.error('Lỗi kết nối server');
+    } finally {
+      setSyncing(false);
+    }
+  };
+
   const handleDetailAssign = async (hocVienId: number, teacherId: number) => {
     await assignStudent(hocVienId, teacherId);
   };
@@ -223,6 +244,17 @@ const MyStudentList: React.FC = () => {
           <p className="student-list__subtitle">Quản lý danh sách đào tạo và tiến độ học tập</p>
         </div>
         <div className="student-list__header-actions">
+          <button
+            className="student-list__sync-btn"
+            onClick={handleSyncTraining}
+            disabled={syncing}
+            title="Đồng bộ dữ liệu tiến độ từ hệ thống CSĐT"
+          >
+            <span className={`material-symbols-outlined${syncing ? ' student-list__spin' : ''}`}>
+              {syncing ? 'sync' : 'cloud_download'}
+            </span>
+            {syncing ? 'Đang đồng bộ...' : 'Đồng bộ CSĐT'}
+          </button>
           <button className="student-list__import-btn" onClick={() => setShowImport(true)}>
             <span className="material-symbols-outlined">cloud_upload</span>
             Import CCCD

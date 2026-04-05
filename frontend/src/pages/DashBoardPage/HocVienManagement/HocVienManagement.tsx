@@ -136,6 +136,10 @@ const HocVienManagement: React.FC = () => {
   const [bulkSaving, setBulkSaving] = useState(false);
   const [bulkConfirmOpen, setBulkConfirmOpen] = useState(false);
 
+  // Bulk delete state
+  const [bulkDeleteOpen, setBulkDeleteOpen] = useState(false);
+  const [bulkDeleting, setBulkDeleting] = useState(false);
+
   const fetchData = useCallback(() => {
     setLoadingData(true);
     const url = selectedAdminId ? `/api/hocvien?filterAdminId=${selectedAdminId}` : '/api/hocvien';
@@ -271,6 +275,29 @@ const HocVienManagement: React.FC = () => {
       toast.success(`Đã phân công thành công ${ids.length} học viên.`);
     } finally {
       setBulkSaving(false);
+    }
+  };
+
+  const runBulkDelete = async () => {
+    if (bulkSelected.size === 0) return;
+    setBulkDeleting(true);
+    try {
+      const res = await post<{ EC: number; EM: string; DT: { deleted: number } | null }>('/api/hocvien/bulk-delete', {
+        ids: [...bulkSelected],
+      });
+      if (res.EC === 0) {
+        toast.success(res.EM || `Đã xoá ${res.DT?.deleted ?? bulkSelected.size} học viên`);
+        setBulkSelected(new Set());
+        setBulkDeleteOpen(false);
+        if (modalItem && bulkSelected.has(modalItem.id)) setModalItem(null);
+        await fetchData();
+      } else {
+        toast.error(res.EM || 'Lỗi khi xoá');
+      }
+    } catch {
+      // httpClient handles toast
+    } finally {
+      setBulkDeleting(false);
     }
   };
 
@@ -896,6 +923,15 @@ const HocVienManagement: React.FC = () => {
             <span className="material-icons">assignment_turned_in</span>
             {role === 'Admin' ? `Gán ${bulkSelected.size} HV cho ST` : `Assign ${bulkSelected.size} học viên`}
           </button>
+          <button
+            type="button"
+            className="hvm__bulk-cta hvm__bulk-cta--danger"
+            disabled={bulkDeleting}
+            onClick={() => setBulkDeleteOpen(true)}
+          >
+            <span className="material-icons">delete_sweep</span>
+            Xoá {bulkSelected.size} học viên
+          </button>
         </div>
       )}
 
@@ -927,6 +963,56 @@ const HocVienManagement: React.FC = () => {
                 {bulkSaving
                   ? <><span className="material-icons hvm__spin">sync</span>Đang xử lý...</>
                   : <><span className="material-icons">assignment_turned_in</span>Xác nhận Assign</>
+                }
+              </button>
+            </div>
+          </div>
+        </div>,
+        document.body
+      )}
+
+      {/* Bulk Delete Confirm Modal */}
+      {bulkDeleteOpen && createPortal(
+        <div className="hvm__overlay hvm__overlay--above">
+          <div className="hvm__modal" onClick={e => e.stopPropagation()}>
+            <div className="hvm__modal-header">
+              <div>
+                <h3>Xác nhận xoá hàng loạt</h3>
+                <p className="hvm__modal-subtitle hvm__modal-subtitle--danger">
+                  Xoá <strong>{bulkSelected.size}</strong> học viên và toàn bộ dữ liệu liên quan
+                </p>
+              </div>
+              <button className="hvm__modal-close" onClick={() => setBulkDeleteOpen(false)}>
+                <span className="material-icons">close</span>
+              </button>
+            </div>
+            <div className="hvm__modal-body">
+              <div className="hvm__bulk-delete-warn">
+                <span className="material-icons">warning</span>
+                <div>
+                  <p><strong>Thao tác này không thể hoàn tác!</strong></p>
+                  <p>Sẽ xoá toàn bộ: tài khoản, phân công giáo viên, tiến độ đào tạo, kết quả sát hạch, đánh giá của {bulkSelected.size} học viên đã chọn.</p>
+                </div>
+              </div>
+              <div className="hvm__bulk-delete-list">
+                {bulkSelectedStudents.slice(0, 10).map(s => (
+                  <div key={s.id} className="hvm__bulk-delete-item">
+                    <span className="material-icons">person</span>
+                    <span>{s.HoTen}</span>
+                    {s.SoCCCD && <span className="hvm__bulk-delete-cccd">{s.SoCCCD}</span>}
+                  </div>
+                ))}
+                {bulkSelectedStudents.length > 10 && (
+                  <p className="hvm__bulk-delete-more">...và {bulkSelectedStudents.length - 10} học viên khác</p>
+                )}
+              </div>
+            </div>
+            <div className="hvm__modal-footer">
+              <button className="hvm__btn-ghost" onClick={() => setBulkDeleteOpen(false)}>Huỷ</button>
+              <button className="hvm__btn-danger" onClick={runBulkDelete} disabled={bulkDeleting}>
+                {bulkDeleting
+                  ? <><span className="material-icons hvm__spin">sync</span>Đang xoá...</>
+                  : <><span className="material-icons">delete_forever</span>Xác nhận xoá</>
                 }
               </button>
             </div>

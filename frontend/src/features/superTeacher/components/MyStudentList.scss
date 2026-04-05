@@ -49,6 +49,26 @@
     align-items: center;
   }
 
+  &__sync-btn {
+    @include st-btn-secondary;
+    color: #00685d;
+    border-color: #00685d;
+
+    .material-symbols-outlined { font-size: 18px; }
+
+    &:hover:not(:disabled) { background: rgba(0, 104, 93, 0.08); }
+    &:disabled { opacity: 0.55; cursor: not-allowed; }
+  }
+
+  &__spin {
+    animation: student-list-spin 1s linear infinite;
+  }
+
+  @keyframes student-list-spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
+
   &__import-btn {
     @include st-btn-primary;
 
